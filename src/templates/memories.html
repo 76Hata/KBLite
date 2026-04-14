@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Memories - KBLite{% endblock %}
+
+{% block content %}
+{% if memory_detail %}
+<div class="memory-detail">
+    <h1>{{ memory_detail.title }}</h1>
+    <div class="memory-meta">
+        <span class="result-category">{{ memory_detail.category }}</span>
+        <span>Created: {{ memory_detail.created_at }}</span>
+        <span>Updated: {{ memory_detail.updated_at }}</span>
+        {% if memory_detail.tags %}
+        <span>
+            {% for tag in memory_detail.tags %}<span class="tag">{{ tag }}</span>{% endfor %}
+        </span>
+        {% endif %}
+    </div>
+    <div class="markdown-content">{{ memory_detail.content }}</div>
+    <a href="/memories" class="btn" style="margin-top:1rem;">Back to Memories</a>
+</div>
+{% else %}
+<h1>Memories</h1>
+
+<form action="/memories" method="get" class="search-form">
+    <input type="text" name="q" value="{{ query }}" placeholder="Search memories..." class="search-input">
+    <select name="category" class="select-input">
+        <option value="">All categories</option>
+        {% for cat in ['user', 'project', 'reference', 'feedback', 'general'] %}
+        <option value="{{ cat }}" {{ 'selected' if category == cat else '' }}>{{ cat }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="btn">Filter</button>
+</form>
+
+{% if memories %}
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Category</th>
+            <th>Tags</th>
+            <th>Updated</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for m in memories %}
+        <tr>
+            <td><a href="/memory/{{ m.id }}">{{ m.highlighted_title|safe if m.highlighted_title is defined else m.title }}</a></td>
+            <td><span class="result-category">{{ m.category }}</span></td>
+            <td>
+                {% if m.tags %}
+                {% for tag in m.tags %}<span class="tag">{{ tag }}</span>{% endfor %}
+                {% endif %}
+            </td>
+            <td>{{ m.updated_at }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="empty-message">No memories found.</p>
+{% endif %}
+{% endif %}
+{% endblock %}

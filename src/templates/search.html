@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Search - KBLite{% endblock %}
+
+{% block content %}
+<h1>Search</h1>
+
+<form action="/search" method="get" class="search-form">
+    <input type="text" name="q" value="{{ query }}" placeholder="Search..." class="search-input" autofocus>
+    <button type="submit" class="btn">Search</button>
+</form>
+
+{% if query %}
+<section>
+    <h2>Conversations <span class="badge">{{ conv_results|length }}</span></h2>
+    {% if conv_results %}
+    <div class="result-list">
+        {% for r in conv_results %}
+        <div class="result-item">
+            <div class="result-header">
+                <a href="/session/{{ r.session_id }}">{{ r.session_title }}</a>
+                <span class="result-role {{ r.role }}">{{ r.role }}</span>
+            </div>
+            <div class="result-snippet">{{ r.highlighted|safe }}</div>
+            <div class="result-meta">{{ r.created_at }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty-message">No conversations found.</p>
+    {% endif %}
+</section>
+
+<section>
+    <h2>Memories <span class="badge">{{ mem_results|length }}</span></h2>
+    {% if mem_results %}
+    <div class="result-list">
+        {% for r in mem_results %}
+        <div class="result-item">
+            <div class="result-header">
+                <a href="/memory/{{ r.id }}">{{ r.highlighted_title|safe }}</a>
+                <span class="result-category">{{ r.category }}</span>
+            </div>
+            <div class="result-snippet">{{ r.highlighted_content|safe }}</div>
+            <div class="result-meta">
+                {{ r.updated_at }}
+                {% if r.tags %}
+                &mdash;
+                {% for tag in r.tags %}<span class="tag">{{ tag }}</span>{% endfor %}
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty-message">No memories found.</p>
+    {% endif %}
+</section>
+{% endif %}
+{% endblock %}

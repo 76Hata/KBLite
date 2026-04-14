@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}KBLite - Dashboard{% endblock %}
+
+{% block content %}
+<h1>Dashboard</h1>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.sessions }}</div>
+        <div class="stat-label">Sessions</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.conversations }}</div>
+        <div class="stat-label">Conversations</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.memories }}</div>
+        <div class="stat-label">Memories</div>
+    </div>
+</div>
+
+<section class="search-section">
+    <form action="/search" method="get" class="search-form">
+        <input type="text" name="q" placeholder="Search conversations and memories..." class="search-input">
+        <button type="submit" class="btn">Search</button>
+    </form>
+</section>
+
+<section>
+    <h2>Recent Sessions</h2>
+    {% if recent_sessions %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Messages</th>
+                <th>Updated</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in recent_sessions %}
+            <tr>
+                <td><a href="/session/{{ s.id }}">{{ s.title }}</a></td>
+                <td>{{ s.message_count }}</td>
+                <td>{{ s.updated_at }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="empty-message">No sessions yet.</p>
+    {% endif %}
+</section>
+{% endblock %}
