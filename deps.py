@@ -26,9 +26,14 @@ def _load_app_config() -> dict:
 _app_config = _load_app_config()
 
 AGENTS = _app_config.get("agents", [])
+_APP_COMMANDS_DIR = Path(__file__).parent / "commands"          # kblite/commands/（アプリ同梱・最優先）
 _PROJECT_COMMANDS_DIR = Path(__file__).parent.parent / ".claude" / "commands"
 _HOME_COMMANDS_DIR = Path.home() / ".claude" / "commands"
-AGENT_COMMANDS_DIR = _PROJECT_COMMANDS_DIR if _PROJECT_COMMANDS_DIR.is_dir() else _HOME_COMMANDS_DIR
+AGENT_COMMANDS_DIR = (
+    _APP_COMMANDS_DIR if _APP_COMMANDS_DIR.is_dir()
+    else _PROJECT_COMMANDS_DIR if _PROJECT_COMMANDS_DIR.is_dir()
+    else _HOME_COMMANDS_DIR
+)
 CATEGORIES = _app_config.get("categories", [])
 TEAMS = _app_config.get("teams", [])
 MODELS = _app_config.get("models", [])
