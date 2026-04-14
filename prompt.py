@@ -3,18 +3,7 @@ from deps import AGENT_COMMANDS_DIR, CATEGORIES
 
 # ── 定型インストラクション ────────────────────────────────────────
 
-_IMAGE_INSTRUCTION = """
-# 画像表示ルール
-ChromaDBの検索結果のmetadataに `image_path` が含まれている場合、
-その画像を回答に含めてください。以下のMarkdown形式を使用してください:
-
-![図の説明](/data/images/以降のパス)
-
-例: image_path が "/app/data/images/company_a/doc1/page-1.png" の場合:
-![図1: ページ1](/data/images/company_a/doc1/page-1.png)
-
-画像パスの `/app` プレフィックスは除去し、`/data/images/` から始めてください。
-"""
+_IMAGE_INSTRUCTION = ""
 
 _DIAGRAM_INSTRUCTION = """
 # 図表生成ルール
