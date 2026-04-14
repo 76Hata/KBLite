@@ -33,7 +33,7 @@ function openObservability() {
     _obsFrom = _formatDate(from);
   }
   document.getElementById("chatView").style.display = "none";
-  document.getElementById("logView").style.display = "none";
+  const _lv = document.getElementById("logView"); if (_lv) _lv.style.display = "none";
   view.style.display = "block";
   loadObservabilityData();
 }

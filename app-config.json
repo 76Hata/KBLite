@@ -4,7 +4,8 @@
   ],
   "internal_system_ids": [],
   "teams": [
-    {"id": "general", "name": "General Team", "default_model": "auto", "default_category": "general"}
+    {"id": "general", "name": "汎用チーム", "default_model": "auto", "default_category": "general"},
+    {"id": "team-it", "name": "IT専門家チーム", "default_model": "auto", "default_category": "general"}
   ],
   "models": [
     {"id": "auto", "name": "Auto", "default": true},

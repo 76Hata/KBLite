@@ -363,6 +363,14 @@
     }
     #readonlyBanner button:hover { background: #6d5003; }
 
+    /* チャットビュー（チャット + 入力エリア） */
+    #chatView {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
     /* チャットエリア */
     #chat {
       flex: 1;
@@ -617,30 +625,6 @@
       color: #333;
     }
 
-    #lockBtn {
-      width: 32px;
-      height: 32px;
-      padding: 0;
-      border-radius: 6px;
-      cursor: pointer;
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    #lockBtn svg { width: 18px; height: 18px; pointer-events: none; }
-    #lockBtn.locked {
-      background: rgba(255,255,255,0.12);
-      border: 1px solid rgba(255,255,255,0.3);
-      color: #ccc;
-    }
-    #lockBtn.unlocked {
-      background: rgba(46,204,113,0.25);
-      border: 1px solid rgba(46,204,113,0.5);
-      color: #6ddb9b;
-    }
-
     .state {
       text-align: center;
       padding: 40px 16px;
@@ -787,6 +771,86 @@
     #sendBtn:active { background: #1a5fa8; }
     #sendBtn:disabled { background: #aaa; cursor: default; }
 
+    /* 添付ファイルボタン */
+    #attachBtn {
+      flex-shrink: 0;
+      width: 42px;
+      height: 42px;
+      padding: 0;
+      background: #f5f5f5;
+      color: #666;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #attachBtn svg {
+      width: 20px;
+      height: 20px;
+    }
+    #attachBtn:hover {
+      background: #efefef;
+      color: #333;
+    }
+    #attachBtn:active {
+      background: #e5e5e5;
+    }
+
+    /* 添付ファイルエリア */
+    .attach-area {
+      padding: 8px 12px 0;
+      display: none;
+      flex-wrap: wrap;
+      gap: 6px;
+      background: #f9f9f9;
+      border-top: 1px solid #eee;
+    }
+    .attach-area.visible {
+      display: flex;
+    }
+
+    /* 添付ファイルチップ */
+    .attach-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #e8f0fe;
+      border: 1px solid #c5d9f9;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 13px;
+      color: #1a3a5f;
+    }
+    .attach-chip-name {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 150px;
+    }
+    .attach-chip-remove {
+      width: 18px;
+      height: 18px;
+      padding: 0;
+      background: none;
+      border: none;
+      color: #666;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .attach-chip-remove:hover {
+      color: #c0392b;
+    }
+
     /* ── モバイルオーバーレイ ───────────────────────────── */
     #sidebarOverlay {
       display: none;
@@ -843,71 +907,129 @@
       #sidebarOverlay { display: none !important; }
     }
 
-    /* Password dialog styling (for lock functionality) */
-    .pw-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.5);
-      z-index: 20000;
+    /* ── Rate limit gauges ─────────────────────────────── */
+    #rlContainer {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .rl-gauge {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.06);
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .rl-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.7);
+      min-width: 16px;
+    }
+    .rl-bar {
+      position: relative;
+      width: 48px;
+      height: 6px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 3px;
+      overflow: visible;
+    }
+    .rl-threshold-line {
+      position: absolute;
+      top: -4px;
+      bottom: -4px;
+      width: 2px;
+      background: #fff;
+      opacity: 0.85;
+      border-radius: 1px;
+      left: 0%;
+      transition: left 0.5s ease;
+      z-index: 2;
+    }
+    .rl-threshold-val {
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+    .rl-bar-fill {
+      position: absolute;
+      top: 0; left: 0; bottom: 0;
+      width: 0%;
+      max-width: 100%;
+      border-radius: 3px;
+      transition: width 0.5s ease, background 0.3s ease;
+    }
+    .rl-pct {
+      font-size: 10px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.85);
+      min-width: 28px;
+      text-align: right;
+    }
+    .rl-remaining {
+      font-size: 9px;
+      color: #fff;
+      white-space: nowrap;
+    }
+
+    /* ── Observability button ──────────────────────────── */
+    #obsBtn {
+      width: 32px;
+      height: 32px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: #fff;
+      border-radius: 6px;
+      padding: 0;
+      cursor: pointer;
+      display: flex;
       align-items: center;
       justify-content: center;
+      flex-shrink: 0;
     }
-    .pw-overlay.active { display: flex; }
-    .pw-dialog {
-      background: #fff;
-      border-radius: 12px;
-      padding: 28px 24px 20px;
-      min-width: 300px;
-      max-width: 90vw;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
-      text-align: center;
+    #obsBtn:hover { background: rgba(255,255,255,0.2); }
+    #obsBtn:active { background: rgba(255,255,255,0.25); }
+
+    /* ── Observability dashboard ───────────────────────── */
+    #observabilityView {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      background: #f8f9fa;
     }
-    .pw-dialog h3 {
-      margin: 0 0 16px;
-      font-size: 16px;
-      color: #333;
+    .obs-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
     }
-    .pw-dialog input[type="password"] {
-      width: 100%;
-      padding: 10px 12px;
-      font-size: 14px;
+    .obs-back-btn {
+      padding: 6px 14px;
       border: 1px solid #ccc;
       border-radius: 6px;
-      margin-bottom: 8px;
-      outline: none;
-    }
-    .pw-dialog input[type="password"]:focus {
-      border-color: #2e7dd1;
-    }
-    .pw-dialog .pw-error {
-      color: #c0392b;
-      font-size: 13px;
-      min-height: 20px;
-      margin-bottom: 8px;
-    }
-    .pw-dialog .pw-buttons {
-      display: flex;
-      gap: 8px;
-      justify-content: center;
-    }
-    .pw-dialog .pw-buttons button {
-      padding: 8px 20px;
-      font-size: 14px;
-      border: none;
-      border-radius: 6px;
+      background: #fff;
       cursor: pointer;
+      font-size: 13px;
     }
-    .pw-dialog .pw-ok {
-      background: #2e7dd1;
-      color: #fff;
-    }
-    .pw-dialog .pw-ok:hover { background: #3a8de0; }
-    .pw-dialog .pw-cancel {
-      background: #e0e0e0;
+    .obs-back-btn:hover { background: #f5f5f5; }
+    .obs-title {
+      font-size: 18px;
+      font-weight: 700;
       color: #333;
     }
-    .pw-dialog .pw-cancel:hover { background: #ccc; }
+    .obs-loading, .obs-error, .obs-empty {
+      text-align: center;
+      padding: 40px;
+      color: #888;
+      font-size: 14px;
+    }
+    .obs-error { color: #e53e3e; }
+    .obs-content { }
+
   </style>
   <script src="https://cdn.jsdelivr.net/npm/marked@15/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mermaid@11.13.0/dist/mermaid.min.js"></script>
@@ -967,7 +1089,22 @@
       <select id="modelSelect">
       </select>
     </div>
-    <button id="lockBtn" class="locked" onclick="toggleLock()" title="ロック中"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></button>
+    <div id="rlContainer" style="display:none">
+      <div class="rl-gauge" id="rlGauge5h" data-label-prefix="5h">
+        <span class="rl-label">5h</span>
+        <div class="rl-bar"><div class="rl-bar-fill"></div></div>
+        <span class="rl-pct">-</span>
+        <span class="rl-remaining"></span>
+      </div>
+      <div class="rl-gauge" id="rlGauge7d" data-label-prefix="7d">
+        <span class="rl-label">7d</span>
+        <div class="rl-bar"><div class="rl-bar-fill"></div><div class="rl-threshold-line"></div></div>
+        <span class="rl-pct">-</span>
+        <span class="rl-threshold-val"></span>
+        <span class="rl-remaining"></span>
+      </div>
+    </div>
+    <button id="obsBtn" onclick="openObservability()" title="Observability"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
     <button id="newChatBtn" onclick="newChat()">新しい会話</button>
   </header>
 
@@ -983,23 +1120,30 @@
     </div>
 
     <div class="input-area" id="inputArea">
+      <button id="attachBtn" onclick="triggerAttach()" title="ファイルを添付">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 0 18.8-4.3M22 12.5a10 10 0 0 0-18.8 2.2"></path>
+        </svg>
+      </button>
+      <input type="file" id="attachInput" style="display:none" onchange="handleAttachInput(event)" multiple>
       <textarea id="messageInput"
         placeholder="例: エージェントチームの構成と各担当者の役割を教えてください"
         rows="1"></textarea>
       <button id="sendBtn" onclick="sendMessage()">送信</button>
     </div>
+
+    <!-- 添付ファイルエリア -->
+    <div class="attach-area" id="attachArea"></div>
   </div>
 
-  <!-- パスワードダイアログ（ロック解除用） -->
-  <div class="pw-overlay" id="pwOverlay">
-    <div class="pw-dialog">
-      <h3 id="pwDialogTitle">ロックを解除</h3>
-      <input type="password" id="pwInput" placeholder="パスワード" autocomplete="off">
-      <div class="pw-error" id="pwError"></div>
-      <div class="pw-buttons">
-        <button class="pw-cancel" onclick="closePwDialog()">キャンセル</button>
-        <button class="pw-ok" onclick="submitPwDialog()">OK</button>
-      </div>
+  <!-- Observability ダッシュボード -->
+  <div id="observabilityView" style="display:none">
+    <div class="obs-toolbar">
+      <button class="obs-back-btn" onclick="closeObservability()">← 戻る</button>
+      <h2 class="obs-title">Observability Dashboard</h2>
+    </div>
+    <div id="obsContent" class="obs-content">
+      <div class="obs-loading">読み込み中...</div>
     </div>
   </div>
 
@@ -1019,16 +1163,10 @@
       if (!res.ok) return;
       _configCache = await res.json();
 
-      // カテゴリラベルマップ・ロック対象セットを構築
+      // カテゴリラベルマップを構築
       _CATEGORY_LABELS = {};
-      _LOCKED_CATEGORIES = new Set();
-      _LOCKED_CATEGORY_NAMES = new Set();
       (_configCache.categories || []).forEach(c => {
         _CATEGORY_LABELS[c.system_id] = c.name;
-        if (c.locked) {
-          _LOCKED_CATEGORIES.add(c.system_id);
-          _LOCKED_CATEGORY_NAMES.add(c.name);
-        }
       });
 
       // チームセレクト構築
@@ -1054,90 +1192,12 @@
         if (m.default) opt.selected = true;
         modelSel.appendChild(opt);
       });
-
-      // ロック状態を適用してセレクトを構築
-      applyLockState();
     } catch (e) {
       console.error('設定読み込みエラー:', e);
     }
   }
 
   loadAppConfig();
-
-  // ── ロック状態の適用 ─────────────────────────────
-  function applyLockState() {
-    if (!_configCache) return;
-    const categories = _configCache.categories || [];
-    const btn = document.getElementById('lockBtn');
-
-    // ボタン表示切替（鍵アイコン）
-    if (_isLocked) {
-      btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>';
-      btn.className = 'locked';
-      btn.title = 'ロック中';
-    } else {
-      btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 5-5 5 5 0 0 1 5 5"></path></svg>';
-      btn.className = 'unlocked';
-      btn.title = 'ロック解除中';
-    }
-
-    // カテゴリセレクト再構築（ロック対象を除外）
-    catSel.innerHTML = '';
-    categories.forEach(c => {
-      if (_isLocked && c.locked) return;
-      const opt = document.createElement('option');
-      opt.value = c.system_id;
-      opt.textContent = c.name;
-      if (c.system_id === 'it') opt.selected = true;
-      catSel.appendChild(opt);
-    });
-
-    // アップロードカテゴリセレクト再構築
-    const upCatSel = document.getElementById('uploadCategorySelect');
-    if (upCatSel) {
-      upCatSel.innerHTML = '';
-      categories.forEach(c => {
-        if (_isLocked && c.locked) return;
-        const opt = document.createElement('option');
-        opt.value = c.system_id;
-        opt.textContent = c.name;
-        upCatSel.appendChild(opt);
-      });
-    }
-
-    // プロジェクトフィルタの表示/非表示（ロック時は非表示）
-    const projectFilter = document.querySelector('.project-filter');
-    if (projectFilter) {
-      projectFilter.style.display = _isLocked ? 'none' : '';
-    }
-
-    // セッション一覧・プロジェクトフィルタを再描画
-    if (_allSessions && _allSessions.length > 0) {
-      renderSessionList(_allSessions);
-    }
-    if (typeof renderProjectFilter === 'function') {
-      renderProjectFilter();
-    }
-  }
-
-  function toggleLock() {
-    if (_isLocked) {
-      // 解除ボタン押下 → パスワード認証
-      openLockPwDialog();
-    } else {
-      // ロックボタン押下 → 即座にロック状態へ
-      _isLocked = true;
-      applyLockState();
-    }
-  }
-
-  function openLockPwDialog() {
-    document.getElementById('pwInput').value = '';
-    document.getElementById('pwError').textContent = '';
-    document.getElementById('pwOverlay').dataset.mode = 'unlock';
-    document.getElementById('pwOverlay').classList.add('active');
-    setTimeout(() => document.getElementById('pwInput').focus(), 100);
-  }
 
   function onTeamChange() {
     const teamMode = document.getElementById('teamSelect').value;
@@ -1149,48 +1209,6 @@
     if (targetCategory !== undefined && targetCategory !== '') {
     }
   }
-
-  function closePwDialog() {
-    document.getElementById('pwOverlay').classList.remove('active');
-    document.getElementById('pwInput').value = '';
-    document.getElementById('pwError').textContent = '';
-  }
-
-  function submitPwDialog() {
-    const password = document.getElementById('pwInput').value;
-    const mode = document.getElementById('pwOverlay').dataset.mode || 'unlock';
-
-    if (!password) {
-      document.getElementById('pwError').textContent = 'パスワードを入力してください';
-      return;
-    }
-
-    // Unlock mode: validate against session lock
-    if (mode === 'unlock') {
-      fetch(`/api/sessions/${_viewingSessionId}/unlock`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password })
-      })
-      .then(r => r.json())
-      .then(data => {
-        if (data.success) {
-          closePwDialog();
-          loadSession(_viewingSessionId, true);
-        } else {
-          document.getElementById('pwError').textContent = 'パスワードが正しくありません';
-        }
-      })
-      .catch(e => {
-        document.getElementById('pwError').textContent = 'エラーが発生しました';
-        console.error(e);
-      });
-    }
-  }
-
-  document.getElementById('pwInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') { e.preventDefault(); submitPwDialog(); }
-  });
 
   let _sending = false;
   let _activeTaskId = null;
@@ -1209,6 +1227,13 @@
   let _sessionCreated = false;
   let _sessionCategory = '';  // 初回送信時にカテゴリセレクタから取得
   let _conversationHistory = [];  // [{question, answer}, ...]
+
+  // ── ファイル添付設定 ──────────────────────────────────
+  let _attachments = [];
+  const _ATTACH_MAX_FILES = 10;
+  const _ATTACH_MAX_SIZE_IMAGE = 10 * 1024 * 1024; // 10MB
+  const _ATTACH_MAX_SIZE_TEXT = 10 * 1024 * 1024;  // 10MB
+  const _IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml']);
 
   function esc(s) {
     return String(s ?? '')
@@ -1353,23 +1378,12 @@
 
   // カテゴリ表示名マップ（loadAppConfigで動的構築）
   let _CATEGORY_LABELS = {};
-  // ロック対象カテゴリのsystem_idセット（loadAppConfigで構築）
-  let _LOCKED_CATEGORIES = new Set();
-  // ロック対象カテゴリの名前セット（プロジェクトフィルタ用）
-  let _LOCKED_CATEGORY_NAMES = new Set();
-  // ロック状態（true=ロック中=locked項目を非表示）
-  let _isLocked = true;
 
   function renderSessionList(sessions) {
     const listEl = document.getElementById('sessionList');
 
-    // ロック対象カテゴリのセッションを除外
-    let filtered = sessions;
-    if (_isLocked && _LOCKED_CATEGORIES.size > 0) {
-      filtered = filtered.filter(s => !_LOCKED_CATEGORIES.has(s.category));
-    }
-
     // プロジェクトフィルタ適用
+    let filtered = sessions;
     const filterVal = document.getElementById('projectFilter').value;
     if (filterVal === '__unassigned__') {
       filtered = filtered.filter(s => !s.project_id);
@@ -2019,6 +2033,7 @@
       _activeTaskId = null;
       _sending = false;
       document.getElementById('sendBtn').disabled = false;
+      clearAttachments();
       input.focus();
     }
   }
@@ -2178,8 +2193,6 @@
     const current = sel.value;
     let html = '<option value="">すべての会話</option><option value="__unassigned__">未分類</option>';
     for (const p of _projects) {
-      // ロック中はロック対象カテゴリの名前またはsystem_idと一致するプロジェクトを非表示
-      if (_isLocked && (_LOCKED_CATEGORY_NAMES.has(p.name) || _LOCKED_CATEGORIES.has(p.name))) continue;
       html += '<option value="' + esc(p.id || p.project_id) + '">' + esc(p.name) + '</option>';
     }
     sel.innerHTML = html;
@@ -2277,12 +2290,9 @@
       }
     }
 
-    // プロジェクト選択ダイアログ（簡易版、ロック対象除外）
-    const visibleProjects = _isLocked
-      ? _projects.filter(p => !_LOCKED_CATEGORY_NAMES.has(p.name) && !_LOCKED_CATEGORIES.has(p.name))
-      : _projects;
+    // プロジェクト選択ダイアログ
     let options = '0: 未分類に戻す\n';
-    visibleProjects.forEach((p, i) => {
+    _projects.forEach((p, i) => {
       options += (i + 1) + ': ' + p.name + '\n';
     });
     const choice = prompt('移動先プロジェクトの番号を入力:\n' + options);
@@ -2291,8 +2301,8 @@
     let targetId = '';
     if (num === 0) {
       targetId = '';
-    } else if (num >= 1 && num <= visibleProjects.length) {
-      targetId = visibleProjects[num - 1].id || visibleProjects[num - 1].project_id;
+    } else if (num >= 1 && num <= _projects.length) {
+      targetId = _projects[num - 1].id || _projects[num - 1].project_id;
     } else {
       showToast('無効な番号です');
       return;
@@ -2313,9 +2323,138 @@
     }
   }
 
+  // ── ファイル添付機能 ────────────────────────────────
+  function triggerAttach() {
+    document.getElementById('attachInput').click();
+  }
+
+  async function _addFile(file) {
+    if (_attachments.length >= _ATTACH_MAX_FILES) {
+      showToast('添付は最大' + _ATTACH_MAX_FILES + 'ファイルまでです');
+      return;
+    }
+    const isImage = _IMAGE_TYPES.has(file.type);
+    const isPdf = file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf';
+    const maxSize = (isImage || isPdf) ? _ATTACH_MAX_SIZE_IMAGE : _ATTACH_MAX_SIZE_TEXT;
+    const label  = '10MB';
+    if (file.size > maxSize) {
+      showToast(file.name + ' は' + label + '超のためスキップ');
+      return;
+    }
+    try {
+      if (isImage) {
+        const content = await readFileAsDataURL(file);
+        _attachments.push({ name: file.name, content, type: 'image' });
+      } else if (isPdf) {
+        const content = await readFileAsDataURL(file);
+        _attachments.push({ name: file.name, content, type: 'pdf' });
+      } else {
+        const content = await readFileAsText(file);
+        _attachments.push({ name: file.name, content, type: 'text' });
+      }
+    } catch (e) {
+      showToast(file.name + ' の読み込みに失敗しました');
+    }
+  }
+
+  function readFileAsText(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsText(file, 'UTF-8');
+    });
+  }
+
+  function readFileAsDataURL(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function renderAttachChips() {
+    const area = document.getElementById('attachArea');
+    if (_attachments.length === 0) {
+      area.classList.remove('visible');
+      area.innerHTML = '';
+      return;
+    }
+    area.classList.add('visible');
+    let html = '';
+    _attachments.forEach((att, i) => {
+      if (att.type === 'image') {
+        html += '<span class="attach-chip">' +
+          '<img src="' + att.content + '" style="width:40px;height:40px;object-fit:cover;border-radius:3px;flex-shrink:0;" title="' + esc(att.name) + '">' +
+          '<span class="attach-chip-name" title="' + esc(att.name) + '">' + esc(att.name) + '</span>' +
+          '<button class="attach-chip-remove" onclick="removeAttach(' + i + ')" title="削除">&times;</button>' +
+          '</span>';
+      } else if (att.type === 'pdf') {
+        html += '<span class="attach-chip">' +
+          '<span style="font-size:18px;margin-right:4px">&#128196;</span>' +
+          '<span class="attach-chip-name" title="' + esc(att.name) + '">' + esc(att.name) + '</span>' +
+          '<button class="attach-chip-remove" onclick="removeAttach(' + i + ')" title="削除">&times;</button>' +
+          '</span>';
+      } else {
+        html += '<span class="attach-chip">' +
+          '<span class="attach-chip-name" title="' + esc(att.name) + '">' + esc(att.name) + '</span>' +
+          '<button class="attach-chip-remove" onclick="removeAttach(' + i + ')" title="削除">&times;</button>' +
+          '</span>';
+      }
+    });
+    area.innerHTML = html;
+  }
+
+  function removeAttach(index) {
+    _attachments.splice(index, 1);
+    renderAttachChips();
+  }
+
+  function clearAttachments() {
+    _attachments = [];
+    renderAttachChips();
+  }
+
+  function handleAttachInput(event) {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+    (async () => {
+      for (const file of files) await _addFile(file);
+      renderAttachChips();
+      event.target.value = '';
+    })();
+  }
+
+  // クリップボードからのペースト（スクリーンショット対応）
+  document.addEventListener('DOMContentLoaded', function() {
+    const msgInput = document.getElementById('messageInput');
+    if (msgInput) {
+      msgInput.addEventListener('paste', async function(e) {
+        const items = e.clipboardData && e.clipboardData.items;
+        if (!items) return;
+        let hasImage = false;
+        for (const item of items) {
+          if (_IMAGE_TYPES.has(item.type)) {
+            hasImage = true;
+            const file = item.getAsFile();
+            if (!file) continue;
+            const name = 'screenshot_' + Date.now() + '.png';
+            const namedFile = new File([file], name, { type: file.type });
+            await _addFile(namedFile);
+          }
+        }
+        if (hasImage) renderAttachChips();
+      });
+    }
+  });
+
   // ── 初期化 ─────────────────────────────────────────
   loadProjects();
   initSidebar();
 </script>
+<script src="/static/js/rate-limits.js"></script>
+<script src="/static/js/observability.js"></script>
 </body>
 </html>
