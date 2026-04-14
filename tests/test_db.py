@@ -253,6 +253,88 @@ class TestListSessions:
         assert result["sessions"][0]["id"] == "s1"
 
 
+class TestGetSession:
+    """get_session テスト"""
+
+    def test_existing_session(self, db):
+        """存在するセッションを取得できること"""
+        db.save_conversation("sess-001", "user", "Hello", 1, title="Test Session")
+        result = db.get_session("sess-001")
+        assert result is not None
+        assert result["id"] == "sess-001"
+        assert result["title"] == "Test Session"
+        assert result["message_count"] == 1
+
+    def test_nonexistent_session(self, db):
+        """存在しないセッションはNoneを返すこと"""
+        result = db.get_session("nonexistent")
+        assert result is None
+
+
+class TestGetConversationsBySession:
+    """get_conversations_by_session テスト"""
+
+    def test_returns_ordered(self, db):
+        """turn_number順で会話を取得できること"""
+        db.save_conversation("s1", "user", "Q1", 1, title="Test")
+        db.save_conversation("s1", "assistant", "A1", 1)
+        db.save_conversation("s1", "user", "Q2", 2)
+        db.save_conversation("s1", "assistant", "A2", 2)
+
+        convs = db.get_conversations_by_session("s1")
+        assert len(convs) == 4
+        assert convs[0]["role"] == "user"
+        assert convs[0]["content"] == "Q1"
+        assert convs[-1]["role"] == "assistant"
+        assert convs[-1]["content"] == "A2"
+
+    def test_empty_session(self, db):
+        """会話がないセッションは空リストを返すこと"""
+        convs = db.get_conversations_by_session("nonexistent")
+        assert convs == []
+
+
+class TestGetMemory:
+    """get_memory テスト"""
+
+    def test_existing_memory(self, db):
+        """メモをタグ付きで取得できること"""
+        result = db.save_memory("Test Memo", "Content", "general", tags=["tag1", "tag2"])
+        memory = db.get_memory(result["memory_id"])
+        assert memory is not None
+        assert memory["title"] == "Test Memo"
+        assert memory["content"] == "Content"
+        assert memory["category"] == "general"
+        assert set(memory["tags"]) == {"tag1", "tag2"}
+
+    def test_nonexistent_memory(self, db):
+        """存在しないメモはNoneを返すこと"""
+        result = db.get_memory(99999)
+        assert result is None
+
+
+class TestGetStats:
+    """get_stats テスト"""
+
+    def test_empty_stats(self, db):
+        """空のDBでは全て0を返すこと"""
+        stats = db.get_stats()
+        assert stats == {"sessions": 0, "conversations": 0, "memories": 0}
+
+    def test_counts(self, db):
+        """各テーブルの件数を正しくカウントすること"""
+        db.save_conversation("s1", "user", "Q1", 1, title="S1")
+        db.save_conversation("s1", "assistant", "A1", 1)
+        db.save_conversation("s2", "user", "Q2", 1, title="S2")
+        db.save_memory("Memo1", "Content1", "general")
+        db.save_memory("Memo2", "Content2", "user")
+
+        stats = db.get_stats()
+        assert stats["sessions"] == 2
+        assert stats["conversations"] == 3
+        assert stats["memories"] == 2
+
+
 class TestContextManager:
     """コンテキストマネージャテスト"""
 

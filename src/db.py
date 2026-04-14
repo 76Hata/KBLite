@@ -290,6 +290,53 @@ class KBLiteDB:
 
         return {"results": results}
 
+    def get_session(self, session_id: str) -> dict | None:
+        """セッション1件を取得する。"""
+        cur = self._conn.cursor()
+        row = cur.execute(
+            "SELECT id, title, created_at, updated_at, message_count FROM sessions WHERE id = ?",
+            (session_id,),
+        ).fetchone()
+        return dict(row) if row else None
+
+    def get_conversations_by_session(self, session_id: str) -> list[dict]:
+        """指定セッションの全会話をturn_number順で取得する。"""
+        cur = self._conn.cursor()
+        rows = cur.execute(
+            """
+            SELECT id, session_id, role, content, created_at, turn_number
+            FROM conversations
+            WHERE session_id = ?
+            ORDER BY turn_number, id
+            """,
+            (session_id,),
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+    def get_memory(self, memory_id: int) -> dict | None:
+        """メモ1件をタグ込みで取得する。"""
+        cur = self._conn.cursor()
+        row = cur.execute(
+            "SELECT id, title, content, category, created_at, updated_at FROM memories WHERE id = ?",
+            (memory_id,),
+        ).fetchone()
+        if row is None:
+            return None
+        d = dict(row)
+        tags = cur.execute(
+            "SELECT tag FROM memory_tags WHERE memory_id = ?", (memory_id,)
+        ).fetchall()
+        d["tags"] = [t["tag"] for t in tags]
+        return d
+
+    def get_stats(self) -> dict:
+        """統計情報を返す。"""
+        cur = self._conn.cursor()
+        sessions = cur.execute("SELECT COUNT(*) FROM sessions").fetchone()[0]
+        conversations = cur.execute("SELECT COUNT(*) FROM conversations").fetchone()[0]
+        memories = cur.execute("SELECT COUNT(*) FROM memories").fetchone()[0]
+        return {"sessions": sessions, "conversations": conversations, "memories": memories}
+
     def list_sessions(self, limit: int = 50, offset: int = 0) -> dict:
         """セッション一覧を返す。"""
         cur = self._conn.cursor()

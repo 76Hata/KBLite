@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}KBLite{% endblock %}</title>
+    <link rel="stylesheet" href="/static/js/vendor/highlight-default.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container header-inner">
+            <a href="/" class="logo">KBLite</a>
+            <nav class="main-nav">
+                <a href="/sessions">Sessions</a>
+                <a href="/memories">Memories</a>
+                <a href="/search">Search</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            KBLite v0.2.0 &mdash; MIT License
+        </div>
+    </footer>
+
+    <script src="/static/js/vendor/marked.min.js"></script>
+    <script src="/static/js/vendor/highlight.min.js"></script>
+    <script src="/static/js/vendor/purify.min.js"></script>
+    <script src="/static/js/vendor/mermaid.min.js"></script>
+    <script src="/static/js/main.js"></script>
+</body>
+</html>
