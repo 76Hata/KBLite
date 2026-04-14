@@ -1,0 +1,252 @@
+"""プロンプト構築 — エージェント命令文・カテゴリ指示・会話履歴の組み立て"""
+from deps import AGENT_COMMANDS_DIR, CATEGORIES
+
+# ── 定型インストラクション ────────────────────────────────────────
+
+_IMAGE_INSTRUCTION = """
+# 画像表示ルール
+ChromaDBの検索結果のmetadataに `image_path` が含まれている場合、
+その画像を回答に含めてください。以下のMarkdown形式を使用してください:
+
+![図の説明](/data/images/以降のパス)
+
+例: image_path が "/app/data/images/company_a/doc1/page-1.png" の場合:
+![図1: ページ1](/data/images/company_a/doc1/page-1.png)
+
+画像パスの `/app` プレフィックスは除去し、`/data/images/` から始めてください。
+"""
+
+_DIAGRAM_INSTRUCTION = """
+# 図表生成ルール
+回答の理解を助けるために、以下のような場合はMermaidコードブロックで図を生成してください:
+- システム構成図・アーキテクチャ図
+- 処理フロー・手順の説明
+- データの関係性（ER図）
+- 状態遷移・ライフサイクル
+- 比較・分類の整理（マインドマップ）
+- タイムライン・スケジュール（ガントチャート）
+
+Mermaid記法のルール:
+- ノード名・ラベル・サブグラフ名に絵文字・特殊記号・全角罫線文字を使用しない
+- 日本語テキスト・英数字・基本記号のみ使用する
+- マルチバイト文字（日本語等）を含むラベルは必ずダブルクォート（"）で囲む（囲まないと描画されない）
+  - 正: A["質問する"] --> B["RAG検索"]
+  - 誤: A[質問する] --> B[RAG検索]
+- 図が不要な場合や単純な回答には無理に図を入れない
+"""
+
+_DRAWIO_INSTRUCTION = """
+# draw.io図表生成ルール
+以下のような複雑な図が必要な場合は、draw.io XML形式（```drawio コードブロック）で出力できます:
+- 複雑なネットワーク構成図・インフラ構成図
+- 自由配置が必要なアーキテクチャ図
+- 位置や色を細かく制御したい図
+- Mermaidでは表現しきれない複雑なレイアウト
+
+draw.io XMLの基本構造:
+```drawio
+<mxfile>
+  <diagram name="図名">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <!-- ノード: value=表示テキスト, style=スタイル -->
+        <mxCell id="2" value="ノード名" style="rounded=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="100" y="100" width="120" height="60" as="geometry"/>
+        </mxCell>
+        <!-- エッジ: source/target でノードを接続 -->
+        <mxCell id="3" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="2" target="4" parent="1"/>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
+```
+
+ルール:
+- 簡単な図やフロー図はMermaid記法を優先すること
+- draw.ioはMermaidでは表現困難な複雑図にのみ使用すること
+- mxCell の id は重複させないこと
+- value属性に日本語テキストを使用可能
+"""
+
+_TITLE_INSTRUCTION = """
+# タイトル生成ルール（必須）
+回答の最後に、この質問と回答の内容を要約した短いタイトル（20文字以内の日本語）を
+以下のHTMLコメント形式で必ず出力してください。このタイトルは会話履歴の一覧表示に使用されます。
+<!-- KB_TITLE: タイトルテキスト -->
+"""
+
+_TURN_SUMMARY_INSTRUCTION = """
+# ターン要約の出力（必須）
+回答の最後（KB_TITLEの後）に、このターンの内容を構造化した要約を以下のHTMLコメント形式で
+必ず出力してください。この要約は次ターン以降の会話履歴として使用されます。
+
+要約は「引き継ぎ文書」として機能します。次のターンのAIがこの要約だけを読んで
+会話を円滑に継続できることを最優先にしてください。
+文字数は各フィールド目安であり、必要に応じて超過しても構いません。
+
+<!-- KB_TURN_SUMMARY
+topic: [このターンの主テーマ（目安30文字）]
+background: [前ターンからの文脈・経緯。初回や文脈不要時は省略可]
+decisions: [確定した設計・方針・ユーザーの明示的指示（目安200文字）]
+changes: [変更したファイル・DB・設定。変更がない場合は省略可]
+pending: [次に持ち越す未解決事項・残タスク。なければ省略可]
+-->
+
+出力順序: 回答本文 → KB_TITLE → KB_TURN_SUMMARY
+"""
+
+_KNOWLEDGE_EXTRACTION_INSTRUCTION = """
+# リアルタイム知識登録ルール
+会話中に以下の「登録対象」に該当する知見を発見したら、回答と並行して `knowledge-mcp` の `add_knowledge` ツールを呼びRAGに登録してください。
+「この記事を読んで記憶してください」と手動でお願いする作業の自動版です。
+
+## 登録対象
+- ユーザーの意思決定・価値観・考え方（「〜が重要」「〜はやらない」「〜を優先」等）
+- 技術的な発見・設計判断とその理由（新たに判明した事実、選択とその根拠）
+- プロジェクト固有の制約・ルール（KA/エージェントチームの運用に関わるもの）
+- 有用な概念整理・フレームワーク（概念を明確に言語化できた知見）
+
+## 登録しない
+- 一般的な技術知識（Claude学習データに含まれるレベルのもの）
+- 一時的なタスク進捗・作業状態
+- ツール実行結果そのもの（ログ・エラー等）
+- 既にRAGに登録済みの内容
+
+## 登録方法
+- `collection`: `common_knowledge`
+- `content`: 要点を簡潔に要約（会話テキストそのままでなく要約すること）
+- 同じ知見の重複登録は避けること
+"""
+
+
+# ── プロンプト構築関数 ────────────────────────────────────────────
+
+def _build_fast_prompt(message: str) -> str:
+    """速度重視モード用のシンプルなインラインプロンプト"""
+    return (
+        "あなたは優秀なナレッジアシスタントです。\n"
+        "ユーザの質問に対して、簡潔かつ正確に回答してください。\n"
+        "技術的な質問にはコード例を含めてください。\n\n"
+        f"ユーザの質問: {message}"
+    )
+
+
+def load_command_prompt(command_name: str) -> str:
+    """~/.claude/commands/{command_name}.md を読み込む"""
+    path = AGENT_COMMANDS_DIR / f"{command_name}.md"
+    if not path.exists():
+        raise FileNotFoundError(f"コマンドファイルが見つかりません: {path}")
+    return path.read_text(encoding="utf-8")
+
+
+def _build_history_context(history: list) -> str:
+    """会話履歴をプロンプト用テキストに変換する。
+
+    summaryがあるターンは要約を使用し、ないターンは回答全文（最大2000文字）を使用する。
+    """
+    if not history:
+        return ""
+    parts = []
+    for i, h in enumerate(history):
+        q = h.get("question", "")
+        summary = h.get("summary", "")
+        if summary:
+            parts.append(f"### ターン{i + 1}\n質問: {q}\n\n要約:\n{summary}")
+        else:
+            a = h.get("answer", "")
+            if len(a) > 2000:
+                a = a[:2000] + "\n...(省略)"
+            parts.append(f"### ターン{i + 1}\n質問: {q}\n\n回答:\n{a}")
+    return "## 同一セッション内の前回のやり取り\n" + "\n\n".join(parts) + "\n\n"
+
+
+def _build_category_instruction(category: str, search_all: bool = False) -> str:
+    """カテゴリ固有のドメイン知識検索指示を生成する"""
+    if search_all:
+        # パターン3: photorecoカテゴリ+横断検索 → 終了PJを含む横断検索
+        if category == "photoreco":
+            return (
+                "\n\n## ドメイン知識の活用（必須）\n"
+                "全コレクション横断検索モードです（終了PJコレクション含む）。\n"
+                "回答する前に、必ず knowledge-mcp の unified_search ツールで "
+                "関連知識を検索してください。\n"
+                "検索結果をドメイン知識として参照し、あなたの専門知識と"
+                "組み合わせて回答してください。\n"
+                "検索結果が0件の場合は、その旨を述べた上であなたの知識のみで回答してください。\n"
+            )
+        # パターン1: photoreco以外+横断検索 → 終了PJを除外した横断検索
+        return (
+            "\n\n## ドメイン知識の活用（必須）\n"
+            "全コレクション横断検索モードです。\n"
+            "回答する前に、必ず knowledge-mcp の unified_search ツールで "
+            "関連知識を検索してください。\n"
+            "検索結果をドメイン知識として参照し、あなたの専門知識と"
+            "組み合わせて回答してください。\n"
+            "検索結果が0件の場合は、その旨を述べた上であなたの知識のみで回答してください。\n"
+        )
+    if not category or category == "common_knowledge":
+        return ""
+    cat_name = next((c["name"] for c in CATEGORIES if c["system_id"] == category), category)
+    return (
+        f"\n\n## ドメイン知識の活用（必須）\n"
+        f"この会話のカテゴリは「{cat_name}」(system_id: {category}) です。\n"
+        f"回答する前に、必ず knowledge-mcp の unified_search ツールで "
+        f'context="{category}" を指定して関連知識を検索してください。\n'
+        f"検索結果をドメイン固有知識として参照し、あなたの専門知識と"
+        f"組み合わせて回答してください。\n"
+        f"検索結果が0件の場合は、その旨を述べた上であなたの知識のみで回答してください。\n"
+    )
+
+
+def _build_client_context(client_context: str) -> str:
+    """クライアント情報をプロンプト用テキストに変換する。"""
+    if not client_context:
+        return ""
+    return (
+        "\n\n<client-context>\n"
+        f"起動元: {client_context}\n"
+        "あなたはKBブラウザ（Webチャット）から起動されています。\n"
+        "KBブラウザはCLIと同等のファイル操作・コード変更・Git操作が可能です。\n"
+        "ファイル修正・コード変更はツールを使って直接実行してください。ユーザーに手作業を求めないこと。\n"
+        "</client-context>\n"
+    )
+
+
+def build_team_prompt(message: str, agents: list, mode: str,
+                      history: list | None = None, category: str = "",
+                      search_all: bool = False,
+                      client_context: str = "",
+                      lesson_context: str = "") -> str:
+    """ユーザーメッセージとエージェント選択からプロンプトを構築"""
+    history_ctx = _build_history_context(history) if history else ""
+    effective_message = f"{history_ctx}## 今回の質問\n{message}" if history_ctx else message
+    category_instruction = _build_category_instruction(category, search_all=search_all)
+    client_ctx = _build_client_context(client_context)
+
+    if mode == "team-it":
+        template = load_command_prompt("agent-team-it")
+        prompt = template.replace("$ARGUMENTS", effective_message)
+    elif mode == "content":
+        template = load_command_prompt("agent-team-content")
+        prompt = template.replace("$ARGUMENTS", effective_message)
+    elif mode == "general":
+        template = load_command_prompt("agent-team-general")
+        prompt = template.replace("$ARGUMENTS", effective_message)
+    elif mode == "childcare":
+        template = load_command_prompt("agent-team-childcare")
+        prompt = template.replace("$ARGUMENTS", effective_message)
+    elif mode == "tax":
+        template = load_command_prompt("agent-team-tax")
+        prompt = template.replace("$ARGUMENTS", effective_message)
+    elif mode == "fast":
+        prompt = _build_fast_prompt(effective_message)
+        return prompt + category_instruction + _TITLE_INSTRUCTION + client_ctx
+    else:
+        parts = []
+        for agent_id in agents:
+            template = load_command_prompt(agent_id)
+            parts.append(template.replace("$ARGUMENTS", effective_message))
+        prompt = "\n\n---\n\n".join(parts)
+    return prompt + _IMAGE_INSTRUCTION + _DIAGRAM_INSTRUCTION + _DRAWIO_INSTRUCTION + category_instruction + _TITLE_INSTRUCTION + _TURN_SUMMARY_INSTRUCTION + _KNOWLEDGE_EXTRACTION_INSTRUCTION + client_ctx + lesson_context
