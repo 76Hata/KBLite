@@ -72,7 +72,7 @@ async def restart_server(request: Request) -> JSONResponse:
     """サーバーを自己再起動する（デタッチしたバッチプロセス経由）"""
     app_dir = Path(__file__).parent.parent
     bat_path = app_dir / "restart.bat"
-    port = 8780
+    port = 8080
 
     creationflags = 0
     if sys.platform == "win32":
