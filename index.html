@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Knowledge Assistant</title>
+  <title>Knowledge Base</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -321,7 +321,7 @@
       background-position: right 6px center;
       padding-right: 20px;
     }
-    #modelSelect option, #teamSelect option option { color: #222; background: #fff; }
+    #modelSelect option, #teamSelect option { color: #222; background: #fff; }
     .header-select-group {
       display: flex;
       flex-direction: column;
@@ -1078,7 +1078,7 @@
         <line x1="3" y1="18" x2="21" y2="18"></line>
       </svg>
     </button>
-    <h1>Knowledge Assistant</h1>
+    <h1>Knowledge Base</h1>
     <div class="header-select-group">
       <span class="header-select-label">チーム</span>
       <select id="teamSelect" onchange="onTeamChange()">
@@ -1121,8 +1121,9 @@
 
     <div class="input-area" id="inputArea">
       <button id="attachBtn" onclick="triggerAttach()" title="ファイルを添付">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 0 18.8-4.3M22 12.5a10 10 0 0 0-18.8 2.2"></path>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
       </button>
       <input type="file" id="attachInput" style="display:none" onchange="handleAttachInput(event)" multiple>
@@ -1796,7 +1797,7 @@
       return;
     }
     printWin.document.write('<!DOCTYPE html><html><head><meta charset="utf-8">');
-    printWin.document.write('<title>' + esc(title || 'Knowledge Assistant') + '</title>');
+    printWin.document.write('<title>' + esc(title || 'Knowledge Base') + '</title>');
     printWin.document.write('<style>');
     printWin.document.write(`
       @page { size: A4; margin: 15mm; }
@@ -1961,6 +1962,9 @@
     // 添付ファイル情報を取得してクリア
 
     userHtml = '<p>' + esc(message).replace(/\n/g, '<br>') + '</p>';
+
+    // ユーザーメッセージを表示
+    appendMessage('user', userHtml);
 
     // AI 回答プレースホルダー
     const aiDiv = appendMessage('assistant', '', true);
