@@ -34,6 +34,24 @@
       margin-left: -280px;
     }
 
+    .sidebar-footer {
+      padding: 10px 12px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      flex-shrink: 0;
+    }
+    #restartServerBtn {
+      width: 100%;
+      padding: 7px 12px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px;
+      color: #8a8aaa;
+      font-size: 0.78rem;
+      cursor: pointer;
+      text-align: center;
+    }
+    #restartServerBtn:hover { background: rgba(231,76,60,0.15); color: #e74c3c; border-color: rgba(231,76,60,0.3); }
+    #restartServerBtn:disabled { opacity: 0.5; cursor: not-allowed; }
     .sidebar-header {
       padding: 14px 16px 10px;
       border-bottom: 1px solid rgba(255,255,255,0.08);
@@ -356,7 +374,7 @@
       background-position: right 6px center;
       padding-right: 20px;
     }
-    #modelSelect option, #teamSelect option option { color: #222; background: #fff; }
+    #modelSelect option, #teamSelect option { color: #222; background: #fff; }
     .header-select-group {
       display: flex;
       flex-direction: column;
@@ -1101,6 +1119,12 @@
   <div class="session-list" id="sessionList">
     <div class="session-loading" id="sessionLoading">読み込み中...</div>
   </div>
+  <div class="sidebar-footer">
+    <button id="restartServerBtn" onclick="restartServer()" title="サーバーを再起動して最新コードを適用します">
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:4px"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></svg>
+      サーバー再起動
+    </button>
+  </div>
 </aside>
 
 <!-- メインコンテンツ -->
@@ -1156,8 +1180,9 @@
 
     <div class="input-area" id="inputArea">
       <button id="attachBtn" onclick="triggerAttach()" title="ファイルを添付">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 0 18.8-4.3M22 12.5a10 10 0 0 0-18.8 2.2"></path>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
       </button>
       <input type="file" id="attachInput" style="display:none" onchange="handleAttachInput(event)" multiple>
@@ -1843,7 +1868,7 @@
       return;
     }
     printWin.document.write('<!DOCTYPE html><html><head><meta charset="utf-8">');
-    printWin.document.write('<title>' + esc(title || 'Knowledge Assistant') + '</title>');
+    printWin.document.write('<title>' + esc(title || 'Knowledge Base') + '</title>');
     printWin.document.write('<style>');
     printWin.document.write(`
       @page { size: A4; margin: 15mm; }
@@ -2069,6 +2094,9 @@
     // 添付ファイル情報を取得してクリア
 
     userHtml = '<p>' + esc(message).replace(/\n/g, '<br>') + '</p>';
+
+    // ユーザーメッセージを表示
+    appendMessage('user', userHtml);
 
     // AI 回答プレースホルダー
     const aiDiv = appendMessage('assistant', '', true);
@@ -2561,6 +2589,19 @@
   // ── 初期化 ─────────────────────────────────────────
   loadProjects();
   initSidebar();
+
+  // ── サーバー再起動 ──────────────────────────────────
+  async function restartServer() {
+    const btn = document.getElementById('restartServerBtn');
+    if (!confirm('サーバーを再起動します。\n数秒後にページが自動でリロードされます。')) return;
+    btn.disabled = true;
+    btn.textContent = '再起動中...';
+    try {
+      await fetch('/api/restart', { method: 'POST' });
+    } catch (_) { /* サーバーが落ちると fetch が失敗するが正常 */ }
+    // 5秒後に自動リロード
+    setTimeout(() => location.reload(), 5000);
+  }
 </script>
 <script src="/static/js/rate-limits.js"></script>
 <script src="/static/js/observability.js"></script>

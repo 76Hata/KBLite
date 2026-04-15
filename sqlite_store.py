@@ -18,11 +18,13 @@ class SQLiteStore(SessionMixin, ConversationMixin, ProjectMixin):
         self.db_path = db_path
         Path(db_path).parent.mkdir(parents=True, exist_ok=True)
         self._conn = sqlite3.connect(db_path, check_same_thread=False)
+        self._conn.row_factory = sqlite3.Row
         self._init_db()
+        self._migrate_db()
         logger.info("SQLiteStore 初期化完了: %s", db_path)
 
     def _init_db(self):
-        """テーブルの初期化"""
+        """テーブルの初期化（新規DB用）"""
         self._conn.executescript("""
             CREATE TABLE IF NOT EXISTS sessions (
                 id TEXT PRIMARY KEY,
@@ -34,17 +36,18 @@ class SQLiteStore(SessionMixin, ConversationMixin, ProjectMixin):
                 parent_session_id TEXT DEFAULT NULL,
                 project_id TEXT DEFAULT NULL,
                 message_count INTEGER DEFAULT 0,
-                first_message TEXT DEFAULT ''
+                first_message TEXT DEFAULT '',
+                fork_number INTEGER DEFAULT 0
             );
             CREATE TABLE IF NOT EXISTS conversations (
                 id TEXT PRIMARY KEY,
                 session_id TEXT NOT NULL,
-                role TEXT NOT NULL,
-                content TEXT NOT NULL,
-                created_at DATETIME DEFAULT (datetime('now')),
-                updated_at DATETIME DEFAULT (datetime('now')),
-                model TEXT DEFAULT NULL,
+                sequence INTEGER NOT NULL DEFAULT 0,
+                question TEXT NOT NULL DEFAULT '',
+                answer TEXT NOT NULL DEFAULT '',
                 title TEXT DEFAULT NULL,
+                summary TEXT DEFAULT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
             );
             CREATE TABLE IF NOT EXISTS projects (
@@ -130,9 +133,10 @@ class SQLiteStore(SessionMixin, ConversationMixin, ProjectMixin):
             "fork_number": row["fork_number"] if "fork_number" in row.keys() else 0,
         }
 
-    def _project_to_dict(self, row) -> dict:
-        """sqlite3.Row を dict に変換（projects テーブル用）"""
+    @staticmethod
+    def _project_to_dict(row) -> dict:
         return {
+            "id": row["id"],
             "project_id": row["id"],
             "name": row["name"],
             "created_at": row["created_at"],
