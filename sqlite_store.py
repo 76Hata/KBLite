@@ -133,9 +133,10 @@ class SQLiteStore(SessionMixin, ConversationMixin, ProjectMixin):
             "fork_number": row["fork_number"] if "fork_number" in row.keys() else 0,
         }
 
-    def _project_to_dict(self, row) -> dict:
-        """sqlite3.Row を dict に変換（projects テーブル用）"""
+    @staticmethod
+    def _project_to_dict(row) -> dict:
         return {
+            "id": row["id"],
             "project_id": row["id"],
             "name": row["name"],
             "created_at": row["created_at"],
