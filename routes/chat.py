@@ -6,8 +6,10 @@ import os
 import re
 import shutil
 import sqlite3
+import subprocess
 import sys
 import time
+import traceback
 import uuid
 from pathlib import Path
 
@@ -704,6 +706,8 @@ async def _run_claude_task(
             _concurrent_count,
             _MAX_CONCURRENT_TASKS,
         )
+        logger.info("AI CLIコマンド全体 (task=%s): %s", task_id, cmd)
+        logger.info("CWD存在確認 (task=%s): cwd=%s exists=%s", task_id, effective_cwd, Path(effective_cwd).exists())
 
         _API_OVERLOAD_MAX_RETRIES = 10
         _API_OVERLOAD_BASE_WAIT = 10
@@ -723,6 +727,12 @@ async def _run_claude_task(
                 if ai_service:
                     proc_env["KA_AI_SERVICE"] = ai_service
 
+            # start_new_session はWindows非対応のため CREATE_NEW_PROCESS_GROUP で代替
+            _proc_group_kwargs: dict = (
+                {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP}
+                if sys.platform == "win32"
+                else {"start_new_session": True}
+            )
             proc = await asyncio.create_subprocess_exec(
                 *current_cmd,
                 stdin=asyncio.subprocess.PIPE,
@@ -730,8 +740,8 @@ async def _run_claude_task(
                 stderr=asyncio.subprocess.PIPE,
                 cwd=effective_cwd,
                 env=proc_env,
-                start_new_session=True,
                 limit=1024 * 1024,  # 1MB: Claude CLIの長大JSON行対策
+                **_proc_group_kwargs,
             )
             state.proc = proc
 
