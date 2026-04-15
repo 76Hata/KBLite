@@ -35,7 +35,7 @@ from routes.session import (
     update_conversation_title,
 )
 from routes.observability import get_llm_usage_stats, get_observability_stats
-from routes.system import debug_env, get_app_config, get_rate_limits, health, index
+from routes.system import debug_env, get_app_config, get_rate_limits, health, index, restart_server
 
 _routes = [
     Route("/", index),
@@ -43,6 +43,7 @@ _routes = [
     Route("/health", health),
     Route("/api/rate-limits", get_rate_limits, methods=["GET"]),
     Route("/api/debug-env", debug_env, methods=["GET"]),
+    Route("/api/restart", restart_server, methods=["POST"]),
     Route("/api/team-chat", team_chat, methods=["POST"]),
     Route("/api/task/{task_id}", get_task_result, methods=["GET"]),
     Route("/api/task/{task_id}/cancel", cancel_task, methods=["POST"]),

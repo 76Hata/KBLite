@@ -34,6 +34,24 @@
       margin-left: -280px;
     }
 
+    .sidebar-footer {
+      padding: 10px 12px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      flex-shrink: 0;
+    }
+    #restartServerBtn {
+      width: 100%;
+      padding: 7px 12px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px;
+      color: #8a8aaa;
+      font-size: 0.78rem;
+      cursor: pointer;
+      text-align: center;
+    }
+    #restartServerBtn:hover { background: rgba(231,76,60,0.15); color: #e74c3c; border-color: rgba(231,76,60,0.3); }
+    #restartServerBtn:disabled { opacity: 0.5; cursor: not-allowed; }
     .sidebar-header {
       padding: 14px 16px 10px;
       border-bottom: 1px solid rgba(255,255,255,0.08);
@@ -1065,6 +1083,12 @@
   </div>
   <div class="session-list" id="sessionList">
     <div class="session-loading" id="sessionLoading">読み込み中...</div>
+  </div>
+  <div class="sidebar-footer">
+    <button id="restartServerBtn" onclick="restartServer()" title="サーバーを再起動して最新コードを適用します">
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:4px"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></svg>
+      サーバー再起動
+    </button>
   </div>
 </aside>
 
@@ -2457,6 +2481,19 @@
   // ── 初期化 ─────────────────────────────────────────
   loadProjects();
   initSidebar();
+
+  // ── サーバー再起動 ──────────────────────────────────
+  async function restartServer() {
+    const btn = document.getElementById('restartServerBtn');
+    if (!confirm('サーバーを再起動します。\n数秒後にページが自動でリロードされます。')) return;
+    btn.disabled = true;
+    btn.textContent = '再起動中...';
+    try {
+      await fetch('/api/restart', { method: 'POST' });
+    } catch (_) { /* サーバーが落ちると fetch が失敗するが正常 */ }
+    // 5秒後に自動リロード
+    setTimeout(() => location.reload(), 5000);
+  }
 </script>
 <script src="/static/js/rate-limits.js"></script>
 <script src="/static/js/observability.js"></script>

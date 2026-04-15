@@ -3,6 +3,7 @@ import asyncio
 import json
 import os
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -65,6 +66,26 @@ async def health(request: Request) -> JSONResponse:
         {"status": "ok" if sqlite_ok else "degraded", "sqlite": "ok" if sqlite_ok else "error"},
         status_code=200 if sqlite_ok else 503,
     )
+
+
+async def restart_server(request: Request) -> JSONResponse:
+    """サーバーを自己再起動する（デタッチしたバッチプロセス経由）"""
+    app_dir = Path(__file__).parent.parent
+    bat_path = app_dir / "restart.bat"
+    port = 8780
+
+    creationflags = 0
+    if sys.platform == "win32":
+        creationflags = subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
+
+    subprocess.Popen(
+        ["cmd", "/c", str(bat_path)],
+        cwd=str(app_dir),
+        close_fds=True,
+        creationflags=creationflags,
+    )
+
+    return JSONResponse({"status": "restarting", "port": port})
 
 
 async def debug_env(request: Request) -> JSONResponse:
