@@ -6,6 +6,7 @@ import os
 import re
 import shutil
 import sqlite3
+import sys
 import time
 import uuid
 from pathlib import Path
@@ -164,10 +165,10 @@ _MAX_CONCURRENT_TASKS = 10
 _team_semaphore = asyncio.Semaphore(_MAX_CONCURRENT_TASKS)
 _concurrent_count = 0
 _SEMAPHORE_WAIT_TIMEOUT = 86430
-_DEFAULT_CWD = os.getenv("KB_DEFAULT_CWD", "/home/76hata/knowledge-assistant")
+_DEFAULT_CWD = os.getenv("KB_DEFAULT_CWD", str(Path(__file__).parent.parent))
 _TASK_TTL = 600  # 10分でタスク結果を破棄
 
-_SQLITE_PATH = os.getenv("SQLITE_PATH", "/app/data/sqlite/ka.db")
+_SQLITE_PATH = os.getenv("SQLITE_PATH", str(Path(__file__).parent.parent / "data" / "sqlite" / "kblite.db"))
 
 
 class _TaskState:
@@ -557,7 +558,10 @@ def _build_claude_cmd(
     cli_name = Path(ai_cli_path).name
     is_cursor_like = cli_name in ("agent", "cursor")
     skip_kb_model_args = is_cursor_like or ai_service == "cursor"
+    # Windows では .cmd ファイルを直接 exec できないため cmd /c でラップする
+    _cmd_prefix = ["cmd", "/c"] if (sys.platform == "win32" and ai_cli_path.lower().endswith(".cmd")) else []
     cmd = [
+        *_cmd_prefix,
         ai_cli_path, "-p",
         "--output-format", "stream-json",
     ]
@@ -869,9 +873,9 @@ async def _run_claude_task(
     except Exception as e:
         if state.status == "cancelled":
             return
-        logger.error("チーム討議エラー (task=%s): %s", task_id, e)
+        logger.error("チーム討議エラー (task=%s): %s", task_id, e, exc_info=True)
         state.status = "error"
-        state.error = "チーム討議中にエラーが発生しました"
+        state.error = f"チーム討議中にエラーが発生しました: {type(e).__name__}: {e}"
         _persist_task_result(task_id, "error", state.text, state.error)
         await state.queue.put({"type": "error", "message": state.error})
         await state.queue.put(None)
