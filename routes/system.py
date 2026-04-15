@@ -1,6 +1,9 @@
 """システム系エンドポイント — ヘルスチェック・設定・Rate Limits"""
+import asyncio
 import json
 import os
+import shutil
+import sys
 from pathlib import Path
 
 from starlette.requests import Request
@@ -62,3 +65,17 @@ async def health(request: Request) -> JSONResponse:
         {"status": "ok" if sqlite_ok else "degraded", "sqlite": "ok" if sqlite_ok else "error"},
         status_code=200 if sqlite_ok else 503,
     )
+
+
+async def debug_env(request: Request) -> JSONResponse:
+    """デバッグ用: Claude CLI パス・イベントループ・環境情報を返す"""
+    claude_path = shutil.which("claude")
+    loop = asyncio.get_event_loop()
+    return JSONResponse({
+        "platform": sys.platform,
+        "python_version": sys.version,
+        "event_loop_type": type(loop).__name__,
+        "claude_which": claude_path,
+        "PATH": os.environ.get("PATH", ""),
+        "sqlite_ok": store.sqlite_healthcheck(),
+    })
