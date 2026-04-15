@@ -9,6 +9,15 @@ logging.basicConfig(
 )
 logger = logging.getLogger("kblite")
 
+# ファイルロギング追加（VPSからsshfs経由で確認可能）
+_log_file = Path(__file__).parent / "kblite.log"
+_file_handler = logging.FileHandler(_log_file, encoding="utf-8")
+_file_handler.setLevel(logging.DEBUG)
+_file_handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s"))
+logger.addHandler(_file_handler)
+logging.getLogger("uvicorn").addHandler(_file_handler)
+logging.getLogger("uvicorn.error").addHandler(_file_handler)
+
 from sqlite_store import SQLiteStore
 
 logger.info("SQLiteStore を初期化中...")
