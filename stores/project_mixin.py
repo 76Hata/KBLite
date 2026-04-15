@@ -49,13 +49,3 @@ class ProjectMixin:
 
     def move_session_to_project(self, session_id: str, project_id: str) -> None:
         self.update_session(session_id, project_id=project_id, touch_updated_at=False)
-
-    def _project_to_dict(self, row) -> dict:
-        """sqlite3.Row を dict に変換（projects テーブル用）"""
-        return {
-            "project_id": row["id"],
-            "name": row["name"],
-            "created_at": row["created_at"],
-            "updated_at": row["updated_at"],
-            "session_count": row["session_count"] if "session_count" in row.keys() else 0,
-        }
