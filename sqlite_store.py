@@ -54,7 +54,8 @@ class SQLiteStore(SessionMixin, ConversationMixin, ProjectMixin):
                 id TEXT PRIMARY KEY,
                 name TEXT NOT NULL,
                 created_at DATETIME DEFAULT (datetime('now')),
-                updated_at DATETIME DEFAULT (datetime('now'))
+                updated_at DATETIME DEFAULT (datetime('now')),
+                session_count INTEGER DEFAULT 0
             );
         """)
         self._conn.commit()
@@ -66,6 +67,13 @@ class SQLiteStore(SessionMixin, ConversationMixin, ProjectMixin):
         if "fork_number" not in existing_cols:
             self._conn.execute("ALTER TABLE sessions ADD COLUMN fork_number INTEGER DEFAULT 0")
             logger.info("Migration: sessions.fork_number カラムを追加")
+            self._conn.commit()
+
+        # projects: session_count
+        proj_cols = {row[1] for row in self._conn.execute("PRAGMA table_info(projects)")}
+        if "session_count" not in proj_cols:
+            self._conn.execute("ALTER TABLE projects ADD COLUMN session_count INTEGER DEFAULT 0")
+            logger.info("Migration: projects.session_count カラムを追加")
             self._conn.commit()
 
         # conversations: 旧スキーマ(role/content)から新スキーマ(question/answer/sequence)へ移行
@@ -123,6 +131,16 @@ class SQLiteStore(SessionMixin, ConversationMixin, ProjectMixin):
             "message_count": row["message_count"] or 0,
             "first_message": row["first_message"] or "",
             "fork_number": row["fork_number"] if "fork_number" in row.keys() else 0,
+        }
+
+    def _project_to_dict(self, row) -> dict:
+        """sqlite3.Row を dict に変換（projects テーブル用）"""
+        return {
+            "project_id": row["id"],
+            "name": row["name"],
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"],
+            "session_count": row["session_count"] if "session_count" in row.keys() else 0,
         }
 
     def sqlite_healthcheck(self) -> bool:

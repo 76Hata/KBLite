@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Knowledge Base</title>
+  <title>Knowledge Base Ver 1.0</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -135,6 +135,41 @@
       font-size: 11px;
       color: #777;
       margin-top: 2px;
+    }
+    .session-item-id {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 2px;
+    }
+    .session-id-text {
+      font-size: 10px;
+      color: #555;
+      font-family: monospace;
+      letter-spacing: 0.03em;
+    }
+    .session-id-copy-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0 2px;
+      color: #666;
+      opacity: 0;
+      transition: opacity 0.15s;
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .session-item:hover .session-id-copy-btn {
+      opacity: 1;
+    }
+    .session-id-copy-btn:hover {
+      color: #4a9eff;
+    }
+    .session-id-copy-btn svg {
+      width: 11px;
+      height: 11px;
+      fill: currentColor;
     }
     .session-item-menu-btn {
       flex-shrink: 0;
@@ -1102,7 +1137,7 @@
         <line x1="3" y1="18" x2="21" y2="18"></line>
       </svg>
     </button>
-    <h1>Knowledge Base</h1>
+    <h1>Knowledge Base Ver 1.0</h1>
     <div class="header-select-group">
       <span class="header-select-label">チーム</span>
       <select id="teamSelect" onchange="onTeamChange()">
@@ -1441,6 +1476,8 @@
         ? '<span class="session-project-badge">' + esc(projName) + '</span>'
         : '';
 
+      // XXXX-XXXX-XXXX 形式: UUIDの先頭8文字 + 第2グループ先頭4文字
+      const displayId = sid.substring(0, 4) + '-' + sid.substring(4, 8) + '-' + sid.substring(9, 13);
       html += `
         <div class="session-item${isActive ? ' active' : ''}"
              data-session-id="${sid}"
@@ -1448,6 +1485,16 @@
           <div class="session-item-content">
             <div class="session-item-title">${title}${catBadge}</div>
             <div class="session-item-meta">${date} / ${msgCount}件${projBadge}</div>
+            <div class="session-item-id">
+              <span class="session-id-text">${displayId}</span>
+              <button class="session-id-copy-btn"
+                      onclick="event.stopPropagation(); copySessionId('${displayId}')"
+                      title="IDをコピー">
+                <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z"/>
+                </svg>
+              </button>
+            </div>
           </div>
           <button class="session-item-menu-btn"
                   onclick="event.stopPropagation(); toggleSessionMenu(this, '${sid}')"
@@ -1875,6 +1922,35 @@
   }
 
   // ── トースト通知 ───────────────────────────────────
+  // セッションIDをクリップボードにコピー
+  function copySessionId(displayId) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(displayId).then(() => {
+        showToast('IDをコピーしました: ' + displayId);
+      }).catch(() => {
+        fallbackCopyText(displayId);
+      });
+    } else {
+      fallbackCopyText(displayId);
+    }
+  }
+
+  function fallbackCopyText(text) {
+    const el = document.createElement('textarea');
+    el.value = text;
+    el.style.position = 'fixed';
+    el.style.opacity = '0';
+    document.body.appendChild(el);
+    el.select();
+    try {
+      document.execCommand('copy');
+      showToast('IDをコピーしました: ' + text);
+    } catch (e) {
+      showToast('コピーに失敗しました');
+    }
+    document.body.removeChild(el);
+  }
+
   function showToast(message) {
     // 既存のトーストがあれば除去
     const existing = document.querySelector('.toast-notification');
@@ -1981,6 +2057,38 @@
 
     // 初回送信時にカテゴリを固定（会話中の変更不可）
     if (!_sessionCreated) {
+    }
+
+    // 「会話履歴ID（XXXX-XXXX-XXXX）の続き」パターン検出 → 過去の会話履歴を読み込む
+    const continueMatch = message.match(/^会話履歴ID[（(]([0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4})[）)]\s*の続き/);
+    if (continueMatch) {
+      const rawId = continueMatch[1].replace(/-/g, ''); // ダッシュ除去した12文字
+      // _allSessions からUUID先頭部分で前方一致検索
+      const matchedSession = _allSessions.find(s => {
+        const id = (s.id || s.session_id || '').replace(/-/g, '');
+        return id.startsWith(rawId);
+      });
+      if (matchedSession) {
+        const fullId = matchedSession.id || matchedSession.session_id;
+        try {
+          const histRes = await fetch('/api/sessions/' + fullId);
+          const histData = await histRes.json();
+          if (histData.conversations && histData.conversations.length > 0) {
+            _conversationHistory = histData.conversations.map(c => ({
+              question: c.question || '',
+              answer: c.answer || ''
+            }));
+            showToast('会話履歴を読み込みました（' + histData.conversations.length + '件）');
+          } else {
+            showToast('指定IDの会話に履歴がありません');
+          }
+        } catch (e) {
+          console.error('会話履歴読み込みエラー:', e);
+          showToast('会話履歴の読み込みに失敗しました');
+        }
+      } else {
+        showToast('指定IDの会話履歴が見つかりませんでした');
+      }
     }
 
     // 添付ファイル情報を取得してクリア
