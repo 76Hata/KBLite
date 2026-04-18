@@ -33,7 +33,7 @@ def _workspace_projects_with_resolved_cwd() -> list[dict]:
     return enriched
 
 
-_RATE_LIMITS_PATH = Path(os.getenv("SQLITE_PATH", str(Path(__file__).parent / "data" / "sqlite" / "kblite.db"))).parent / "rate-limits.json"
+_RATE_LIMITS_PATH = Path(os.getenv("SQLITE_PATH", str(Path(__file__).parent.parent / "data" / "sqlite" / "kblite.db"))).parent / "rate-limits.json"
 
 
 async def index(request: Request) -> HTMLResponse:

@@ -3,12 +3,12 @@ import logging
 import sqlite3
 from pathlib import Path
 
-from stores import SessionMixin, ConversationMixin, ProjectMixin
+from stores import SessionMixin, ConversationMixin, ProjectMixin, FtsMixin
 
 logger = logging.getLogger(__name__)
 
 
-class SQLiteStore(SessionMixin, ConversationMixin, ProjectMixin):
+class SQLiteStore(SessionMixin, ConversationMixin, ProjectMixin, FtsMixin):
     """SQLiteを使った構造化データストア（KBLite軽量版）"""
 
     def __init__(self, db_path: str | None = None):
@@ -21,6 +21,8 @@ class SQLiteStore(SessionMixin, ConversationMixin, ProjectMixin):
         self._conn.row_factory = sqlite3.Row
         self._init_db()
         self._migrate_db()
+        self._init_fts()
+        self._ensure_fts_populated()
         logger.info("SQLiteStore 初期化完了: %s", db_path)
 
     def _init_db(self):
@@ -115,6 +117,25 @@ class SQLiteStore(SessionMixin, ConversationMixin, ProjectMixin):
             logger.info("Migration: %s", sql)
         if missing:
             self._conn.commit()
+
+    def _ensure_fts_populated(self):
+        """FTS5 インデックスが空または破損している場合、再構築する"""
+        conv_count = self._conn.execute("SELECT COUNT(*) FROM conversations").fetchone()[0]
+        if conv_count == 0:
+            return
+        fts_count = self._conn.execute("SELECT COUNT(*) FROM conversations_fts").fetchone()[0]
+        needs_rebuild = fts_count == 0
+        if not needs_rebuild:
+            try:
+                hit = self._conn.execute(
+                    "SELECT COUNT(*) FROM conversations_fts WHERE conversations_fts MATCH '\"a\" OR \"e\" OR \"i\"'"
+                ).fetchone()[0]
+                needs_rebuild = (hit == 0 and conv_count > 10)
+            except Exception:
+                needs_rebuild = True
+        if needs_rebuild:
+            self.rebuild_fts_index()
+            logger.info("FTS5 インデックス再構築: %d 件", conv_count)
 
     def _session_to_dict(self, row) -> dict:
         """sqlite3.Row を dict に変換"""

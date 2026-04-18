@@ -28,7 +28,7 @@ from prompt import build_team_prompt
 
 # ── LLMルーター（ヒューリスティック — LLM呼び出し不要）────────
 _ROUTE_SONNET = "claude-sonnet-4-6"
-_ROUTE_OPUS = "claude-opus-4-6"
+_ROUTE_OPUS = "claude-opus-4-7"
 _MODEL_DISPLAY = {m["id"]: m["name"] for m in MODELS}
 
 _CLI_SAFE = re.compile(r"^[a-zA-Z0-9_.\/-]+$")
@@ -373,6 +373,7 @@ async def team_chat(request: Request):
     search_all = bool(body.get("search_all", False))
     workspace_project = str(body.get("workspace_project", "")).strip()
     fork_session_id = str(body.get("fork_session_id", "")).strip()
+    current_session_id = str(body.get("session_id", "")).strip()
 
     _svc_ids = _allowed_ai_service_ids()
     ai_service = str(body.get("ai_service", "")).strip()
@@ -478,7 +479,8 @@ async def team_chat(request: Request):
     try:
         prompt = build_team_prompt(message, agents, mode, history, category, search_all,
                                    client_context=client_context,
-                                   lesson_context=lesson_context)
+                                   lesson_context=lesson_context,
+                                   session_id=current_session_id)
     except FileNotFoundError as e:
         logger.error("エージェント定義エラー: %s", e)
         return JSONResponse({"error": str(e)}, status_code=500)

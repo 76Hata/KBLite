@@ -1,5 +1,5 @@
 """プロンプト構築 — エージェント命令文・カテゴリ指示・会話履歴の組み立て"""
-from deps import AGENT_COMMANDS_DIR, CATEGORIES
+from deps import AGENT_COMMANDS_DIR, CATEGORIES, store
 
 # ── 定型インストラクション ────────────────────────────────────────
 
@@ -189,6 +189,33 @@ def _build_category_instruction(category: str, search_all: bool = False) -> str:
     )
 
 
+def _build_rag_context(query: str, current_session_id: str = "") -> str:
+    """FTS5でクエリに関連する過去の会話を検索し、RAGコンテキストとして整形する"""
+    try:
+        results = store.fts_search_for_rag(
+            query, limit=3, current_session_id=current_session_id or None
+        )
+    except Exception:
+        return ""
+    if not results:
+        return ""
+    parts = ["\n\n## 関連する過去の会話（参考情報）"]
+    parts.append("以下は過去の会話から検索された関連情報です。回答の参考にしてください。")
+    for i, r in enumerate(results, 1):
+        session_title = r.get("session_title", "")
+        q = r.get("question", "")
+        a = r.get("answer", "")
+        header = f"### 参考{i}"
+        if session_title:
+            header += f"（{session_title}）"
+        parts.append(header)
+        if q:
+            parts.append(f"**質問:** {q}")
+        if a:
+            parts.append(f"**回答:** {a}")
+    return "\n".join(parts) + "\n"
+
+
 def _build_client_context(client_context: str) -> str:
     """クライアント情報をプロンプト用テキストに変換する。"""
     if not client_context:
@@ -207,12 +234,14 @@ def build_team_prompt(message: str, agents: list, mode: str,
                       history: list | None = None, category: str = "",
                       search_all: bool = False,
                       client_context: str = "",
-                      lesson_context: str = "") -> str:
+                      lesson_context: str = "",
+                      session_id: str = "") -> str:
     """ユーザーメッセージとエージェント選択からプロンプトを構築"""
     history_ctx = _build_history_context(history) if history else ""
     effective_message = f"{history_ctx}## 今回の質問\n{message}" if history_ctx else message
     category_instruction = _build_category_instruction(category, search_all=search_all)
     client_ctx = _build_client_context(client_context)
+    rag_ctx = _build_rag_context(message, current_session_id=session_id)
 
     if mode == "team-it":
         template = load_command_prompt("agent-team-it")
@@ -231,11 +260,11 @@ def build_team_prompt(message: str, agents: list, mode: str,
         prompt = template.replace("$ARGUMENTS", effective_message)
     elif mode == "fast":
         prompt = _build_fast_prompt(effective_message)
-        return prompt + category_instruction + _TITLE_INSTRUCTION + client_ctx
+        return prompt + rag_ctx + category_instruction + _TITLE_INSTRUCTION + client_ctx
     else:
         parts = []
         for agent_id in agents:
             template = load_command_prompt(agent_id)
             parts.append(template.replace("$ARGUMENTS", effective_message))
         prompt = "\n\n---\n\n".join(parts)
-    return prompt + _IMAGE_INSTRUCTION + _DIAGRAM_INSTRUCTION + _DRAWIO_INSTRUCTION + category_instruction + _TITLE_INSTRUCTION + _TURN_SUMMARY_INSTRUCTION + _KNOWLEDGE_EXTRACTION_INSTRUCTION + client_ctx + lesson_context
+    return prompt + _IMAGE_INSTRUCTION + _DIAGRAM_INSTRUCTION + _DRAWIO_INSTRUCTION + rag_ctx + category_instruction + _TITLE_INSTRUCTION + _TURN_SUMMARY_INSTRUCTION + _KNOWLEDGE_EXTRACTION_INSTRUCTION + client_ctx + lesson_context

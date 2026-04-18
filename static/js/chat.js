@@ -297,6 +297,7 @@ async function sendMessage() {
         workspace_project: document.getElementById('workspaceProjectSelect').value,
         ai_service: _activeRequestAiService,
         fork_session_id: forkId,
+        session_id: _sessionId,
       }),
     });
 
@@ -325,7 +326,7 @@ async function sendMessage() {
         _messageSaved = true;
       }
     } else if (fullText) {
-      const title = extractTitle(fullText);
+      const title = extractTitle(fullText) || message.slice(0, 40);
       const summary = extractSummary(fullText);
       const cleanAnswer = stripSummaryTag(stripTitleTag(fullText));
       const titleHtml = buildTitleHtml(title, _sessionId, _sequence);

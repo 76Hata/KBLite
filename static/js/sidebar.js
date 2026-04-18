@@ -232,7 +232,7 @@ async function selectSession(sessionId) {
         // 回答を表示（コピー/DLボタン付き）
         if (conv.answer) {
           const cleanAnswer = stripTitleTag(conv.answer);
-          const title = conv.title || extractTitle(conv.answer);
+          const title = conv.title || extractTitle(conv.answer) || (conv.question || '').slice(0, 40);
           const titleHtml = buildTitleHtml(title, sessionId, conv.sequence);
           const div = appendMessage('assistant', titleHtml + mdToHtml(cleanAnswer), false, {
             rawMarkdown: cleanAnswer,

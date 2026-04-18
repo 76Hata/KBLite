@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Knowledge Base Ver 1.0</title>
+  <title>Knowledge Base Lite</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%232e7dd1'/><text x='50' y='68' font-size='56' text-anchor='middle' font-weight='bold' fill='%23fff'>KB</text></svg>">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -40,18 +41,23 @@
       flex-shrink: 0;
     }
     #restartServerBtn {
-      width: 100%;
-      padding: 7px 12px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
+      width: 36px;
+      height: 36px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.2);
       border-radius: 6px;
-      color: #8a8aaa;
-      font-size: 0.78rem;
+      color: rgba(255,255,255,0.6);
       cursor: pointer;
-      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
-    #restartServerBtn:hover { background: rgba(231,76,60,0.15); color: #e74c3c; border-color: rgba(231,76,60,0.3); }
-    #restartServerBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+    #restartServerBtn svg { width: 16px; height: 16px; }
+    #restartServerBtn:hover { background: rgba(231,76,60,0.2); color: #e74c3c; border-color: rgba(231,76,60,0.4); }
+    #restartServerBtn:disabled { opacity: 0.4; cursor: not-allowed; }
     .sidebar-header {
       padding: 14px 16px 10px;
       border-bottom: 1px solid rgba(255,255,255,0.08);
@@ -90,6 +96,73 @@
     }
 
     /* セッション一覧 */
+    .sidebar-search {
+      padding: 6px 16px 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .sidebar-search-input {
+      width: 100%;
+      font-size: 12px;
+      padding: 6px 30px 6px 8px;
+      border-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+      outline: none;
+    }
+    .sidebar-search-input::placeholder { color: rgba(255,255,255,0.4); }
+    .sidebar-search-input:focus { border-color: #2e7dd1; background: rgba(255,255,255,0.18); }
+    .sidebar-search-wrap {
+      position: relative;
+    }
+    .sidebar-search-clear {
+      position: absolute;
+      right: 4px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.4);
+      cursor: pointer;
+      font-size: 14px;
+      padding: 2px 4px;
+      display: none;
+    }
+    .sidebar-search-clear:hover { color: #fff; }
+    .search-result-item {
+      padding: 8px 16px;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .search-result-item:hover { background: rgba(255,255,255,0.06); }
+    .search-result-question {
+      font-size: 12px;
+      color: #ccc;
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .search-result-answer {
+      font-size: 11px;
+      color: #888;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .search-result-meta {
+      font-size: 10px;
+      color: #666;
+      margin-top: 2px;
+    }
+    .search-no-result {
+      padding: 12px 16px;
+      font-size: 12px;
+      color: #888;
+      text-align: center;
+    }
+
     .session-list {
       flex: 1;
       overflow-y: auto;
@@ -254,6 +327,13 @@
       border-top: 1px solid rgba(255,255,255,0.08);
       margin: 2px 0;
     }
+    .session-bookmark-icon {
+      display: inline-block;
+      margin-left: 4px;
+      font-size: 12px;
+      color: #f59e0b;
+      vertical-align: middle;
+    }
     /* プロジェクトフィルタ */
     .project-filter {
       padding: 6px 16px 8px;
@@ -345,18 +425,26 @@
       width: 20px;
       height: 20px;
     }
-    header h1 { font-size: 1.1rem; font-weight: 600; flex: 1; min-width: 0; }
+    header h1 { font-size: 1.1rem; font-weight: 600; min-width: 0; margin-right: 4px; }
+    .header-spacer { flex: 1; }
     #newChatBtn {
-      font-size: 13px;
+      width: 36px;
+      height: 36px;
       background: rgba(255,255,255,0.12);
       border: 1px solid rgba(255,255,255,0.3);
       color: #fff;
-      border-radius: 5px;
-      padding: 5px 10px;
+      border-radius: 6px;
+      padding: 0;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
     }
+    #newChatBtn svg { width: 18px; height: 18px; }
+    #newChatBtn:hover { background: rgba(255,255,255,0.2); }
     #newChatBtn:active { background: rgba(255,255,255,0.25); }
 
     #modelSelect, #teamSelect {
@@ -369,6 +457,7 @@
       cursor: pointer;
       -webkit-appearance: none;
       appearance: none;
+      text-align: left;
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='white'/%3E%3C/svg%3E");
       background-repeat: no-repeat;
       background-position: right 6px center;
@@ -511,9 +600,78 @@
       font-size: 1.1em;
       font-weight: 700;
       color: #1e3a5f;
-      border-bottom: 1px solid #dde;
+      border-bottom: 2px solid #c5d5e8;
       padding-bottom: 6px;
-      margin: 0 0 10px;
+      margin: 0 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .msg-content h2.response-title .title-icon {
+      flex-shrink: 0;
+      width: 18px;
+      height: 18px;
+      color: #4a90d9;
+    }
+    .msg-content h2.response-title .conv-id {
+      font-size: 0.7em;
+      font-weight: 400;
+      color: #8899aa;
+      margin-left: 6px;
+      letter-spacing: 0.5px;
+    }
+    .conv-id-copy {
+      background: none;
+      border: none;
+      color: #8899aa;
+      cursor: pointer;
+      font-size: 1.5em;
+      padding: 4px 8px;
+      margin-left: 4px;
+      opacity: 0;
+      transition: opacity 0.15s, color 0.15s;
+      vertical-align: middle;
+    }
+    .msg-content h2.response-title:hover .conv-id-copy,
+    .session-item:hover .conv-id-copy {
+      opacity: 1;
+    }
+    .conv-id-copy:hover {
+      color: #2e7dd1;
+    }
+    .conv-id-copy.copied {
+      color: #27ae60;
+      opacity: 1;
+    }
+    .title-edit-btn {
+      background: none;
+      border: none;
+      color: #8899aa;
+      cursor: pointer;
+      font-size: 0.8em;
+      padding: 2px 4px;
+      margin-left: 6px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .response-title:hover .title-edit-btn,
+    .title-placeholder:hover .title-edit-btn {
+      opacity: 1;
+    }
+    .title-edit-btn:hover {
+      color: #4a90d9;
+    }
+    .title-placeholder {
+      margin-bottom: 8px;
+    }
+    .title-placeholder .title-edit-btn {
+      opacity: 0.6;
+      font-size: 0.85em;
+      color: #aabbcc;
+    }
+    .title-placeholder .title-edit-btn:hover {
+      opacity: 1;
+      color: #4a90d9;
     }
     .msg-content h1, .msg-content h2, .msg-content h3 {
       font-weight: 700;
@@ -808,21 +966,25 @@
     }
     #sendBtn {
       flex-shrink: 0;
-      padding: 9px 18px;
-      font-size: 16px;
-      font-weight: 600;
-      background: #2e7dd1;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
+      width: 42px;
       height: 42px;
-      white-space: nowrap;
+      padding: 0;
+      background: #2e7dd1;
+      border: 1px solid #2e7dd1;
+      border-radius: 6px;
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.15s;
+      -webkit-tap-highlight-color: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     #sendBtn:active { background: #1a5fa8; }
     #sendBtn:disabled { background: #aaa; cursor: default; }
+    #sendBtn.cancel-mode { background: #c0392b; border-color: #c0392b; }
+    #sendBtn.cancel-mode:active { background: #a93226; }
+    #sendBtn.cancel-mode:disabled { background: #aaa; }
 
     /* 添付ファイルボタン */
     #attachBtn {
@@ -960,128 +1122,130 @@
       #sidebarOverlay { display: none !important; }
     }
 
-    /* ── Rate limit gauges ─────────────────────────────── */
-    #rlContainer {
+
+
+    /* ── スクロールトップボタン ─────────────── */
+    #scrollTopBtn {
+      position: fixed;
+      bottom: 90px;
+      right: 24px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 1px solid #c5d5e8;
+      background: rgba(255,255,255,0.9);
+      color: #4a90d9;
+      font-size: 16px;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      z-index: 100;
+    }
+    #scrollTopBtn.visible { opacity: 1; pointer-events: auto; }
+    #scrollTopBtn:hover { background: #4a90d9; color: #fff; }
+
+    /* ── ユーザーメッセージ用コピーボタン ──── */
+    .user-msg-actions {
       display: flex;
-      align-items: center;
-      gap: 6px;
-      flex-shrink: 0;
+      justify-content: flex-end;
+      margin-top: 4px;
     }
-    .rl-gauge {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      padding: 3px 8px;
-      border-radius: 6px;
-      border: 1px solid rgba(255,255,255,0.2);
-      background: rgba(255,255,255,0.06);
-      transition: background 0.3s, border-color 0.3s;
+    .user-copy-btn {
+      color: rgba(255,255,255,0.5);
     }
-    .rl-label {
-      font-size: 10px;
-      font-weight: 600;
-      color: rgba(255,255,255,0.7);
-      min-width: 16px;
+    .user-copy-btn:hover {
+      background: rgba(255,255,255,0.2) !important;
+      color: #fff !important;
     }
-    .rl-bar {
-      position: relative;
-      width: 48px;
-      height: 6px;
-      background: rgba(255,255,255,0.15);
-      border-radius: 3px;
-      overflow: visible;
+    .user-copy-btn:active {
+      background: rgba(255,255,255,0.3) !important;
     }
-    .rl-threshold-line {
-      position: absolute;
-      top: -4px;
-      bottom: -4px;
-      width: 2px;
-      background: #fff;
-      opacity: 0.85;
-      border-radius: 1px;
-      left: 0%;
-      transition: left 0.5s ease;
-      z-index: 2;
-    }
-    .rl-threshold-val {
-      font-size: 12px;
-      font-weight: 900;
-      white-space: nowrap;
-    }
-    .rl-bar-fill {
-      position: absolute;
-      top: 0; left: 0; bottom: 0;
-      width: 0%;
-      max-width: 100%;
-      border-radius: 3px;
-      transition: width 0.5s ease, background 0.3s ease;
-    }
-    .rl-pct {
-      font-size: 10px;
-      font-weight: 600;
-      color: rgba(255,255,255,0.85);
-      min-width: 28px;
-      text-align: right;
-    }
-    .rl-remaining {
-      font-size: 9px;
-      color: #fff;
-      white-space: nowrap;
+    .user-copy-btn.copied {
+      color: #90ee90 !important;
     }
 
-    /* ── Observability button ──────────────────────────── */
-    #obsBtn {
-      width: 32px;
-      height: 32px;
-      background: rgba(255,255,255,0.12);
-      border: 1px solid rgba(255,255,255,0.3);
-      color: #fff;
+    /* ── 図拡大ライトボックス ──────────────── */
+    .diagram-lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(240, 242, 245, 0.75);
+      backdrop-filter: blur(4px);
+      justify-content: center;
+      align-items: center;
+    }
+    .diagram-lightbox.open { display: flex; }
+    .diagram-lightbox-content {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      cursor: grab;
+    }
+    .diagram-lightbox-content.dragging { cursor: grabbing; }
+    .diagram-lightbox-content svg {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform-origin: 0 0;
+    }
+    .diagram-lightbox-toolbar {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+      z-index: 10000;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 6px 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .diagram-lightbox-toolbar button {
+      background: #e8edf2;
+      border: 1px solid #c0c8d0;
+      color: #333;
+      font-size: 14px;
+      padding: 6px 14px;
       border-radius: 6px;
-      padding: 0;
+      cursor: pointer;
+    }
+    .diagram-lightbox-toolbar button:hover {
+      background: #2e7dd1;
+      color: #fff;
+      border-color: #2e7dd1;
+    }
+    .diagram-lightbox-close {
+      position: fixed;
+      top: 16px;
+      right: 20px;
+      z-index: 10000;
+      background: #fff;
+      border: 1px solid #ccc;
+      color: #333;
+      font-size: 22px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     }
-    #obsBtn:hover { background: rgba(255,255,255,0.2); }
-    #obsBtn:active { background: rgba(255,255,255,0.25); }
-
-    /* ── Observability dashboard ───────────────────────── */
-    #observabilityView {
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px;
-      background: #f8f9fa;
-    }
-    .obs-toolbar {
+    .diagram-lightbox-close:hover { background: #e8edf2; }
+    .diagram-lightbox-zoom-info {
+      color: #666;
+      font-size: 13px;
+      padding: 6px 8px;
       display: flex;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 16px;
     }
-    .obs-back-btn {
-      padding: 6px 14px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      background: #fff;
-      cursor: pointer;
-      font-size: 13px;
-    }
-    .obs-back-btn:hover { background: #f5f5f5; }
-    .obs-title {
-      font-size: 18px;
-      font-weight: 700;
-      color: #333;
-    }
-    .obs-loading, .obs-error, .obs-empty {
-      text-align: center;
-      padding: 40px;
-      color: #888;
-      font-size: 14px;
-    }
-    .obs-error { color: #e53e3e; }
-    .obs-content { }
 
   </style>
   <script src="https://cdn.jsdelivr.net/npm/marked@15/marked.min.js"></script>
@@ -1116,14 +1280,15 @@
       <button onclick="promptDeleteProject()">削除</button>
     </div>
   </div>
+  <div class="sidebar-search">
+    <div class="sidebar-search-wrap">
+      <input type="text" id="ftsSearchInput" class="sidebar-search-input" placeholder="会話を検索...">
+      <button class="sidebar-search-clear" id="ftsSearchClear" onclick="clearFtsSearch()">&times;</button>
+    </div>
+  </div>
+  <div id="ftsSearchResults" style="display:none; overflow-y:auto; flex:1;"></div>
   <div class="session-list" id="sessionList">
     <div class="session-loading" id="sessionLoading">読み込み中...</div>
-  </div>
-  <div class="sidebar-footer">
-    <button id="restartServerBtn" onclick="restartServer()" title="サーバーを再起動して最新コードを適用します">
-      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:4px"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></svg>
-      サーバー再起動
-    </button>
   </div>
 </aside>
 
@@ -1137,7 +1302,7 @@
         <line x1="3" y1="18" x2="21" y2="18"></line>
       </svg>
     </button>
-    <h1>Knowledge Base Ver 1.0</h1>
+    <h1>Knowledge Base Lite</h1>
     <div class="header-select-group">
       <span class="header-select-label">チーム</span>
       <select id="teamSelect" onchange="onTeamChange()">
@@ -1148,23 +1313,16 @@
       <select id="modelSelect">
       </select>
     </div>
-    <div id="rlContainer" style="display:none">
-      <div class="rl-gauge" id="rlGauge5h" data-label-prefix="5h">
-        <span class="rl-label">5h</span>
-        <div class="rl-bar"><div class="rl-bar-fill"></div></div>
-        <span class="rl-pct">-</span>
-        <span class="rl-remaining"></span>
-      </div>
-      <div class="rl-gauge" id="rlGauge7d" data-label-prefix="7d">
-        <span class="rl-label">7d</span>
-        <div class="rl-bar"><div class="rl-bar-fill"></div><div class="rl-threshold-line"></div></div>
-        <span class="rl-pct">-</span>
-        <span class="rl-threshold-val"></span>
-        <span class="rl-remaining"></span>
-      </div>
-    </div>
-    <button id="obsBtn" onclick="openObservability()" title="Observability"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
-    <button id="newChatBtn" onclick="newChat()">新しい会話</button>
+  <button id="newChatBtn" onclick="newChat()" title="新しい会話" aria-label="新しい会話">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+    </svg>
+  </button>
+  <div class="header-spacer"></div>
+  <button id="restartServerBtn" onclick="restartServer()" title="サーバーを再起動して最新コードを適用します">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></svg>
+  </button>
   </header>
 
   <div id="readonlyBanner">
@@ -1178,6 +1336,7 @@
       <div class="state" id="emptyState">質問を入力して送信してください。</div>
     </div>
 
+    <div id="inputResizer" title="ドラッグして高さを調整"></div>
     <div class="input-area" id="inputArea">
       <button id="attachBtn" onclick="triggerAttach()" title="ファイルを添付">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -1189,23 +1348,30 @@
       <textarea id="messageInput"
         placeholder="例: エージェントチームの構成と各担当者の役割を教えてください"
         rows="1"></textarea>
-      <button id="sendBtn" onclick="sendMessage()">送信</button>
+      <button id="sendBtn" onclick="sendMessage()" title="送信"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
     </div>
 
     <!-- 添付ファイルエリア -->
     <div class="attach-area" id="attachArea"></div>
   </div>
 
-  <!-- Observability ダッシュボード -->
-  <div id="observabilityView" style="display:none">
-    <div class="obs-toolbar">
-      <button class="obs-back-btn" onclick="closeObservability()">← 戻る</button>
-      <h2 class="obs-title">Observability Dashboard</h2>
-    </div>
-    <div id="obsContent" class="obs-content">
-      <div class="obs-loading">読み込み中...</div>
+  <!-- スクロールトップボタン -->
+  <button id="scrollTopBtn" onclick="scrollToTop()" title="先頭に戻る">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+
+  <!-- 図拡大ライトボックス -->
+  <div id="diagramLightbox" class="diagram-lightbox" onclick="if(event.target===this)closeDiagramLightbox()">
+    <button class="diagram-lightbox-close" onclick="closeDiagramLightbox()" title="閉じる">&times;</button>
+    <div id="diagramLightboxContent" class="diagram-lightbox-content"></div>
+    <div class="diagram-lightbox-toolbar">
+      <button onclick="diagramZoom(0.25)">＋</button>
+      <button onclick="diagramZoom(-0.25)">－</button>
+      <button onclick="diagramZoomReset()">リセット</button>
+      <span id="diagramZoomInfo" class="diagram-lightbox-zoom-info">100%</span>
     </div>
   </div>
+
 
 </div>
 
@@ -1272,6 +1438,11 @@
 
   let _sending = false;
   let _activeTaskId = null;
+  let _cancelled = false;
+  let _currentReader = null;
+  let _manualResized = false;
+  let _messageSaved = false;
+  let _activeRequestAiService = '';
   let _viewingHistory = false;  // 過去の会話を表示中かどうか
   let _viewingSessionId = null; // 閲覧中のセッションID（過去の会話表示時のみ）
 
@@ -1286,6 +1457,7 @@
   let _sequence = 0;
   let _sessionCreated = false;
   let _sessionCategory = '';  // 初回送信時にカテゴリセレクタから取得
+  let _parentSessionId = '';
   let _conversationHistory = [];  // [{question, answer}, ...]
 
   // ── ファイル添付設定 ──────────────────────────────────
@@ -1326,6 +1498,11 @@
         const wrapper = document.createElement('div');
         wrapper.className = 'mermaid';
         wrapper.innerHTML = svg;
+        wrapper.style.cursor = 'pointer';
+        wrapper.addEventListener('click', () => {
+          const svgEl = wrapper.querySelector('svg');
+          if (svgEl) openDiagramLightbox(svgEl);
+        });
         pre.replaceWith(wrapper);
       } catch (e) {
         console.warn('Mermaid: 構文エラーのためコードブロックを維持', e);
@@ -1346,14 +1523,128 @@
     chat.scrollTop = chat.scrollHeight;
   }
 
-  // ── タイトル抽出 ────────────────────────────────────
+  function scrollToTop() {
+    const chat = document.getElementById('chat');
+    chat.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ── タイトル・要約 抽出・表示・編集 ──────────────────
+  const _TITLE_ICON_SVG = '<svg class="title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>';
+
   function extractTitle(text) {
-    const m = text.match(/<!--\s*KB_TITLE:\s*(.+?)\s*-->/);
+    const m = text.match(/<!--\s*KB_TITLE:\s*([\s\S]+?)\s*-->/);
     return m ? m[1].trim() : null;
   }
 
   function stripTitleTag(text) {
-    return text.replace(/<!--\s*KB_TITLE:\s*.+?\s*-->/g, '').trimEnd();
+    return text.replace(/<!--\s*KB_TITLE:\s*[\s\S]+?\s*-->/g, '').trimEnd();
+  }
+
+  function extractSummary(text) {
+    const m = text.match(/<!--\s*KB_TURN_SUMMARY\s*\n([\s\S]+?)\s*-->/);
+    return m ? m[1].trim() : null;
+  }
+
+  function stripSummaryTag(text) {
+    return text.replace(/<!--\s*KB_TURN_SUMMARY\s*\n[\s\S]+?\s*-->/g, '').trimEnd();
+  }
+
+  function buildTitleHtml(title, sessionId, sequence) {
+    if (!title) return '';
+    let idSuffix = '';
+    if (sessionId) {
+      const seq = (sequence != null) ? '-' + sequence : '';
+      const fullId = sessionId + seq;
+      const shortId = sessionId.slice(0, 12) + seq;
+      idSuffix = ' <code class="conv-id">' + esc(shortId) + '</code>'
+        + '<button class="conv-id-copy" title="IDをコピー" onclick="event.stopPropagation(); copyConvId(this, \'' + esc(fullId) + '\')">&#x2398;</button>';
+    }
+    return '<h2 class="response-title">' + _TITLE_ICON_SVG + '<span>' + esc(title) + idSuffix + '</span></h2>';
+  }
+
+  function copyConvId(btn, id) {
+    function onSuccess() {
+      btn.classList.add('copied');
+      btn.innerHTML = '&#x2713;';
+      setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = '&#x2398;'; }, 1500);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(id).then(onSuccess).catch(() => { copyViaExecCommand(id, btn, onSuccess); });
+    } else {
+      copyViaExecCommand(id, btn, onSuccess);
+    }
+  }
+
+  function copyViaExecCommand(text, btn, onSuccess) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;left:-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); onSuccess(); } catch (_) {}
+    document.body.removeChild(ta);
+  }
+
+  function createTitleEditBtn(convId, titleEl) {
+    const btn = document.createElement('button');
+    btn.className = 'title-edit-btn';
+    btn.title = 'タイトルを編集';
+    btn.innerHTML = '&#x270E;';
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const span = titleEl.querySelector('span');
+      if (!span) return;
+      const codeEl = span.querySelector('.conv-id');
+      const currentTitle = codeEl ? span.textContent.replace(codeEl.textContent, '').trim() : span.textContent.trim();
+      const newTitle = prompt('タイトルを編集:', currentTitle);
+      if (!newTitle || newTitle.trim() === '' || newTitle.trim() === currentTitle) return;
+      updateConvTitle(convId, newTitle.trim(), titleEl);
+    });
+    return btn;
+  }
+
+  async function updateConvTitle(convId, title, titleEl) {
+    try {
+      const res = await fetch('/api/conversations/title', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ conv_id: convId, title }),
+      });
+      if (!res.ok) throw new Error('タイトル更新に失敗');
+      const span = titleEl.querySelector('span');
+      if (span) {
+        const codeEl = span.querySelector('.conv-id');
+        const idHtml = codeEl ? ' ' + codeEl.outerHTML : '';
+        span.innerHTML = esc(title) + idHtml;
+      }
+      showToast('タイトルを更新しました');
+    } catch (e) {
+      console.error('会話タイトル更新エラー:', e);
+      showToast('タイトルの更新に失敗しました');
+    }
+  }
+
+  async function editConvTitle(convId, placeholderEl, sessionId, sequence) {
+    const newTitle = prompt('タイトルを入力してください:');
+    if (!newTitle || newTitle.trim() === '') return;
+    try {
+      const res = await fetch('/api/conversations/title', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ conv_id: convId, title: newTitle.trim() }),
+      });
+      if (!res.ok) throw new Error('タイトル更新に失敗');
+      const titleHtml = buildTitleHtml(newTitle.trim(), sessionId, sequence);
+      const temp = document.createElement('div');
+      temp.innerHTML = titleHtml;
+      const titleEl = temp.firstChild;
+      titleEl.appendChild(createTitleEditBtn(convId, titleEl));
+      placeholderEl.replaceWith(titleEl);
+      showToast('タイトルを追加しました');
+    } catch (e) {
+      console.error('会話タイトル更新エラー:', e);
+      showToast('タイトルの更新に失敗しました');
+    }
   }
 
   // ── サイドバー制御 ──────────────────────────────────
@@ -1445,7 +1736,9 @@
     // プロジェクトフィルタ適用
     let filtered = sessions;
     const filterVal = document.getElementById('projectFilter').value;
-    if (filterVal === '__unassigned__') {
+    if (filterVal === '__bookmarked__') {
+      filtered = filtered.filter(s => s.bookmarked);
+    } else if (filterVal === '__unassigned__') {
       filtered = filtered.filter(s => !s.project_id);
     } else if (filterVal) {
       filtered = filtered.filter(s => s.project_id === filterVal);
@@ -1475,15 +1768,19 @@
       const projBadge = projName
         ? '<span class="session-project-badge">' + esc(projName) + '</span>'
         : '';
+      const isBookmarked = s.bookmarked || false;
+      const bookmarkIcon = isBookmarked ? '<span class="session-bookmark-icon">&#x2605;</span>' : '';
+      const bookmarkLabel = isBookmarked ? 'ブックマークを解除' : 'ブックマークに追加';
 
       // XXXX-XXXX-XXXX 形式: UUIDの先頭8文字 + 第2グループ先頭4文字
       const displayId = sid.substring(0, 4) + '-' + sid.substring(4, 8) + '-' + sid.substring(9, 13);
       html += `
         <div class="session-item${isActive ? ' active' : ''}"
              data-session-id="${sid}"
+             data-bookmarked="${isBookmarked ? '1' : '0'}"
              onclick="selectSession('${sid}')">
           <div class="session-item-content">
-            <div class="session-item-title">${title}${catBadge}</div>
+            <div class="session-item-title">${title}${catBadge}${bookmarkIcon}</div>
             <div class="session-item-meta">${date} / ${msgCount}件${projBadge}</div>
             <div class="session-item-id">
               <span class="session-id-text">${displayId}</span>
@@ -1500,6 +1797,7 @@
                   onclick="event.stopPropagation(); toggleSessionMenu(this, '${sid}')"
                   aria-label="メニュー" title="メニュー">&#x22EF;</button>
           <div class="session-menu" id="menu-${sid}">
+            <div class="session-menu-item" onclick="event.stopPropagation(); toggleBookmark('${sid}', ${isBookmarked})">${bookmarkLabel}</div>
             <div class="session-menu-item" onclick="event.stopPropagation(); promptMoveSession('${sid}')">プロジェクトに移動</div>
             <div class="session-menu-divider"></div>
             <div class="session-menu-item danger" onclick="event.stopPropagation(); deleteSession('${sid}')">削除</div>
@@ -1562,21 +1860,40 @@
         for (const conv of data.conversations) {
           // 質問を表示
           if (conv.question) {
-            appendMessage('user', '<p>' + esc(conv.question).replace(/\n/g, '<br>') + '</p>');
+            appendMessage('user', '<p>' + esc(conv.question).replace(/\n/g, '<br>') + '</p>', false, { rawText: conv.question });
           }
           // 回答を表示（コピー/DLボタン付き）
           if (conv.answer) {
-            const cleanAnswer = stripTitleTag(conv.answer);
-            const title = extractTitle(conv.answer);
-            const titleHtml = title ? '<h2 class="response-title">' + esc(title) + '</h2>' : '';
+            const cleanAnswer = stripSummaryTag(stripTitleTag(conv.answer));
+            const title = conv.title || extractTitle(conv.answer) || (conv.question || '').slice(0, 40);
+            const titleHtml = buildTitleHtml(title, sessionId, conv.sequence);
             const div = appendMessage('assistant', titleHtml + mdToHtml(cleanAnswer), false, {
               rawMarkdown: cleanAnswer,
               question: conv.question || '',
               title: title || ''
             });
-            // Mermaid 図のレンダリング
+            if (conv.id) div.setAttribute('data-conv-id', conv.id);
+            // タイトル編集ボタンを追加（過去会話表示時のみ）
+            const titleEl = div.querySelector('.response-title');
+            if (titleEl) {
+              titleEl.appendChild(createTitleEditBtn(conv.id, titleEl));
+            } else {
+              const mc2 = div.querySelector('.msg-content');
+              if (mc2) {
+                const placeholder = document.createElement('div');
+                placeholder.className = 'title-placeholder';
+                placeholder.innerHTML = '<button class="title-edit-btn" title="タイトルを追加">+ タイトルを追加</button>';
+                placeholder.querySelector('button').addEventListener('click', () => editConvTitle(conv.id, placeholder, sessionId, conv.sequence));
+                mc2.insertBefore(placeholder, mc2.firstChild);
+              }
+            }
+            // Mermaid / draw.io 図のレンダリング + コードブロックボタン
             const mc = div.querySelector('.msg-content');
-            if (mc) await renderMermaidBlocks(mc);
+            if (mc) {
+              await renderMermaidBlocks(mc);
+              if (typeof renderDrawioBlocks === 'function') await renderDrawioBlocks(mc);
+              if (typeof addCodeBlockButtons === 'function') addCodeBlockButtons(mc);
+            }
           }
         }
       } else {
@@ -1631,25 +1948,29 @@
   }
 
   // ── 会話保存 ────────────────────────────────────────
-  async function saveConversation(question, answer, title) {
+  async function saveConversation(question, answer, title, summary) {
     try {
       const body = { session_id: _sessionId, sequence: _sequence, question, answer };
       if (!_sessionCreated) {
         // 初回保存時にセッションも作成
         const fallbackTitle = title || question.slice(0, 40);
+        const sessPayload = { session_id: _sessionId, title: fallbackTitle, first_message: question, category: _sessionCategory };
+        if (_parentSessionId) sessPayload.parent_session_id = _parentSessionId;
         const sessRes = await fetch('/api/sessions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ session_id: _sessionId, title: fallbackTitle, first_message: question }),
+          body: JSON.stringify(sessPayload),
         });
         if (!sessRes.ok) {
           console.error('セッション作成失敗:', sessRes.status);
           showToast('会話の保存に失敗しました（セッション作成エラー）');
-          return;
+          return null;
         }
         _sessionCreated = true;
+        _parentSessionId = '';
       }
       if (title) body.title = title;
+      if (summary) body.summary = summary;
       const convRes = await fetch('/api/conversations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1658,15 +1979,18 @@
       if (!convRes.ok) {
         console.error('会話保存失敗:', convRes.status);
         showToast('会話の保存に失敗しました');
-        return;
+        return null;
       }
+      const convData = await convRes.json();
       _sequence++;
 
       // 保存後にサイドバーのセッション一覧を更新
       loadSessions();
+      return convData.id || null;
     } catch (e) {
       console.error('会話保存エラー:', e);
       showToast('会話の保存に失敗しました（通信エラー）');
+      return null;
     }
   }
 
@@ -1683,6 +2007,12 @@
     inner.className = 'msg-content';
     inner.innerHTML = html;
     div.appendChild(inner);
+
+    // ユーザーメッセージにコピーボタンを追加
+    if (role === 'user' && options && options.rawText) {
+      div.setAttribute('data-raw-text', options.rawText);
+      div.appendChild(_createUserCopyBtn());
+    }
 
     // assistant メッセージにコピー/ダウンロードボタンを追加
     if (role === 'assistant' && !isStreaming && options) {
@@ -1976,6 +2306,7 @@
   // ── SSE ストリーム処理（共通） ──────────────────────
   async function processSSEStream(res, aiContent, aiDiv, onDone, onFirstChunk) {
     const reader = res.body.getReader();
+    _currentReader = reader;
     const decoder = new TextDecoder();
     let buffer = '';
     let fullText = '';
@@ -2041,6 +2372,216 @@
     if (el) el.remove();
   }
 
+  // ── 送信ボタン ↔ 中止ボタン 切り替え ─────────────────
+  const _sendIcon = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
+  const _cancelIcon = '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>';
+
+  function setSendMode() {
+    const btn = document.getElementById('sendBtn');
+    if (!btn) return;
+    btn.innerHTML = _sendIcon;
+    btn.title = '送信';
+    btn.onclick = sendMessage;
+    btn.classList.remove('cancel-mode');
+    btn.disabled = false;
+  }
+
+  function setCancelMode() {
+    const btn = document.getElementById('sendBtn');
+    if (!btn) return;
+    btn.innerHTML = _cancelIcon;
+    btn.title = '中止';
+    btn.onclick = cancelMessage;
+    btn.classList.add('cancel-mode');
+    btn.disabled = false;
+  }
+
+  // ── ユーザーメッセージ用コピーボタン ─────────────────
+  const _copySvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
+  const _checkSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+
+  function _createUserCopyBtn() {
+    const wrap = document.createElement('div');
+    wrap.className = 'user-msg-actions';
+    const btn = document.createElement('button');
+    btn.className = 'msg-action-btn user-copy-btn';
+    btn.title = 'プロンプトをコピー';
+    btn.innerHTML = _copySvg;
+    btn.addEventListener('click', function() {
+      const self = this;
+      const msgDiv = self.closest('.msg.user');
+      if (!msgDiv) return;
+      const text = msgDiv.getAttribute('data-raw-text') || '';
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => _showUserCopySuccess(self)).catch(() => _userCopyFallback(text, self));
+      } else {
+        _userCopyFallback(text, self);
+      }
+    });
+    wrap.appendChild(btn);
+    return wrap;
+  }
+
+  function _userCopyFallback(text, btn) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      if (ok) _showUserCopySuccess(btn); else showToast('コピーに失敗しました');
+    } catch (e) { showToast('コピーに失敗しました'); }
+  }
+
+  function _showUserCopySuccess(btn) {
+    btn.classList.add('copied');
+    btn.innerHTML = _checkSvg;
+    showToast('コピーしました');
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = _copySvg;
+    }, 2000);
+  }
+
+  // ── 図の拡大表示ライトボックス ──────────────────────────
+  let _lbZoom = 1;
+  let _lbPanX = 0, _lbPanY = 0;
+  let _lbDragging = false;
+  let _lbDragStart = { x: 0, y: 0 };
+  let _lbSvgW = 0, _lbSvgH = 0;
+
+  function openDiagramLightbox(svgEl) {
+    const lb = document.getElementById('diagramLightbox');
+    const content = document.getElementById('diagramLightboxContent');
+    const clone = svgEl.cloneNode(true);
+    clone.removeAttribute('style');
+    clone.style.maxWidth = 'none';
+    clone.style.maxHeight = 'none';
+    content.innerHTML = '';
+    content.appendChild(clone);
+
+    const vb = clone.viewBox?.baseVal;
+    const bbox = svgEl.getBBox ? svgEl.getBBox() : null;
+    const svgNatW = (vb && vb.width > 0) ? vb.width : (bbox ? bbox.width : parseFloat(clone.getAttribute('width')) || 800);
+    const svgNatH = (vb && vb.height > 0) ? vb.height : (bbox ? bbox.height : parseFloat(clone.getAttribute('height')) || 600);
+
+    const vpW = window.innerWidth * 0.9;
+    const vpH = window.innerHeight * 0.85;
+    const fitScale = Math.min(vpW / svgNatW, vpH / svgNatH);
+
+    _lbSvgW = svgNatW * fitScale;
+    _lbSvgH = svgNatH * fitScale;
+    _lbZoom = 1;
+    _lbPanX = 0;
+    _lbPanY = 0;
+    _applyLbTransform(clone);
+
+    lb.classList.add('open');
+    document.addEventListener('keydown', _lbKeyHandler);
+
+    content.onmousedown = (e) => { _lbDragging = true; _lbDragStart = { x: e.clientX - _lbPanX, y: e.clientY - _lbPanY }; content.classList.add('dragging'); };
+    content.onmousemove = (e) => { if (!_lbDragging) return; _lbPanX = e.clientX - _lbDragStart.x; _lbPanY = e.clientY - _lbDragStart.y; _applyLbTransform(content.querySelector('svg')); };
+    content.onmouseup = content.onmouseleave = () => { _lbDragging = false; content.classList.remove('dragging'); };
+
+    content.onwheel = (e) => { e.preventDefault(); diagramZoom(e.deltaY < 0 ? 0.15 : -0.15); };
+
+    let _lbTouchDist = 0;
+    content.ontouchstart = (e) => {
+      if (e.touches.length === 2) {
+        _lbTouchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+      } else if (e.touches.length === 1) {
+        _lbDragging = true;
+        _lbDragStart = { x: e.touches[0].clientX - _lbPanX, y: e.touches[0].clientY - _lbPanY };
+      }
+    };
+    content.ontouchmove = (e) => {
+      e.preventDefault();
+      if (e.touches.length === 2) {
+        const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+        if (_lbTouchDist > 0) diagramZoom((dist - _lbTouchDist) * 0.005);
+        _lbTouchDist = dist;
+      } else if (e.touches.length === 1 && _lbDragging) {
+        _lbPanX = e.touches[0].clientX - _lbDragStart.x;
+        _lbPanY = e.touches[0].clientY - _lbDragStart.y;
+        _applyLbTransform(content.querySelector('svg'));
+      }
+    };
+    content.ontouchend = () => { _lbDragging = false; _lbTouchDist = 0; };
+  }
+
+  function closeDiagramLightbox() {
+    document.getElementById('diagramLightbox').classList.remove('open');
+    document.removeEventListener('keydown', _lbKeyHandler);
+  }
+
+  function diagramZoom(delta) {
+    _lbZoom = Math.max(0.2, Math.min(5, _lbZoom + delta));
+    const svg = document.querySelector('#diagramLightboxContent svg');
+    if (svg) _applyLbTransform(svg);
+    document.getElementById('diagramZoomInfo').textContent = Math.round(_lbZoom * 100) + '%';
+  }
+
+  function diagramZoomReset() {
+    _lbZoom = 1; _lbPanX = 0; _lbPanY = 0;
+    const svg = document.querySelector('#diagramLightboxContent svg');
+    if (svg) _applyLbTransform(svg);
+    document.getElementById('diagramZoomInfo').textContent = '100%';
+  }
+
+  function _applyLbTransform(svg) {
+    if (!svg) return;
+    const cw = window.innerWidth, ch = window.innerHeight;
+    const w = _lbSvgW * _lbZoom, h = _lbSvgH * _lbZoom;
+    const x = (cw - w) / 2 + _lbPanX;
+    const y = (ch - h) / 2 + _lbPanY;
+    svg.style.width = w + 'px';
+    svg.style.height = h + 'px';
+    svg.style.position = 'absolute';
+    svg.style.left = x + 'px';
+    svg.style.top = y + 'px';
+    svg.style.transform = 'none';
+  }
+
+  function _lbKeyHandler(e) {
+    if (e.key === 'Escape') closeDiagramLightbox();
+    if (e.key === '+' || e.key === '=') diagramZoom(0.25);
+    if (e.key === '-') diagramZoom(-0.25);
+    if (e.key === '0') diagramZoomReset();
+  }
+
+  // ── スクロールトップボタンの表示制御 ────────────────────
+  (function() {
+    const chat = document.getElementById('chat');
+    const btn = document.getElementById('scrollTopBtn');
+    if (chat && btn) {
+      chat.addEventListener('scroll', () => {
+        btn.classList.toggle('visible', chat.scrollTop > 300);
+      });
+    }
+  })();
+
+  async function cancelMessage() {
+    if (!_sending) return;
+    _cancelled = true;
+    const btn = document.getElementById('sendBtn');
+    if (btn) btn.disabled = true;
+
+    if (_activeTaskId) {
+      try {
+        await fetch('/api/task/' + _activeTaskId + '/cancel', { method: 'POST' });
+      } catch (e) {
+        console.warn('キャンセルリクエスト失敗:', e);
+      }
+    }
+
+    if (_currentReader) {
+      try { _currentReader.cancel(); } catch (_) {}
+      _currentReader = null;
+    }
+  }
+
   // ── メッセージ送信 ─────────────────────────────────
   async function sendMessage() {
     if (_sending) return;
@@ -2051,12 +2592,15 @@
     if (!message) { input.focus(); return; }
 
     _sending = true;
-    document.getElementById('sendBtn').disabled = true;
+    setCancelMode();
     input.value = '';
     input.style.height = 'auto';
+    _manualResized = false;
 
     // 初回送信時にカテゴリを固定（会話中の変更不可）
     if (!_sessionCreated) {
+      const catSel = document.getElementById('categorySelect');
+      if (catSel) _sessionCategory = catSel.value;
     }
 
     // 「会話履歴ID（XXXX-XXXX-XXXX）の続き」パターン検出 → 過去の会話履歴を読み込む
@@ -2092,11 +2636,25 @@
     }
 
     // 添付ファイル情報を取得してクリア
+    const attachments = _attachments ? _attachments.slice() : [];
+    if (typeof clearAttachments === 'function') clearAttachments();
 
-    userHtml = '<p>' + esc(message).replace(/\n/g, '<br>') + '</p>';
+    let userHtml = '';
+    if (attachments.length > 0) {
+      userHtml += '<div style="font-size:12px;opacity:0.85;margin-bottom:4px;display:flex;flex-wrap:wrap;gap:4px;align-items:center">';
+      attachments.forEach(a => {
+        if (a.type === 'image') {
+          userHtml += '<img src="' + a.content + '" style="max-height:80px;max-width:120px;object-fit:contain;border-radius:4px;border:1px solid rgba(0,0,0,0.15);" title="' + esc(a.name) + '">';
+        } else {
+          userHtml += '<span style="background:rgba(0,0,0,0.1);padding:2px 6px;border-radius:3px">[' + esc(a.name) + ']</span>';
+        }
+      });
+      userHtml += '</div>';
+    }
+    userHtml += '<p>' + esc(message).replace(/\n/g, '<br>') + '</p>';
 
     // ユーザーメッセージを表示
-    appendMessage('user', userHtml);
+    appendMessage('user', userHtml, false, { rawText: message });
 
     // AI 回答プレースホルダー
     const aiDiv = appendMessage('assistant', '', true);
@@ -2109,7 +2667,18 @@
       const res = await fetch('/api/team-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, mode: document.getElementById('teamSelect').value, agents: [], history: _conversationHistory, model: document.getElementById('modelSelect').value }),
+        body: JSON.stringify({
+          message,
+          mode: document.getElementById('teamSelect').value,
+          agents: [],
+          history: _conversationHistory,
+          model: document.getElementById('modelSelect').value,
+          category: _sessionCategory || '',
+          search_all: (document.getElementById('searchAllCheck') || {}).checked || false,
+          attachments,
+          workspace_project: (document.getElementById('workspaceProjectSelect') || {}).value || '',
+          ai_service: (document.getElementById('aiServiceSelect') || {}).value || '',
+        }),
       });
 
       if (!res.ok || !res.body) {
@@ -2126,15 +2695,18 @@
         }
       });
 
-      // 回答完了後: タイトル抽出・除去して保存 + コピー/DLボタン追加
+      // 回答完了後: タイトル・要約 抽出・除去して保存 + コピー/DLボタン追加
       if (fullText) {
-        const title = extractTitle(fullText);
-        const cleanAnswer = stripTitleTag(fullText);
-        const titleHtml = title ? '<h2 class="response-title">' + esc(title) + '</h2>' : '';
+        const title = extractTitle(fullText) || message.slice(0, 40);
+        const summary = extractSummary(fullText);
+        const cleanAnswer = stripSummaryTag(stripTitleTag(fullText));
+        const titleHtml = buildTitleHtml(title, _sessionId, _sequence);
         aiContent.innerHTML = titleHtml + mdToHtml(cleanAnswer);
 
-        // Mermaid 図のレンダリング
+        // Mermaid / draw.io 図のレンダリング + コードブロックボタン
         await renderMermaidBlocks(aiContent);
+        if (typeof renderDrawioBlocks === 'function') await renderDrawioBlocks(aiContent);
+        if (typeof addCodeBlockButtons === 'function') addCodeBlockButtons(aiContent);
 
         // 元テキストを data-* 属性に保持
         aiDiv.setAttribute('data-raw-markdown', cleanAnswer);
@@ -2146,9 +2718,10 @@
           aiDiv.appendChild(createMsgActions());
         }
 
-        // fire-and-forget で保存
-        _conversationHistory.push({ question: message, answer: cleanAnswer });
-        saveConversation(message, cleanAnswer, title);
+        // 保存してサイドバー更新
+        _conversationHistory.push({ question: message, answer: cleanAnswer, summary: summary || '' });
+        const convId = await saveConversation(message, cleanAnswer, title, summary);
+        if (convId) aiDiv.setAttribute('data-conv-id', convId);
       }
 
     } catch (e) {
@@ -2167,9 +2740,10 @@
     } finally {
       hideWaitingIndicator();
       _activeTaskId = null;
+      _currentReader = null;
       _sending = false;
-      document.getElementById('sendBtn').disabled = false;
-      clearAttachments();
+      _cancelled = false;
+      setSendMode();
       input.focus();
     }
   }
@@ -2186,11 +2760,14 @@
           hideWaitingIndicator();
           const fullText = data.text;
           if (fullText) {
-            const title = extractTitle(fullText);
-            const cleanAnswer = stripTitleTag(fullText);
-            const titleHtml = title ? '<h2 class="response-title">' + esc(title) + '</h2>' : '';
+            const title = extractTitle(fullText) || question.slice(0, 40);
+            const summary = extractSummary(fullText);
+            const cleanAnswer = stripSummaryTag(stripTitleTag(fullText));
+            const titleHtml = buildTitleHtml(title, _sessionId, _sequence);
             aiContent.innerHTML = titleHtml + mdToHtml(cleanAnswer);
             await renderMermaidBlocks(aiContent);
+            if (typeof renderDrawioBlocks === 'function') await renderDrawioBlocks(aiContent);
+            if (typeof addCodeBlockButtons === 'function') addCodeBlockButtons(aiContent);
             aiDiv.setAttribute('data-raw-markdown', cleanAnswer);
             aiDiv.setAttribute('data-question', question);
             if (title) aiDiv.setAttribute('data-title', title);
@@ -2198,8 +2775,9 @@
             if (!aiDiv.querySelector('.msg-actions')) {
               aiDiv.appendChild(createMsgActions());
             }
-            _conversationHistory.push({ question, answer: cleanAnswer });
-            saveConversation(question, cleanAnswer, title);
+            _conversationHistory.push({ question, answer: cleanAnswer, summary: summary || '' });
+            const convId = await saveConversation(question, cleanAnswer, title, summary);
+            if (convId) aiDiv.setAttribute('data-conv-id', convId);
           }
           return true;
         } else if (data.status === 'error') {
@@ -2254,10 +2832,10 @@
     msgInput.style.height = Math.min(msgInput.scrollHeight, 120) + 'px';
   });
 
-  // Enter で送信（Shift+Enter は改行、モバイルではEnter=改行のみ）
+  // Ctrl+Enter で送信（Enter は改行、モバイルではEnter=改行のみ）
   const _isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   msgInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !e.shiftKey && !_isMobile) {
+    if (e.key === 'Enter' && e.ctrlKey && !_isMobile) {
       e.preventDefault();
       sendMessage();
     }
@@ -2309,6 +2887,27 @@
     document.querySelectorAll('.session-menu.open').forEach(m => m.classList.remove('open'));
   });
 
+  // ── ブックマーク切り替え ─────────────────────────────
+  async function toggleBookmark(sessionId, currentlyBookmarked) {
+    document.querySelectorAll('.session-menu.open').forEach(m => m.classList.remove('open'));
+    const newVal = !currentlyBookmarked;
+    try {
+      const res = await fetch('/api/sessions/' + sessionId + '/bookmark', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookmarked: newVal })
+      });
+      if (!res.ok) throw new Error('ブックマーク更新失敗');
+      const s = _allSessions.find(x => (x.id || x.session_id) === sessionId);
+      if (s) s.bookmarked = newVal;
+      renderSessionList(_allSessions);
+      showToast(newVal ? 'ブックマークに追加しました' : 'ブックマークを解除しました');
+    } catch (e) {
+      console.error('ブックマーク更新エラー:', e);
+      showToast('ブックマークの更新に失敗しました');
+    }
+  }
+
   // ── プロジェクト管理 ──────────────────────────────────
   let _projects = [];  // {id, name, ...}
   let _allSessions = [];  // フィルタ前の全セッション
@@ -2327,7 +2926,7 @@
   function renderProjectFilter() {
     const sel = document.getElementById('projectFilter');
     const current = sel.value;
-    let html = '<option value="">すべての会話</option><option value="__unassigned__">未分類</option>';
+    let html = '<option value="">すべての会話</option><option value="__bookmarked__">★ ブックマーク</option><option value="__unassigned__">未分類</option>';
     for (const p of _projects) {
       html += '<option value="' + esc(p.id || p.project_id) + '">' + esc(p.name) + '</option>';
     }
@@ -2426,24 +3025,51 @@
       }
     }
 
-    // プロジェクト選択ダイアログ
-    let options = '0: 未分類に戻す\n';
-    _projects.forEach((p, i) => {
-      options += (i + 1) + ': ' + p.name + '\n';
-    });
-    const choice = prompt('移動先プロジェクトの番号を入力:\n' + options);
-    if (choice === null) return;
-    const num = parseInt(choice, 10);
-    let targetId = '';
-    if (num === 0) {
-      targetId = '';
-    } else if (num >= 1 && num <= _projects.length) {
-      targetId = _projects[num - 1].id || _projects[num - 1].project_id;
-    } else {
-      showToast('無効な番号です');
-      return;
-    }
+    // プロジェクト選択ダイアログ（ボタン選択方式）
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;';
+    const dialog = document.createElement('div');
+    dialog.style.cssText = 'background:#2a2a2a;border-radius:10px;padding:20px;min-width:280px;max-width:400px;color:#eee;';
+    dialog.innerHTML = '<div style="font-size:14px;font-weight:600;margin-bottom:12px;">移動先プロジェクト</div>';
 
+    const btnContainer = document.createElement('div');
+    btnContainer.style.cssText = 'display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto;';
+
+    // 「未分類に戻す」ボタン
+    const noneBtn = document.createElement('button');
+    noneBtn.textContent = '未分類に戻す';
+    noneBtn.style.cssText = 'padding:8px 12px;border:1px solid #555;background:#333;color:#ccc;border-radius:6px;cursor:pointer;text-align:left;font-size:13px;';
+    noneBtn.onmouseenter = () => { noneBtn.style.background = '#444'; };
+    noneBtn.onmouseleave = () => { noneBtn.style.background = '#333'; };
+    noneBtn.onclick = async () => { overlay.remove(); await doMoveSession(sessionId, ''); };
+    btnContainer.appendChild(noneBtn);
+
+    // プロジェクトボタン
+    _projects.forEach(p => {
+      const btn = document.createElement('button');
+      btn.textContent = p.name;
+      btn.style.cssText = 'padding:8px 12px;border:1px solid #555;background:#333;color:#eee;border-radius:6px;cursor:pointer;text-align:left;font-size:13px;';
+      btn.onmouseenter = () => { btn.style.background = '#444'; };
+      btn.onmouseleave = () => { btn.style.background = '#333'; };
+      btn.onclick = async () => { overlay.remove(); await doMoveSession(sessionId, p.id || p.project_id); };
+      btnContainer.appendChild(btn);
+    });
+
+    dialog.appendChild(btnContainer);
+
+    // キャンセルボタン
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'キャンセル';
+    cancelBtn.style.cssText = 'margin-top:12px;padding:6px 12px;border:none;background:transparent;color:#888;cursor:pointer;font-size:12px;width:100%;';
+    cancelBtn.onclick = () => overlay.remove();
+    dialog.appendChild(cancelBtn);
+
+    overlay.appendChild(dialog);
+    overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+    document.body.appendChild(overlay);
+  }
+
+  async function doMoveSession(sessionId, targetId) {
     try {
       const res = await fetch('/api/sessions/move', {
         method: 'PUT',
@@ -2603,7 +3229,7 @@
     setTimeout(() => location.reload(), 5000);
   }
 </script>
-<script src="/static/js/rate-limits.js"></script>
-<script src="/static/js/observability.js"></script>
+<script src="/static/js/search.js"></script>
+
 </body>
 </html>

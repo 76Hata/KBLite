@@ -34,7 +34,7 @@ from routes.session import (
     update_session_bookmark,
     update_conversation_title,
 )
-from routes.observability import get_llm_usage_stats, get_observability_stats
+from routes.search import rebuild_index, search_conversations, search_stats
 from routes.system import debug_env, get_app_config, get_rate_limits, health, index, restart_server
 
 _routes = [
@@ -61,8 +61,9 @@ _routes = [
     Route("/api/projects/{project_id}", delete_project, methods=["DELETE"]),
     Route("/api/projects/{project_id}", rename_project, methods=["PUT"]),
     Route("/api/sessions/move", move_session, methods=["PUT"]),
-    Route("/api/observability", get_observability_stats, methods=["GET"]),
-    Route("/api/llm-usage", get_llm_usage_stats, methods=["GET"]),
+    Route("/api/search", search_conversations, methods=["GET"]),
+    Route("/api/search/stats", search_stats, methods=["GET"]),
+    Route("/api/search/rebuild", rebuild_index, methods=["POST"]),
     Mount("/static", app=StaticFiles(directory=str(Path(__file__).parent / "static")), name="static"),
 ]
 
