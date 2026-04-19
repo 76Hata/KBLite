@@ -26,7 +26,22 @@
 
   var SKIP_TAGS = { PRE: 1, A: 1, SCRIPT: 1, STYLE: 1, TEXTAREA: 1, BUTTON: 1 };
 
+  function showFileToast(msg, isError) {
+    var toast = document.createElement('div');
+    toast.textContent = msg;
+    toast.style.cssText = [
+      'position:fixed', 'bottom:24px', 'right:24px', 'z-index:9999',
+      'padding:10px 16px', 'border-radius:6px', 'font-size:13px',
+      'color:#fff', 'max-width:420px', 'word-break:break-all',
+      'box-shadow:0 2px 8px rgba(0,0,0,0.3)',
+      isError ? 'background:#c62828' : 'background:#2e7d32'
+    ].join(';');
+    document.body.appendChild(toast);
+    setTimeout(function () { toast.remove(); }, 3500);
+  }
+
   async function openFileInEditor(path) {
+    console.log('[file-path-linkify] クリック:', path);
     try {
       var res = await fetch('/api/open_file', {
         method: 'POST',
@@ -37,10 +52,16 @@
         var err = {};
         try { err = await res.json(); } catch (_) {}
         var msg = err.detail || err.error || ('HTTP ' + res.status);
-        alert('ファイルを開けませんでした\n\nパス: ' + path + '\n理由: ' + msg);
+        console.error('[file-path-linkify] エラー:', msg, 'パス:', path);
+        showFileToast('ファイルを開けませんでした: ' + msg, true);
+      } else {
+        console.log('[file-path-linkify] 成功:', path);
+        showFileToast('エディタで開いています: ' + path, false);
       }
     } catch (e) {
-      alert('ファイルを開けませんでした\n\n' + (e && e.message ? e.message : e));
+      var emsg = e && e.message ? e.message : String(e);
+      console.error('[file-path-linkify] fetch失敗:', emsg);
+      showFileToast('通信エラー: ' + emsg, true);
     }
   }
 

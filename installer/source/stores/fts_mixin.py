@@ -149,6 +149,9 @@ class FtsMixin:
             JOIN sessions s ON c.session_id = s.id
             WHERE conversations_fts MATCH ?
               AND length(c.answer) > 150
+              AND c.answer NOT LIKE '%アシスタントチームへようこそ%'
+              AND c.answer NOT LIKE '%ここに質問を入力してください%'
+              AND c.answer NOT LIKE '%ご質問や調査したい内容をお聞かせください%'
         """
 
         if current_session_id:
