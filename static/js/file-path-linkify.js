@@ -12,10 +12,17 @@
 (function () {
   'use strict';
 
-  // 許可終端記号: 日本語句読点・丸括弧(リンクを過検出しない)・空白
+  // 許可終端記号: 日本語句読点・丸括弧・角括弧(リンクを過検出しない)・空白
   // パス先頭は [A-Za-z]: または / または ~/ または ~\
+  // 中括弧(}) はパス全体を取り込むため除外リストから外す(後段でプレースホルダー判定)
   var PATH_REGEX =
-    /(?:[A-Za-z]:[\\\/][^\s<>"'`、。，．\)\]\}]+|~[\\\/][^\s<>"'`、。，．\)\]\}]+|\/(?:Users|home|etc|opt|var|mnt|root)\/[^\s<>"'`、。，．\)\]\}]+)/g;
+    /(?:[A-Za-z]:[\\\/][^\s<>"'`、。，．\)\]]+|~[\\\/][^\s<>"'`、。，．\)\]]+|\/(?:Users|home|etc|opt|var|mnt|root)\/[^\s<>"'`、。，．\)\]]+)/g;
+
+  // プレースホルダー({...})・ワイルドカード(*/?)・省略記号(...) を含むパスは
+  // 実在しない表記のためリンク化しない
+  function isPlaceholderPath(s) {
+    return /[{}*?]/.test(s) || /\.{3,}/.test(s);
+  }
 
   var SKIP_TAGS = { PRE: 1, A: 1, SCRIPT: 1, STYLE: 1, TEXTAREA: 1, BUTTON: 1 };
 
@@ -82,6 +89,14 @@
       if (matchStart > lastIdx) {
         frag.appendChild(document.createTextNode(text.slice(lastIdx, matchStart)));
       }
+
+      // プレースホルダー/ワイルドカード混在のパスはリンク化せず原文のまま残す
+      if (isPlaceholderPath(trimmed)) {
+        frag.appendChild(document.createTextNode(rawMatch));
+        lastIdx = matchStart + rawMatch.length;
+        continue;
+      }
+
       var span = document.createElement('span');
       span.className = 'file-path-link';
       span.textContent = trimmed;

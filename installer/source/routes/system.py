@@ -148,12 +148,14 @@ async def open_file(request: Request) -> JSONResponse:
                     creationflags=subprocess.CREATE_NO_WINDOW,
                 )
                 opened_via = "vscode"
-                # VS Code を最前面に移動（focus steal 防止を回避するため PowerShell 経由）
+                # VS Code をアクティブ化（メインウィンドウを持つプロセスに絞って AppActivate）
                 ps_script = (
                     "Start-Sleep -Milliseconds 800;"
                     "$wsh = New-Object -ComObject WScript.Shell;"
-                    "$procs = Get-Process -Name 'Code' -ErrorAction SilentlyContinue;"
-                    "if ($procs) { $wsh.AppActivate($procs[0].Id) | Out-Null }"
+                    "$proc = Get-Process -Name 'Code' -ErrorAction SilentlyContinue"
+                    " | Where-Object { $_.MainWindowHandle -ne 0 }"
+                    " | Select-Object -First 1;"
+                    "if ($proc) { $wsh.AppActivate($proc.Id) | Out-Null }"
                 )
                 subprocess.Popen(
                     ["powershell", "-NoProfile", "-NonInteractive", "-Command", ps_script],
