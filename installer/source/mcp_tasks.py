@@ -42,6 +42,9 @@ def _get_conn() -> sqlite3.Connection:
             status      TEXT DEFAULT 'todo',
             priority    TEXT DEFAULT 'normal',
             session_id  TEXT DEFAULT NULL,
+            source      TEXT DEFAULT 'manual',
+            scope       TEXT DEFAULT 'global',
+            todo_key    TEXT DEFAULT NULL,
             created_at  DATETIME DEFAULT (datetime('now','localtime')),
             updated_at  DATETIME DEFAULT (datetime('now','localtime')),
             due_date    DATETIME DEFAULT NULL,
@@ -55,6 +58,24 @@ def _get_conn() -> sqlite3.Connection:
             FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
         );
     """)
+    # 既存DBの ALTER TABLE（冪等）
+    existing_cols = {
+        r["name"] for r in conn.execute("PRAGMA table_info(tasks)").fetchall()
+    }
+    if "source" not in existing_cols:
+        conn.execute("ALTER TABLE tasks ADD COLUMN source TEXT DEFAULT 'manual'")
+    if "scope" not in existing_cols:
+        conn.execute("ALTER TABLE tasks ADD COLUMN scope TEXT DEFAULT 'global'")
+    if "todo_key" not in existing_cols:
+        conn.execute("ALTER TABLE tasks ADD COLUMN todo_key TEXT DEFAULT NULL")
+    # 列が揃ってからインデックスを作る
+    conn.execute(
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_tasks_todo_key "
+        "ON tasks(todo_key) WHERE todo_key IS NOT NULL"
+    )
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_tasks_scope_status ON tasks(scope, status)"
+    )
     conn.commit()
     return conn
 
@@ -65,6 +86,9 @@ _conn = _get_conn()
 # ── DB 操作ユーティリティ ────────────────────────────────────────────────────
 
 def _row_to_task(row) -> dict:
+    keys = row.keys() if hasattr(row, "keys") else []
+    def _get(key, default=None):
+        return row[key] if key in keys else default
     return {
         "id": row["id"],
         "title": row["title"],
@@ -72,6 +96,9 @@ def _row_to_task(row) -> dict:
         "status": row["status"],
         "priority": row["priority"],
         "session_id": row["session_id"] or None,
+        "source": _get("source", "manual") or "manual",
+        "scope": _get("scope", "global") or "global",
+        "todo_key": _get("todo_key"),
         "created_at": row["created_at"],
         "updated_at": row["updated_at"],
         "due_date": row["due_date"] or None,
@@ -99,11 +126,19 @@ def tool_task_create(args: dict) -> str:
         priority = "normal"
     session_id = args.get("session_id") or None
     due_date = args.get("due_date") or None
+    scope = args.get("scope") or "global"
+    if scope not in ("session", "global"):
+        scope = "global"
+    source = args.get("source") or "manual"
+    if source not in ("manual", "todowrite", "mcp"):
+        source = "manual"
 
     task_id = str(uuid.uuid4())
     _conn.execute(
-        "INSERT INTO tasks (id, title, description, priority, session_id, due_date) VALUES (?,?,?,?,?,?)",
-        (task_id, title, description, priority, session_id, due_date),
+        """INSERT INTO tasks (id, title, description, priority, session_id, due_date,
+                              scope, source)
+           VALUES (?,?,?,?,?,?,?,?)""",
+        (task_id, title, description, priority, session_id, due_date, scope, source),
     )
     _conn.commit()
     row = _conn.execute("SELECT * FROM tasks WHERE id=?", (task_id,)).fetchone()
@@ -114,6 +149,8 @@ def tool_task_create(args: dict) -> str:
 def tool_task_list(args: dict) -> str:
     status = args.get("status") or None
     session_id = args.get("session_id") or None
+    scope = args.get("scope") or None
+    source = args.get("source") or None
 
     sql = "SELECT * FROM tasks WHERE 1=1"
     params: list = []
@@ -123,6 +160,12 @@ def tool_task_list(args: dict) -> str:
     if session_id:
         sql += " AND session_id = ?"
         params.append(session_id)
+    if scope:
+        sql += " AND scope = ?"
+        params.append(scope)
+    if source:
+        sql += " AND source = ?"
+        params.append(source)
     sql += (" ORDER BY CASE status "
             "WHEN 'in_progress' THEN 0 "
             "WHEN 'todo' THEN 1 "
@@ -208,12 +251,18 @@ def tool_task_delete(args: dict) -> str:
 
 
 def tool_task_resume_context(args: dict) -> str:
-    """未完了タスク（todo/in_progress）とそのノートを返す。セッション再開時に使う。"""
+    """未完了タスク（todo/in_progress）とそのノートを返す。セッション再開時に使う。
+
+    scope='global' のタスク（大きな案件・ユーザー追加分）を優先的に表示し、
+    scope='session' のタスク（TodoWrite由来）は参考として別枠で表示する。
+    """
     rows = _conn.execute(
         """SELECT * FROM tasks
            WHERE status IN ('todo','in_progress')
-           ORDER BY CASE status WHEN 'in_progress' THEN 0 ELSE 1 END, updated_at DESC
-           LIMIT 20""",
+           ORDER BY CASE scope WHEN 'global' THEN 0 ELSE 1 END,
+                    CASE status WHEN 'in_progress' THEN 0 ELSE 1 END,
+                    updated_at DESC
+           LIMIT 30""",
     ).fetchall()
     tasks = []
     for row in rows:
@@ -221,25 +270,42 @@ def tool_task_resume_context(args: dict) -> str:
         t["notes"] = _notes_for(t["id"])
         tasks.append(t)
 
+    globals_ = [t for t in tasks if t.get("scope") == "global"]
+    sessions_ = [t for t in tasks if t.get("scope") != "global"]
+
+    def _fmt(t):
+        lines = []
+        badge = "[進行中]" if t["status"] == "in_progress" else "[未着手]"
+        prio = {"high": "★高", "normal": "中", "low": "▽低"}.get(
+            t["priority"], t["priority"]
+        )
+        src = t.get("source") or "manual"
+        lines.append(f"### {badge} {t['title']} (優先度:{prio} / source:{src})")
+        lines.append(f"- ID: `{t['id']}`")
+        if t["description"]:
+            lines.append(f"- 内容: {t['description']}")
+        if t["due_date"]:
+            lines.append(f"- 期限: {t['due_date']}")
+        if t["notes"]:
+            lines.append("- メモ:")
+            for n in t["notes"]:
+                lines.append(f"  - [{n['created_at']}] {n['note']}")
+        lines.append("")
+        return lines
+
     if not tasks:
         summary = "現在、未完了タスクはありません。"
     else:
-        lines = ["## 未完了タスク一覧\n"]
-        for t in tasks:
-            badge = "[進行中]" if t["status"] == "in_progress" else "[未着手]"
-            prio = {"high": "★高", "normal": "中", "low": "▽低"}.get(t["priority"], t["priority"])
-            lines.append(f"### {badge} {t['title']} (優先度:{prio})")
-            lines.append(f"- ID: `{t['id']}`")
-            if t["description"]:
-                lines.append(f"- 内容: {t['description']}")
-            if t["due_date"]:
-                lines.append(f"- 期限: {t['due_date']}")
-            if t["notes"]:
-                lines.append("- メモ:")
-                for n in t["notes"]:
-                    lines.append(f"  - [{n['created_at']}] {n['note']}")
-            lines.append("")
-        summary = "\n".join(lines)
+        out = []
+        if globals_:
+            out.append("## 未完了タスク（大きな案件 / scope=global）\n")
+            for t in globals_:
+                out.extend(_fmt(t))
+        if sessions_:
+            out.append("## セッション内タスク（TodoWrite由来 / scope=session）\n")
+            for t in sessions_:
+                out.extend(_fmt(t))
+        summary = "\n".join(out)
 
     return json.dumps({"summary": summary, "tasks": tasks}, ensure_ascii=False)
 
@@ -248,7 +314,7 @@ def tool_task_resume_context(args: dict) -> str:
 
 TOOLS = {
     "task_create": {
-        "description": "タスクを新規作成する。作業開始時や「〜をやっておく」と決めた時に使う。",
+        "description": "大きな案件・横断タスクを新規作成する（scope=global 既定）。セッション内の細かい進捗は TodoWrite を使うこと。",
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -257,17 +323,21 @@ TOOLS = {
                 "priority":    {"type": "string", "enum": ["low", "normal", "high"], "description": "優先度"},
                 "session_id":  {"type": "string", "description": "関連する会話セッションのID"},
                 "due_date":    {"type": "string", "description": "期限（YYYY-MM-DD形式）"},
+                "scope":       {"type": "string", "enum": ["session", "global"], "description": "スコープ。既定は global。session は TodoWrite 連携専用で通常使わない"},
+                "source":      {"type": "string", "enum": ["manual", "todowrite", "mcp"], "description": "出どころ。既定は manual"},
             },
             "required": ["title"],
         },
     },
     "task_list": {
-        "description": "タスク一覧を取得する。status でフィルタ可（todo/in_progress/done/cancelled）。",
+        "description": "タスク一覧を取得する。status/scope/source でフィルタ可。",
         "inputSchema": {
             "type": "object",
             "properties": {
                 "status":     {"type": "string", "enum": ["todo", "in_progress", "done", "cancelled"], "description": "ステータスでフィルタ"},
                 "session_id": {"type": "string", "description": "セッションIDでフィルタ"},
+                "scope":      {"type": "string", "enum": ["session", "global"], "description": "スコープでフィルタ"},
+                "source":     {"type": "string", "enum": ["manual", "todowrite", "mcp"], "description": "出どころでフィルタ"},
             },
         },
     },

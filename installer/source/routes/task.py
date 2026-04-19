@@ -6,11 +6,15 @@ from deps import logger, store
 
 
 async def list_tasks(request: Request) -> JSONResponse:
-    """タスク一覧取得（status / session_id でフィルタ可）"""
+    """タスク一覧取得（status / session_id / scope / source でフィルタ可）"""
     status = request.query_params.get("status") or None
     session_id = request.query_params.get("session_id") or None
+    scope = request.query_params.get("scope") or None
+    source = request.query_params.get("source") or None
     try:
-        tasks = store.list_tasks(status=status, session_id=session_id)
+        tasks = store.list_tasks(
+            status=status, session_id=session_id, scope=scope, source=source
+        )
         return JSONResponse({"tasks": tasks})
     except Exception as e:
         logger.error("タスク一覧取得エラー: %s", e)
@@ -32,9 +36,15 @@ async def create_task(request: Request) -> JSONResponse:
     priority = str(body.get("priority", "normal")).strip()
     session_id = body.get("session_id") or None
     due_date = body.get("due_date") or None
+    scope = body.get("scope") or "global"
+    source = body.get("source") or "manual"
 
     if priority not in ("low", "normal", "high"):
         priority = "normal"
+    if scope not in ("session", "global"):
+        scope = "global"
+    if source not in ("manual", "todowrite", "mcp"):
+        source = "manual"
 
     try:
         task = store.create_task(
@@ -43,6 +53,8 @@ async def create_task(request: Request) -> JSONResponse:
             priority=priority,
             session_id=session_id,
             due_date=due_date,
+            scope=scope,
+            source=source,
         )
         return JSONResponse({"ok": True, "task": task}, status_code=201)
     except Exception as e:
@@ -69,7 +81,7 @@ async def update_task(request: Request) -> JSONResponse:
         return JSONResponse({"error": "不正なリクエストボディです"}, status_code=400)
 
     allowed_fields = {"title", "description", "status", "priority",
-                      "session_id", "due_date"}
+                      "session_id", "due_date", "scope"}
     updates = {k: v for k, v in body.items() if k in allowed_fields}
 
     if "status" in updates and updates["status"] not in ("todo", "in_progress", "done", "cancelled"):
