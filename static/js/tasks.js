@@ -29,16 +29,29 @@ function closeTaskPanel() {
 // ── タスク一覧取得 ────────────────────────────────
 async function loadTasks() {
   const statusFilter = document.getElementById('taskStatusFilter').value;
-  const params = statusFilter ? `?status=${encodeURIComponent(statusFilter)}` : '';
+  const scopeFilter = document.getElementById('taskScopeFilter')?.value || '';
+  const qs = new URLSearchParams();
+  if (statusFilter) qs.set('status', statusFilter);
+  if (scopeFilter) qs.set('scope', scopeFilter);
+  const params = qs.toString() ? `?${qs.toString()}` : '';
   try {
     const res = await fetch(`/api/tasks${params}`);
     const data = await res.json();
     renderTaskList(data.tasks || []);
-    updateTaskBadge(data.tasks || []);
+    // バッジは scope フィルタに関係なく大きな案件のみで集計
+    updateTaskBadgeFromApi();
   } catch (e) {
     document.getElementById('taskList').innerHTML =
       '<div class="task-empty">読み込みエラー</div>';
   }
+}
+
+async function updateTaskBadgeFromApi() {
+  try {
+    const res = await fetch('/api/tasks?scope=global');
+    const d = await res.json();
+    updateTaskBadge(d.tasks || []);
+  } catch (_) {}
 }
 
 function updateTaskBadge(tasks) {
@@ -77,6 +90,13 @@ function renderTaskItem(t) {
     ? `<span class="task-notes-count">${t.notes.length}件のメモ</span>`
     : '';
 
+  const source = t.source || 'manual';
+  const scope = t.scope || 'global';
+  const sourceLabel = { todowrite: 'TodoWrite', manual: '手動', mcp: 'MCP' }[source] || source;
+  const scopeLabel = { session: 'セッション', global: '大案件' }[scope] || scope;
+  const sourceHtml = `<span class="task-source-badge ${_esc(source)}" title="出どころ">${_esc(sourceLabel)}</span>`;
+  const scopeHtml = `<span class="task-scope-badge ${_esc(scope)}" title="スコープ">${_esc(scopeLabel)}</span>`;
+
   const statusActions = _statusActions(t);
 
   return `<div class="task-item ${t.status}${isExpanded ? ' expanded' : ''}" id="task-${_esc(t.id)}" onclick="toggleTaskExpand(event,'${_esc(t.id)}')">
@@ -86,6 +106,8 @@ function renderTaskItem(t) {
   </div>
   <div class="task-item-meta">
     <span class="task-priority-badge ${t.priority}">${_esc(priorityLabel)}</span>
+    ${scopeHtml}
+    ${sourceHtml}
     ${dueHtml}
     ${notesCountHtml}
   </div>
@@ -277,13 +299,11 @@ function _esc(str) {
     .replace(/'/g, '&#39;');
 }
 
-// ── 初期化（バッジ用に未完了件数だけ取得） ────────
+// ── 初期化（バッジ用に未完了件数だけ取得 — 大きな案件のみ） ────────
 async function initTaskBadge() {
   try {
-    const res = await fetch('/api/tasks?status=in_progress');
+    const res = await fetch('/api/tasks?scope=global');
     const d = await res.json();
-    const todoRes = await fetch('/api/tasks?status=todo');
-    const d2 = await todoRes.json();
-    updateTaskBadge([...(d.tasks || []), ...(d2.tasks || [])]);
+    updateTaskBadge(d.tasks || []);
   } catch (_) {}
 }

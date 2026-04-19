@@ -1457,6 +1457,25 @@
       color: #778;
     }
 
+    .task-source-badge {
+      font-size: 10px;
+      padding: 1px 5px;
+      border-radius: 8px;
+      margin-left: 4px;
+      border: 1px solid transparent;
+    }
+    .task-source-badge.todowrite { background: rgba(80, 150, 230, 0.12); color: #6aa9e0; border-color: rgba(80,150,230,0.3); }
+    .task-source-badge.manual    { background: rgba(255,255,255,0.05);  color: #9a9; }
+    .task-source-badge.mcp       { background: rgba(150,100,220,0.12);  color: #a080d8; border-color: rgba(150,100,220,0.3); }
+    .task-scope-badge {
+      font-size: 10px;
+      padding: 1px 5px;
+      border-radius: 8px;
+      margin-left: 4px;
+    }
+    .task-scope-badge.session { background: rgba(240,180,60,0.12); color: #d9a85a; }
+    .task-scope-badge.global  { background: rgba(60,180,120,0.12); color: #5cb88a; }
+
     /* タスク詳細展開エリア */
     .task-detail {
       display: none;
@@ -1726,6 +1745,11 @@
 
   <!-- フィルタ -->
   <div class="task-filter-row">
+    <select id="taskScopeFilter" onchange="loadTasks()" title="スコープ">
+      <option value="global" selected>大きな案件</option>
+      <option value="session">セッション内（TodoWrite）</option>
+      <option value="">すべて</option>
+    </select>
     <select id="taskStatusFilter" onchange="loadTasks()">
       <option value="">すべて</option>
       <option value="todo">未着手</option>
@@ -3720,7 +3744,7 @@
   }
 </script>
 <script src="/static/js/search.js"></script>
-<script src="/static/js/tasks.js"></script>
+<script src="/static/js/tasks.js?v=2"></script>
 <script src="/static/js/turn-warning.js"></script>
 <script src="/static/js/file-path-linkify.js?v=4"></script>
 <script>initTaskBadge();</script>
