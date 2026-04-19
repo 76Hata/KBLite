@@ -6,7 +6,7 @@
  *   - Windows絶対パス: C:\Users\... / C:/01_Develop/...
  *   - UNIX絶対パス  : /home/... /Users/...
  *   - チルダホーム  : ~/.claude/...
- * <code>/<pre>/<a>内のパスはリンク化しない(コード/既リンクを壊さない)。
+ * <pre>/<a>内のパスはリンク化しない(コードブロック/既リンクを壊さない)。<code>内は対象。
  * クリック時に /api/open_file にPOSTしてOS既定アプリでファイルを開く。
  */
 (function () {
@@ -17,7 +17,7 @@
   var PATH_REGEX =
     /(?:[A-Za-z]:[\\\/][^\s<>"'`、。，．\)\]\}]+|~[\\\/][^\s<>"'`、。，．\)\]\}]+|\/(?:Users|home|etc|opt|var|mnt|root)\/[^\s<>"'`、。，．\)\]\}]+)/g;
 
-  var SKIP_TAGS = { CODE: 1, PRE: 1, A: 1, SCRIPT: 1, STYLE: 1, TEXTAREA: 1, BUTTON: 1 };
+  var SKIP_TAGS = { PRE: 1, A: 1, SCRIPT: 1, STYLE: 1, TEXTAREA: 1, BUTTON: 1 };
 
   async function openFileInEditor(path) {
     try {
