@@ -133,17 +133,56 @@ async def open_file(request: Request) -> JSONResponse:
     if not target.exists():
         return JSONResponse({"error": "not_found", "path": str(target)}, status_code=404)
 
+    # プラットフォーム別に既定アプリでファイルを開く。
+    # Windows では VS Code (code --reuse-window) を最優先してウィンドウを最前面に移動し、
+    # VS Code がない場合は os.startfile → explorer.exe の順でフォールバックする。
+    opened_via = None
+    last_error: str | None = None
     try:
         if sys.platform == "win32":
-            os.startfile(str(target))  # type: ignore[attr-defined]
+            code_exe = shutil.which("code")
+            if code_exe:
+                # --reuse-window: 既存 VS Code ウィンドウを再利用してフォーカスを移す
+                subprocess.Popen(
+                    [code_exe, "--reuse-window", str(target)],
+                    creationflags=subprocess.CREATE_NO_WINDOW,
+                )
+                opened_via = "vscode"
+                # VS Code を最前面に移動（focus steal 防止を回避するため PowerShell 経由）
+                ps_script = (
+                    "Start-Sleep -Milliseconds 800;"
+                    "$wsh = New-Object -ComObject WScript.Shell;"
+                    "$procs = Get-Process -Name 'Code' -ErrorAction SilentlyContinue;"
+                    "if ($procs) { $wsh.AppActivate($procs[0].Id) | Out-Null }"
+                )
+                subprocess.Popen(
+                    ["powershell", "-NoProfile", "-NonInteractive", "-Command", ps_script],
+                    creationflags=subprocess.CREATE_NO_WINDOW,
+                )
+            else:
+                try:
+                    os.startfile(str(target))  # type: ignore[attr-defined]
+                    opened_via = "os.startfile"
+                except OSError as e:
+                    last_error = f"os.startfile failed: {e}"
+                    subprocess.Popen(
+                        ["explorer.exe", str(target)],
+                        creationflags=subprocess.CREATE_NO_WINDOW,
+                    )
+                    opened_via = "explorer.exe"
         elif sys.platform == "darwin":
             subprocess.Popen(["open", str(target)])
+            opened_via = "open"
         else:
             subprocess.Popen(["xdg-open", str(target)])
+            opened_via = "xdg-open"
     except Exception as e:
-        return JSONResponse({"error": "open_failed", "detail": str(e)}, status_code=500)
+        detail = f"{last_error + '; ' if last_error else ''}{e}"
+        print(f"[open_file] FAILED path={target} detail={detail}", file=sys.stderr)
+        return JSONResponse({"error": "open_failed", "detail": detail}, status_code=500)
 
-    return JSONResponse({"status": "ok", "path": str(target)})
+    print(f"[open_file] OK via={opened_via} path={target}", file=sys.stderr)
+    return JSONResponse({"status": "ok", "path": str(target), "via": opened_via})
 
 
 async def debug_env(request: Request) -> JSONResponse:
