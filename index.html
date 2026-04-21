@@ -1959,9 +1959,8 @@
       --p5-font-disp:  'Bebas Neue', 'Oswald', 'Noto Sans JP', sans-serif;
     }
 
-    /* P5テーマを既定ON（html[data-theme="p5"]でも可） */
-    html[data-theme="p5"],
-    html:not([data-theme]) {
+    /* P5テーマ: data-theme="p5" のときのみ適用 */
+    html[data-theme="p5"] {
 
       /* ---- Typography ---- */
       body {
@@ -3158,6 +3157,43 @@
       }
     }
 
+  /* =====================================================
+     テーマトグルボタン
+     ===================================================== */
+  #themeToggleBtn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 8px;
+    height: 36px;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    background: transparent;
+    color: rgba(255,255,255,0.7);
+    cursor: pointer;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  #themeToggleBtn svg { width: 16px; height: 16px; }
+  #themeToggleBtn:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    border-color: rgba(255,255,255,0.4);
+  }
+  /* P5テーマON時のボタン外観 */
+  html[data-theme="p5"] #themeToggleBtn {
+    border-color: var(--p5-red, #e50000);
+    color: var(--p5-yellow, #ffd700);
+    background: rgba(229,0,0,0.15);
+  }
+  html[data-theme="p5"] #themeToggleBtn:hover {
+    background: rgba(229,0,0,0.3);
+    box-shadow: 0 0 8px rgba(229,0,0,0.4);
+  }
+
   </style>
   <script src="https://cdn.jsdelivr.net/npm/marked@15/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mermaid@11.13.0/dist/mermaid.min.js"></script>
@@ -3242,6 +3278,14 @@
   </button>
   <button id="restartServerBtn" onclick="restartServer()" title="サーバーを再起動して最新コードを適用します">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></svg>
+  </button>
+  <button id="themeToggleBtn" onclick="toggleTheme()" title="Persona5テーマ 切り替え" aria-label="テーマ切り替え">
+    <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 2C8.13 2 5 5.13 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.87-3.13-7-7-7z"/>
+      <path d="M9 21h6"/>
+      <path d="M10 17v4"/><path d="M14 17v4"/>
+    </svg>
+    <span id="themeLabel">P5</span>
   </button>
   </header>
 
@@ -3511,6 +3555,36 @@
 
   // marked.js の設定
   marked.setOptions({ breaks: true, gfm: true });
+
+  // =====================================================
+  // テーマ管理（Persona5 / デフォルト切り替え）
+  // =====================================================
+  (function initTheme() {
+    const saved = localStorage.getItem('kblite-theme') || 'p5';
+    document.documentElement.setAttribute('data-theme', saved);
+    updateThemeBtn(saved);
+  })();
+
+  function updateThemeBtn(theme) {
+    const label = document.getElementById('themeLabel');
+    const btn   = document.getElementById('themeToggleBtn');
+    if (!label || !btn) return;
+    if (theme === 'p5') {
+      label.textContent = 'P5';
+      btn.title = 'Persona5テーマ ON（クリックでOFF）';
+    } else {
+      label.textContent = 'OFF';
+      btn.title = 'Persona5テーマ OFF（クリックでON）';
+    }
+  }
+
+  function toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme') || 'p5';
+    const next = current === 'p5' ? 'default' : 'p5';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('kblite-theme', next);
+    updateThemeBtn(next);
+  }
 
   // Mermaid.js の初期化（自動起動は無効化、エラー表示を抑制）
   mermaid.initialize({ startOnLoad: false, theme: 'default', suppressErrorRendering: true });
