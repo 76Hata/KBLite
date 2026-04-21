@@ -4,7 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Knowledge Base Lite</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%232e7dd1'/><text x='50' y='68' font-size='56' text-anchor='middle' font-weight='bold' fill='%23fff'>KB</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23000'/><polygon points='0,0 100,0 100,100' fill='%23d7000f'/><text x='50' y='68' font-size='48' text-anchor='middle' font-weight='900' fill='%23fff' font-family='Impact,sans-serif'>KB</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Oswald:wght@500;700&family=Bebas+Neue&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -1114,12 +1117,46 @@
     /* ヘッダーのログボタン */
     #logToggleBtn:active { background: rgba(255,255,255,0.25); }
 
+    /* 入力エリア リサイズハンドル */
+    #inputResizer {
+      flex-shrink: 0;
+      height: 6px;
+      background: transparent;
+      cursor: ns-resize;
+      position: relative;
+      z-index: 10;
+    }
+    #inputResizer:hover,
+    #inputResizer.dragging {
+      background: rgba(46,125,209,0.3);
+    }
+    #inputResizer::after {
+      content: '';
+      display: block;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px;
+      height: 2px;
+      border-radius: 2px;
+      background: #c0c0c0;
+    }
+    #inputResizer:hover::after,
+    #inputResizer.dragging::after {
+      background: #2e7dd1;
+    }
+
     /* 入力エリア - Claude.ai スタイル */
     .input-area {
       flex-shrink: 0;
       padding: 10px 14px 12px;
       background: #f5f5f5;
       border-top: 1px solid #e5e5e5;
+      overflow: hidden;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
     }
     .input-area.disabled {
       opacity: 0.5;
@@ -1134,6 +1171,8 @@
       transition: border-color 0.15s, box-shadow 0.15s;
       display: flex;
       flex-direction: column;
+      flex: 1 1 auto;
+      min-height: 0;
     }
     .input-inner:focus-within {
       border-color: #a0b8d8;
@@ -1147,7 +1186,6 @@
       padding: 12px 16px 6px;
       resize: none;
       min-height: 44px;
-      max-height: 200px;
       overflow-y: auto;
       line-height: 1.5;
       -webkit-appearance: none;
@@ -1899,6 +1937,662 @@
       padding: 5px 14px;
     }
     .perm-req-deny:hover { background: #c0392b; }
+
+    /* =====================================================================
+       Persona 5 Theme Override
+       ---------------------------------------------------------------------
+       既存スタイルに後勝ちで被せるテーマレイヤー。
+       html[data-theme="p5"] で絞ることでテーマ切り替えが可能。
+       ===================================================================== */
+    :root {
+      --p5-red:        #d7000f;   /* Persona5 インクレッド */
+      --p5-red-deep:   #9c0009;   /* ダーク赤 */
+      --p5-red-bright: #ff1a3c;   /* 明るい赤（ホバー/アクセント） */
+      --p5-black:      #0a0a0a;   /* ジェットブラック */
+      --p5-black-soft: #1a1a1a;   /* ソフトブラック */
+      --p5-white:      #f4f4f4;   /* オフホワイト */
+      --p5-white-pure: #ffffff;
+      --p5-yellow:     #ffd200;   /* 警告/ハイライト */
+      --p5-gray:       #2a2a2a;
+      --p5-gray-mid:   #3a3a3a;
+      --p5-font-body:  'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --p5-font-disp:  'Bebas Neue', 'Oswald', 'Noto Sans JP', sans-serif;
+    }
+
+    /* P5テーマを既定ON（html[data-theme="p5"]でも可） */
+    html[data-theme="p5"],
+    html:not([data-theme]) {
+
+      /* ---- Typography ---- */
+      body {
+        font-family: var(--p5-font-body);
+        background: var(--p5-white);
+        color: var(--p5-black);
+        /* 斜めストライプの微細テクスチャ */
+        background-image:
+          repeating-linear-gradient(
+            -15deg,
+            rgba(0,0,0,0.015) 0 2px,
+            transparent 2px 6px
+          );
+      }
+      h1, h2, h3, h4,
+      .sidebar-header h2,
+      .main-header-title,
+      .modal-header h2 {
+        font-family: var(--p5-font-disp);
+        letter-spacing: 0.04em;
+        font-weight: 700;
+      }
+
+      /* ---- Sidebar: 黒地 + 赤アクセント ---- */
+      #sidebar {
+        background: var(--p5-black);
+        color: var(--p5-white);
+        border-right: 2px solid var(--p5-red);
+        /* 赤スラッシュの装飾 */
+        background-image:
+          linear-gradient(125deg, transparent 0 calc(100% - 3px), var(--p5-red) calc(100% - 3px) 100%);
+      }
+      .sidebar-header {
+        border-bottom: 2px solid var(--p5-red);
+        background: linear-gradient(90deg, var(--p5-red) 0%, var(--p5-red) 6px, transparent 6px);
+        padding-left: 18px;
+      }
+      .sidebar-header h2 {
+        color: var(--p5-red-bright);
+        font-weight: 900;
+        letter-spacing: 0.12em;
+      }
+      .sidebar-footer {
+        border-top: 1px solid rgba(215,0,15,0.35);
+      }
+
+      /* ---- Primary Button (青→赤) ---- */
+      #sidebarNewChatBtn,
+      .btn-primary,
+      button.primary {
+        background: var(--p5-red) !important;
+        color: var(--p5-white-pure) !important;
+        border: none;
+        border-radius: 2px !important;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        position: relative;
+        overflow: hidden;
+        transition: background 0.12s ease, transform 0.08s ease;
+      }
+      #sidebarNewChatBtn::before,
+      .btn-primary::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0;
+        width: 4px; height: 100%;
+        background: var(--p5-black);
+        transform: skewX(-20deg);
+        transform-origin: top left;
+      }
+      #sidebarNewChatBtn:hover,
+      .btn-primary:hover {
+        background: var(--p5-red-bright) !important;
+        transform: translate(-1px, -1px);
+      }
+      #sidebarNewChatBtn:active,
+      .btn-primary:active {
+        background: var(--p5-red-deep) !important;
+        transform: translate(0, 0);
+      }
+
+      /* ---- Session list items ---- */
+      .session-item {
+        border-radius: 0 !important;
+        border-left: 3px solid transparent;
+        transition: border-color 0.1s ease, background 0.1s ease;
+      }
+      .session-item:hover {
+        background: rgba(215,0,15,0.12) !important;
+        border-left-color: var(--p5-red);
+      }
+      .session-item.active,
+      .session-item.selected {
+        background: var(--p5-red) !important;
+        color: var(--p5-white-pure) !important;
+        border-left-color: var(--p5-yellow);
+      }
+
+      /* ---- Main header ---- */
+      .main-header,
+      #mainHeader {
+        background: var(--p5-black) !important;
+        color: var(--p5-white) !important;
+        border-bottom: 2px solid var(--p5-red);
+        position: relative;
+      }
+      .main-header::after,
+      #mainHeader::after {
+        content: '';
+        position: absolute;
+        left: 0; bottom: -2px;
+        width: 120px; height: 2px;
+        background: var(--p5-yellow);
+        clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+      }
+      .main-header .main-header-title,
+      #mainHeader h1, #mainHeader h2 {
+        color: var(--p5-white-pure) !important;
+        font-family: var(--p5-font-disp);
+        letter-spacing: 0.06em;
+      }
+
+      /* ---- Chat bubbles ---- */
+      .message.user .bubble,
+      .msg-user .bubble,
+      .message-user .bubble {
+        background: var(--p5-black) !important;
+        color: var(--p5-white) !important;
+        border-radius: 2px 14px 2px 14px !important;
+        border: 1px solid var(--p5-red);
+      }
+      .message.assistant .bubble,
+      .msg-assistant .bubble,
+      .message-assistant .bubble {
+        background: var(--p5-white-pure) !important;
+        color: var(--p5-black) !important;
+        border: 2px solid var(--p5-black);
+        border-radius: 14px 2px 14px 2px !important;
+        box-shadow: 4px 4px 0 var(--p5-red);
+      }
+
+      /* ---- Input area ---- */
+      .input-area {
+        background: var(--p5-white-pure) !important;
+        border-top: 2px solid var(--p5-red) !important;
+      }
+      .input-inner {
+        border: 2px solid var(--p5-black) !important;
+        border-radius: 2px !important;
+        background: var(--p5-white-pure);
+        transition: border-color 0.1s ease, box-shadow 0.1s ease;
+      }
+      .input-inner:focus-within {
+        border-color: var(--p5-red) !important;
+        box-shadow: 4px 4px 0 var(--p5-red) !important;
+      }
+      #messageInput {
+        font-family: var(--p5-font-body);
+        color: var(--p5-black);
+      }
+      #messageInput::placeholder {
+        color: rgba(0,0,0,0.35);
+        font-style: italic;
+      }
+
+      /* ---- Modal / dialog ---- */
+      .modal,
+      .dialog {
+        border: 2px solid var(--p5-black) !important;
+        border-radius: 2px !important;
+        box-shadow: 6px 6px 0 var(--p5-red) !important;
+      }
+      .modal-header {
+        background: var(--p5-black) !important;
+        color: var(--p5-white-pure) !important;
+        border-bottom: 2px solid var(--p5-red) !important;
+      }
+
+      /* ---- Scrollbar ---- */
+      ::-webkit-scrollbar-thumb { background: var(--p5-red) !important; border-radius: 0 !important; }
+      ::-webkit-scrollbar-thumb:hover { background: var(--p5-red-bright) !important; }
+
+      /* ---- Links / accents ---- */
+      a { color: var(--p5-red); }
+      a:hover { color: var(--p5-red-bright); }
+
+      /* ---- Badges / labels: 鋭角に ---- */
+      .task-source-badge,
+      .task-scope-badge,
+      .badge,
+      .tag { border-radius: 2px !important; }
+
+      /* ---- Input resizer ---- */
+      #inputResizer:hover,
+      #inputResizer.dragging { background: rgba(215,0,15,0.3) !important; }
+      #inputResizer:hover::after,
+      #inputResizer.dragging::after { background: var(--p5-red) !important; }
+
+      /* ---- Header: <header> 要素をP5に ---- */
+      header {
+        background: var(--p5-black) !important;
+        color: var(--p5-white) !important;
+        border-bottom: 3px solid var(--p5-red) !important;
+        position: relative;
+      }
+      header::after {
+        content: '';
+        position: absolute;
+        left: 0; bottom: -3px;
+        width: 80px; height: 3px;
+        background: var(--p5-yellow);
+        clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+        z-index: 1;
+      }
+      header h1 {
+        font-family: var(--p5-font-disp) !important;
+        font-weight: 900 !important;
+        letter-spacing: 0.08em !important;
+        color: var(--p5-white-pure) !important;
+        text-transform: uppercase;
+      }
+
+      /* ---- Header icon buttons ---- */
+      #sidebarToggle,
+      #newChatBtn,
+      #taskPanelToggleBtn,
+      #permMgrBtn,
+      #restartServerBtn {
+        background: rgba(215,0,15,0.08) !important;
+        border: 1px solid rgba(215,0,15,0.4) !important;
+        border-radius: 2px !important;
+        color: var(--p5-white) !important;
+        transition: background 0.1s ease, border-color 0.1s ease, transform 0.08s ease !important;
+      }
+      #sidebarToggle:hover,
+      #newChatBtn:hover,
+      #taskPanelToggleBtn:hover,
+      #permMgrBtn:hover,
+      #restartServerBtn:hover {
+        background: var(--p5-red) !important;
+        border-color: var(--p5-red-bright) !important;
+        color: var(--p5-white-pure) !important;
+        transform: translate(-1px, -1px);
+      }
+      #sidebarToggle:active,
+      #newChatBtn:active,
+      #taskPanelToggleBtn:active,
+      #permMgrBtn:active,
+      #restartServerBtn:active {
+        background: var(--p5-red-deep) !important;
+        transform: translate(0, 0) !important;
+      }
+      /* タスクパネル: アクティブ時は黄色 */
+      #taskPanelToggleBtn.active {
+        background: var(--p5-yellow) !important;
+        border-color: var(--p5-yellow) !important;
+        color: var(--p5-black) !important;
+      }
+
+      /* ---- Team / header select ---- */
+      #teamSelect {
+        background-color: var(--p5-gray) !important;
+        border: 1px solid var(--p5-red) !important;
+        border-radius: 2px !important;
+        color: var(--p5-white) !important;
+        font-family: var(--p5-font-body) !important;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23d7000f'/%3E%3C/svg%3E") !important;
+      }
+      .header-select-label {
+        color: var(--p5-red-bright) !important;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+      }
+
+      /* ---- Send button: 丸→鋭角P5スタイル ---- */
+      #sendBtn {
+        background: var(--p5-red) !important;
+        border: none !important;
+        border-radius: 2px !important;
+        color: var(--p5-white-pure) !important;
+        width: 38px !important;
+        height: 38px !important;
+        clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+        transition: background 0.1s ease, transform 0.08s ease !important;
+      }
+      #sendBtn:hover {
+        background: var(--p5-red-bright) !important;
+        transform: translate(-1px, -1px);
+      }
+      #sendBtn:active {
+        background: var(--p5-red-deep) !important;
+        transform: translate(0, 0) !important;
+      }
+      #sendBtn:disabled {
+        background: var(--p5-gray-mid) !important;
+        opacity: 0.5;
+        transform: none !important;
+      }
+      #sendBtn.cancel-mode {
+        background: var(--p5-yellow) !important;
+        color: var(--p5-black) !important;
+      }
+      #sendBtn.cancel-mode:hover {
+        background: #ffe033 !important;
+      }
+
+      /* ---- Attach button ---- */
+      #attachBtn {
+        background: transparent !important;
+        border: 1px solid transparent !important;
+        border-radius: 2px !important;
+        color: rgba(10,10,10,0.45) !important;
+        transition: background 0.1s ease, border-color 0.1s ease, color 0.1s ease !important;
+      }
+      #attachBtn:hover {
+        background: rgba(215,0,15,0.08) !important;
+        border-color: var(--p5-red) !important;
+        color: var(--p5-red) !important;
+      }
+
+      /* ---- Model select ---- */
+      #modelSelect {
+        background-color: transparent !important;
+        border: 1px solid rgba(215,0,15,0.3) !important;
+        border-radius: 2px !important;
+        color: var(--p5-black) !important;
+        font-family: var(--p5-font-body) !important;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23d7000f'/%3E%3C/svg%3E") !important;
+        transition: border-color 0.1s ease, background-color 0.1s ease !important;
+      }
+      #modelSelect:hover,
+      #modelSelect:focus {
+        background-color: rgba(215,0,15,0.05) !important;
+        border-color: var(--p5-red) !important;
+        outline: none !important;
+      }
+
+      /* ---- Scroll-to-top button ---- */
+      #scrollTopBtn {
+        border-radius: 2px !important;
+        border: 2px solid var(--p5-red) !important;
+        background: var(--p5-black) !important;
+        color: var(--p5-red) !important;
+        box-shadow: 3px 3px 0 var(--p5-red) !important;
+        transition: background 0.1s ease, color 0.1s ease, transform 0.08s ease, opacity 0.2s !important;
+      }
+      #scrollTopBtn:hover {
+        background: var(--p5-red) !important;
+        color: var(--p5-white-pure) !important;
+        transform: translate(-2px, -2px);
+        box-shadow: 5px 5px 0 var(--p5-red-deep) !important;
+      }
+
+      /* ---- Readonly banner ---- */
+      #readonlyBanner {
+        background: var(--p5-yellow) !important;
+        color: var(--p5-black) !important;
+        border-bottom: 2px solid var(--p5-black) !important;
+        font-weight: 700;
+      }
+      #readonlyBanner button {
+        background: var(--p5-black) !important;
+        color: var(--p5-white-pure) !important;
+        border-radius: 2px !important;
+        font-weight: 700;
+      }
+      #readonlyBanner button:hover {
+        background: var(--p5-red) !important;
+      }
+
+      /* ---- Task panel header ---- */
+      .task-panel-header {
+        background: var(--p5-black) !important;
+        color: var(--p5-white) !important;
+        border-bottom: 2px solid var(--p5-red) !important;
+      }
+      .task-panel-header h3,
+      .task-panel-header span {
+        font-family: var(--p5-font-disp) !important;
+        letter-spacing: 0.05em;
+        color: var(--p5-white-pure) !important;
+      }
+      .task-add-btn {
+        background: var(--p5-red) !important;
+        border-radius: 2px !important;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      .task-add-btn:hover { background: var(--p5-red-bright) !important; }
+
+      /* ---- Project manage buttons ---- */
+      .project-manage-row button {
+        border-radius: 2px !important;
+        border: 1px solid rgba(215,0,15,0.4) !important;
+        color: var(--p5-white) !important;
+        transition: background 0.1s ease, border-color 0.1s ease !important;
+      }
+      .project-manage-row button:hover {
+        background: var(--p5-red) !important;
+        border-color: var(--p5-red) !important;
+        color: var(--p5-white-pure) !important;
+      }
+
+      /* ================================================================
+         P5 PHASE 2 — 斜めシェイプ装飾 / ホバーアニメ / 遷移エフェクト
+         ================================================================ */
+
+      /* ---- Message entrance: スライドイン ---- */
+      .chat-message {
+        animation: p5-msg-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both !important;
+      }
+      @keyframes p5-msg-in {
+        from { opacity: 0; transform: translateY(14px) skewX(-1.5deg); }
+        to   { opacity: 1; transform: translateY(0) skewX(0); }
+      }
+
+      /* ---- Chat message: diagonal corner accent ---- */
+      .chat-message.assistant-message .message-content,
+      .chat-message.user-message .message-content {
+        position: relative !important;
+      }
+      .chat-message.assistant-message .message-content::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0;
+        width: 0; height: 0;
+        border-top: 12px solid var(--p5-red);
+        border-right: 12px solid transparent;
+        opacity: 0.75;
+      }
+      .chat-message.user-message .message-content::after {
+        content: '';
+        position: absolute;
+        bottom: 0; right: 0;
+        width: 0; height: 0;
+        border-bottom: 10px solid var(--p5-yellow);
+        border-left: 10px solid transparent;
+        opacity: 0.7;
+      }
+
+      /* ---- Sidebar history items: P5 slash accent ---- */
+      .sidebar-history-item {
+        position: relative !important;
+        overflow: hidden !important;
+        transition: background 0.1s ease, transform 0.1s cubic-bezier(0.22, 1, 0.36, 1) !important;
+      }
+      .sidebar-history-item::before {
+        content: '';
+        position: absolute;
+        left: 0; top: 0; bottom: 0;
+        width: 3px;
+        background: var(--p5-red);
+        transform: scaleY(0);
+        transform-origin: bottom;
+        transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+        pointer-events: none;
+      }
+      .sidebar-history-item:hover::before {
+        transform: scaleY(1);
+      }
+      .sidebar-history-item:hover {
+        transform: translateX(4px) !important;
+      }
+      .sidebar-history-item.active::before {
+        transform: scaleY(1) !important;
+        background: var(--p5-yellow) !important;
+      }
+
+      /* ---- Sidebar section headers: red/yellow gradient underline ---- */
+      .sidebar-section-title,
+      .sidebar-section-header,
+      .project-section-header {
+        position: relative !important;
+      }
+      .sidebar-section-title::after,
+      .sidebar-section-header::after,
+      .project-section-header::after {
+        content: '';
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          var(--p5-red)    0%,
+          var(--p5-red)    65%,
+          var(--p5-yellow) 65%,
+          var(--p5-yellow) 82%,
+          transparent      82%
+        );
+      }
+
+      /* ---- Header: diagonal shimmer overlay ---- */
+      header::before {
+        content: '';
+        position: absolute;
+        right: 0; top: 0;
+        width: 80px; height: 100%;
+        background: linear-gradient(
+          135deg,
+          transparent 35%,
+          rgba(215,0,15,0.07) 35%,
+          rgba(215,0,15,0.07) 55%,
+          transparent 55%
+        );
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      /* ---- Typing / loading dots: P5 stepped blink ---- */
+      .typing-indicator span,
+      .loading-dots span,
+      .dot-typing > span {
+        background: var(--p5-red) !important;
+        border-radius: 0 !important;
+        animation: p5-blink 0.9s steps(1) infinite !important;
+      }
+      .typing-indicator span:nth-child(2),
+      .loading-dots span:nth-child(2),
+      .dot-typing > span:nth-child(2) { animation-delay: 0.3s !important; }
+      .typing-indicator span:nth-child(3),
+      .loading-dots span:nth-child(3),
+      .dot-typing > span:nth-child(3) { animation-delay: 0.6s !important; }
+      @keyframes p5-blink {
+        0%, 100% { opacity: 1;   transform: scaleY(1); }
+        50%       { opacity: 0.15; transform: scaleY(0.35); }
+      }
+
+      /* ---- Input focus: inset shadow corners ---- */
+      #chatInput:focus {
+        outline: none !important;
+        box-shadow:
+          inset -3px -3px 0 var(--p5-red),
+          inset  2px  2px 0 rgba(215,0,15,0.12) !important;
+        border-color: var(--p5-red) !important;
+      }
+
+      /* ---- Task items: slide-left hover ---- */
+      .task-item {
+        border-left: 3px solid transparent !important;
+        transition: transform 0.1s ease, border-left-color 0.1s ease, background 0.1s ease !important;
+      }
+      .task-item:hover {
+        transform: translateX(4px) !important;
+        border-left-color: var(--p5-red) !important;
+        background: rgba(215,0,15,0.04) !important;
+      }
+
+      /* ---- Modal / dialog: clip-path + slide-in ---- */
+      .modal,
+      .dialog-box,
+      [class*="modal"]:not(#mainModal) {
+        animation: p5-modal-in 0.2s cubic-bezier(0.22, 1, 0.36, 1) both !important;
+      }
+      @keyframes p5-modal-in {
+        from { opacity: 0; transform: translateY(-18px) skewY(-0.8deg); }
+        to   { opacity: 1; transform: translateY(0) skewY(0); }
+      }
+      .modal-content,
+      .modal-body,
+      .dialog-content {
+        clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%) !important;
+        border-top: 3px solid var(--p5-red) !important;
+      }
+
+      /* ---- Code blocks: P5 terminal label ---- */
+      pre {
+        border-left: 3px solid var(--p5-red) !important;
+        border-radius: 0 2px 2px 0 !important;
+        border-top: 1px solid rgba(215,0,15,0.3) !important;
+        position: relative !important;
+      }
+      pre::before {
+        content: '// CODE';
+        position: absolute;
+        top: 5px; right: 8px;
+        font-family: var(--p5-font-disp) !important;
+        font-size: 9px;
+        letter-spacing: 0.12em;
+        color: var(--p5-red);
+        opacity: 0.55;
+        pointer-events: none;
+      }
+      :not(pre) > code {
+        border-left: 2px solid var(--p5-red) !important;
+        border-radius: 0 2px 2px 0 !important;
+        padding-left: 4px !important;
+      }
+
+      /* ---- Buttons (汎用): shadow-shift hover ---- */
+      button:not(#sendBtn):not(.sidebar-history-item button) {
+        transition: box-shadow 0.08s ease, transform 0.08s ease !important;
+      }
+      button:not(#sendBtn):not(.sidebar-history-item button):hover {
+        box-shadow: 2px 2px 0 rgba(215,0,15,0.45) !important;
+        transform: translate(-1px, -1px) !important;
+      }
+      button:not(#sendBtn):not(.sidebar-history-item button):active {
+        box-shadow: none !important;
+        transform: translate(0, 0) !important;
+      }
+
+      /* ---- Selection highlight ---- */
+      ::selection {
+        background: var(--p5-red) !important;
+        color: var(--p5-white-pure) !important;
+      }
+
+      /* ---- Permission / perm items: hover accent ---- */
+      .permission-item,
+      .perm-item,
+      .perm-entry {
+        border-left: 3px solid transparent !important;
+        transition: background 0.1s ease, border-left-color 0.1s ease !important;
+      }
+      .permission-item:hover,
+      .perm-item:hover,
+      .perm-entry:hover {
+        background: rgba(215,0,15,0.05) !important;
+        border-left-color: var(--p5-red) !important;
+      }
+
+      /* ---- Notification / toast: diagonal accent ---- */
+      .toast,
+      .notification,
+      .alert-box {
+        border-left: 4px solid var(--p5-red) !important;
+        clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%) !important;
+        animation: p5-msg-in 0.2s cubic-bezier(0.22, 1, 0.36, 1) both !important;
+      }
+    }
 
   </style>
   <script src="https://cdn.jsdelivr.net/npm/marked@15/marked.min.js"></script>
@@ -3709,10 +4403,90 @@
 
   // textarea 自動リサイズ
   const msgInput = document.getElementById('messageInput');
-  msgInput.addEventListener('input', () => {
+  function resizeMsgInput() {
+    const inputArea = document.getElementById('inputArea');
+    // ユーザーが手動で高さを設定している場合は textarea の高さ指定を外し
+    // flex:1 によるコンテナ追従に任せる
+    if (inputArea && inputArea.style.height) {
+      msgInput.style.height = '';
+      return;
+    }
     msgInput.style.height = 'auto';
-    msgInput.style.height = Math.min(msgInput.scrollHeight, 120) + 'px';
-  });
+    msgInput.style.height = Math.min(msgInput.scrollHeight, 200) + 'px';
+  }
+  msgInput.addEventListener('input', resizeMsgInput);
+
+  // inputResizer ドラッグによる入力エリア高さ変更
+  (() => {
+    const resizer  = document.getElementById('inputResizer');
+    const inputArea = document.getElementById('inputArea');
+    const chatView = document.getElementById('chatView');
+    if (!resizer || !inputArea || !chatView) return;
+
+    const MIN_INPUT_H = 80;   // 入力エリアの最小高さ(px)
+    const MAX_INPUT_H = 600;  // 入力エリアの最大高さ(px)
+    const STORAGE_KEY = 'kblite_inputAreaHeight';
+
+    // 保存済みの高さを復元
+    const savedH = parseInt(localStorage.getItem(STORAGE_KEY), 10);
+    if (savedH && savedH >= MIN_INPUT_H && savedH <= MAX_INPUT_H) {
+      inputArea.style.height = savedH + 'px';
+    }
+
+    let startY = 0;
+    let startH = 0;
+
+    function onMouseMove(e) {
+      const dy = startY - e.clientY; // 上にドラッグ → 正
+      const newH = Math.min(MAX_INPUT_H, Math.max(MIN_INPUT_H, startH + dy));
+      inputArea.style.height = newH + 'px';
+      resizeMsgInput();
+    }
+
+    function onMouseUp() {
+      resizer.classList.remove('dragging');
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
+      // 高さを保存
+      localStorage.setItem(STORAGE_KEY, inputArea.offsetHeight);
+    }
+
+    resizer.addEventListener('mousedown', e => {
+      e.preventDefault();
+      startY = e.clientY;
+      startH = inputArea.offsetHeight;
+      resizer.classList.add('dragging');
+      document.body.style.userSelect = 'none';
+      document.body.style.cursor = 'ns-resize';
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    });
+
+    // タッチ対応
+    resizer.addEventListener('touchstart', e => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      startY = touch.clientY;
+      startH = inputArea.offsetHeight;
+      resizer.classList.add('dragging');
+    }, { passive: false });
+
+    resizer.addEventListener('touchmove', e => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      const dy = startY - touch.clientY;
+      const newH = Math.min(MAX_INPUT_H, Math.max(MIN_INPUT_H, startH + dy));
+      inputArea.style.height = newH + 'px';
+      resizeMsgInput();
+    }, { passive: false });
+
+    resizer.addEventListener('touchend', () => {
+      resizer.classList.remove('dragging');
+      localStorage.setItem(STORAGE_KEY, inputArea.offsetHeight);
+    });
+  })();
 
   // Ctrl+Enter で送信（Enter は改行、モバイルではEnter=改行のみ）
   const _isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
