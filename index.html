@@ -1812,6 +1812,94 @@
     }
     .task-btn-secondary:hover { background: rgba(255,255,255,0.1); }
 
+    /* ── 権限申請ダイアログ ───────────────────────────── */
+    #permReqBanner {
+      display: none;
+      position: fixed;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 3000;
+      background: #1e1e2e;
+      border: 1px solid #e67e22;
+      border-radius: 8px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+      padding: 14px 18px;
+      min-width: 340px;
+      max-width: min(560px, 95vw);
+      color: #eee;
+      font-size: 13px;
+      animation: permReqSlide 0.2s ease;
+    }
+    #permReqBanner.visible { display: block; }
+    @keyframes permReqSlide {
+      from { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+      to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+    .perm-req-title {
+      font-weight: 700;
+      color: #e67e22;
+      font-size: 13px;
+      margin: 0 0 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .perm-req-list {
+      list-style: none;
+      margin: 0 0 12px;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .perm-req-item {
+      background: #252535;
+      border-radius: 6px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .perm-req-pattern {
+      font-family: monospace;
+      font-size: 12px;
+      color: #7ec8e3;
+      word-break: break-all;
+    }
+    .perm-req-reason {
+      font-size: 12px;
+      color: #aaa;
+    }
+    .perm-req-actions {
+      display: flex;
+      gap: 6px;
+      justify-content: flex-end;
+      margin-top: 4px;
+    }
+    .perm-req-approve {
+      background: #2ecc70;
+      border: none;
+      border-radius: 5px;
+      color: #111;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 5px 14px;
+    }
+    .perm-req-approve:hover { background: #27ae60; }
+    .perm-req-deny {
+      background: rgba(192,57,43,0.8);
+      border: none;
+      border-radius: 5px;
+      color: #fff;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 14px;
+    }
+    .perm-req-deny:hover { background: #c0392b; }
+
   </style>
   <script src="https://cdn.jsdelivr.net/npm/marked@15/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mermaid@11.13.0/dist/mermaid.min.js"></script>
@@ -2006,6 +2094,17 @@
     </div>
   </div>
 </div>
+<!-- 権限申請バナー（AI がブロックされたときに表示） -->
+<div id="permReqBanner">
+  <p class="perm-req-title">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e67e22" stroke-width="2.5">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    </svg>
+    Claude が権限を要求しています
+  </p>
+  <ul id="permReqList" class="perm-req-list"></ul>
+</div>
+
 <aside id="taskPanel" class="task-panel">
   <div class="task-panel-header">
     <span class="task-panel-title">タスク管理</span>
@@ -4099,6 +4198,63 @@
       errorEl.textContent = 'ネットワークエラーが発生しました。';
     }
   }
+  // ── 権限申請ダイアログ ──────────────────────────────────────────
+  let _permReqPollTimer = null;
+
+  function startPermReqPolling() {
+    if (_permReqPollTimer) return;
+    _permReqPollTimer = setInterval(pollPermRequests, 5000);
+    pollPermRequests(); // 即時1回実行
+  }
+
+  async function pollPermRequests() {
+    try {
+      const res = await fetch('/api/permissions/requests');
+      if (!res.ok) return;
+      const data = await res.json();
+      renderPermRequests(data.requests || []);
+    } catch (_) { /* サーバーが落ちている場合は無視 */ }
+  }
+
+  function renderPermRequests(requests) {
+    const banner = document.getElementById('permReqBanner');
+    const list = document.getElementById('permReqList');
+    if (requests.length === 0) {
+      banner.classList.remove('visible');
+      list.innerHTML = '';
+      return;
+    }
+    banner.classList.add('visible');
+    list.innerHTML = '';
+    requests.forEach(req => {
+      const li = document.createElement('li');
+      li.className = 'perm-req-item';
+      li.innerHTML = `
+        <div class="perm-req-pattern">${escapeHtml(req.pattern)}</div>
+        ${req.reason ? `<div class="perm-req-reason">${escapeHtml(req.reason)}</div>` : ''}
+        <div class="perm-req-actions">
+          <button class="perm-req-deny" onclick="handlePermReq('${escapeHtml(req.id)}','deny')">拒否</button>
+          <button class="perm-req-approve" onclick="handlePermReq('${escapeHtml(req.id)}','approve')">許可</button>
+        </div>`;
+      list.appendChild(li);
+    });
+  }
+
+  async function handlePermReq(reqId, action) {
+    try {
+      await fetch(`/api/permissions/requests/${reqId}/${action}`, { method: 'POST' });
+      await pollPermRequests();
+    } catch (err) {
+      console.error('権限申請処理エラー:', err);
+    }
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ページ読み込み時にポーリング開始
+  startPermReqPolling();
   // ─────────────────────────────────────────────────────────────────
 
   async function restartServer() {

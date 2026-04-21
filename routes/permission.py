@@ -2,14 +2,24 @@
 
 ~/.claude/settings.json の permissions.allow / permissions.deny を
 Web UI から CRUD 操作するための API。
+
+また、AI エージェントが権限ブロックされたときに申請を投稿し、
+ユーザーが KBLite UI から承認 / 拒否できる「権限申請ダイアログ」機能も提供する。
 """
 
 import json
 import re
+import time
+import uuid
 from pathlib import Path
+from typing import Any
 
 from starlette.requests import Request
 from starlette.responses import JSONResponse
+
+# ── 権限申請キュー（インメモリ） ─────────────────────────────────────────
+# 要素: {"id": str, "tool": str, "pattern": str, "reason": str, "ts": float}
+_perm_requests: list[dict[str, Any]] = []
 
 _SETTINGS_PATH = Path.home() / ".claude" / "settings.json"
 
@@ -115,6 +125,95 @@ async def add_permission(request: Request) -> JSONResponse:
             "deny": perms.get("deny", []),
         }
     )
+
+
+async def submit_permission_request(request: Request) -> JSONResponse:
+    """AI エージェントが権限ブロックを受けたときに申請を投稿する。
+
+    Request body:
+        {
+            "tool":    "Write",
+            "pattern": "Write(C:/Users/foo/.claude/skills/**)",
+            "reason":  "React+TypeScript スキルファイルを作成したい"  // optional
+        }
+    Response:
+        {"id": "<uuid>", "status": "pending"}
+    """
+    try:
+        body = await request.json()
+    except Exception:
+        return JSONResponse({"error": "invalid_json"}, status_code=400)
+
+    pattern = str(body.get("pattern", "")).strip()
+    err = _validate_pattern(pattern)
+    if err:
+        return JSONResponse({"error": err}, status_code=400)
+
+    req_id = str(uuid.uuid4())
+    _perm_requests.append(
+        {
+            "id": req_id,
+            "tool": str(body.get("tool", "")).strip(),
+            "pattern": pattern,
+            "reason": str(body.get("reason", "")).strip(),
+            "ts": time.time(),
+        }
+    )
+    return JSONResponse({"id": req_id, "status": "pending"}, status_code=201)
+
+
+async def list_permission_requests(request: Request) -> JSONResponse:
+    """未処理の権限申請一覧を返す。
+
+    Response:
+        {"requests": [{"id": ..., "tool": ..., "pattern": ..., "reason": ..., "ts": ...}, ...]}
+    """
+    return JSONResponse({"requests": list(_perm_requests)})
+
+
+async def approve_permission_request(request: Request) -> JSONResponse:
+    """権限申請を承認する（settings.json の allow リストに追加し、申請を削除する）。
+
+    Path param: request_id
+    """
+    req_id = request.path_params.get("request_id", "")
+    match = next((r for r in _perm_requests if r["id"] == req_id), None)
+    if match is None:
+        return JSONResponse({"error": "申請が見つかりません"}, status_code=404)
+
+    pattern = match["pattern"]
+    settings = _read_settings()
+    perms = settings.setdefault("permissions", {})
+    lst: list[str] = perms.setdefault("allow", [])
+    if pattern not in lst:
+        lst.append(pattern)
+    try:
+        _write_settings(settings)
+    except OSError as e:
+        return JSONResponse({"error": f"設定ファイルの書き込みに失敗しました: {e}"}, status_code=500)
+
+    _perm_requests.remove(match)
+    return JSONResponse(
+        {
+            "status": "approved",
+            "pattern": pattern,
+            "allow": perms.get("allow", []),
+        }
+    )
+
+
+async def deny_permission_request(request: Request) -> JSONResponse:
+    """権限申請を拒否する（申請をキューから削除するのみ）。
+
+    Path param: request_id
+    """
+    req_id = request.path_params.get("request_id", "")
+    match = next((r for r in _perm_requests if r["id"] == req_id), None)
+    if match is None:
+        return JSONResponse({"error": "申請が見つかりません"}, status_code=404)
+
+    _perm_requests.remove(match)
+    return JSONResponse({"status": "denied", "pattern": match["pattern"]})
 
 
 async def remove_permission(request: Request) -> JSONResponse:

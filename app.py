@@ -17,7 +17,15 @@ from starlette.staticfiles import StaticFiles
 
 from deps import logger  # noqa: F401
 from routes.chat import cancel_task, get_task_result, team_chat
-from routes.permission import add_permission, get_permissions, remove_permission
+from routes.permission import (
+    add_permission,
+    approve_permission_request,
+    deny_permission_request,
+    get_permissions,
+    list_permission_requests,
+    remove_permission,
+    submit_permission_request,
+)
 from routes.project import (
     create_project,
     delete_project,
@@ -92,6 +100,10 @@ _routes = [
     Route("/api/permissions", get_permissions, methods=["GET"]),
     Route("/api/permissions/allow", add_permission, methods=["POST"]),
     Route("/api/permissions/allow", remove_permission, methods=["DELETE"]),
+    Route("/api/permissions/requests", list_permission_requests, methods=["GET"]),
+    Route("/api/permissions/requests", submit_permission_request, methods=["POST"]),
+    Route("/api/permissions/requests/{request_id}/approve", approve_permission_request, methods=["POST"]),
+    Route("/api/permissions/requests/{request_id}/deny", deny_permission_request, methods=["POST"]),
     Mount("/static", app=StaticFiles(directory=str(Path(__file__).parent / "static")), name="static"),  # noqa: E501
 ]
 
