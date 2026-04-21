@@ -58,6 +58,166 @@
     #restartServerBtn svg { width: 16px; height: 16px; }
     #restartServerBtn:hover { background: rgba(231,76,60,0.2); color: #e74c3c; border-color: rgba(231,76,60,0.4); }
     #restartServerBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── Permission Manager ──────────────────────────── */
+    #permMgrBtn {
+      width: 36px;
+      height: 36px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px;
+      color: rgba(255,255,255,0.6);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #permMgrBtn svg { width: 16px; height: 16px; }
+    #permMgrBtn:hover { background: rgba(46,205,112,0.2); color: #2ecc70; border-color: rgba(46,205,112,0.4); }
+
+    /* Permission Manager モーダル */
+    #permMgrOverlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+    }
+    #permMgrOverlay.visible { display: flex; }
+    #permMgrModal {
+      background: #1e1e2e;
+      border: 1px solid #333;
+      border-radius: 10px;
+      width: min(600px, 95vw);
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      color: #eee;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+    .perm-modal-header {
+      padding: 16px 20px 12px;
+      border-bottom: 1px solid #333;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .perm-modal-header h2 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 600;
+      flex: 1;
+    }
+    .perm-modal-close {
+      background: none;
+      border: none;
+      color: #888;
+      cursor: pointer;
+      font-size: 20px;
+      line-height: 1;
+      padding: 2px 6px;
+    }
+    .perm-modal-close:hover { color: #eee; }
+    .perm-modal-body {
+      padding: 16px 20px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .perm-section-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 0 0 8px;
+    }
+    .perm-list {
+      list-style: none;
+      margin: 0 0 16px;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .perm-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #252535;
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 13px;
+      font-family: monospace;
+      word-break: break-all;
+    }
+    .perm-item span { flex: 1; }
+    .perm-item-remove {
+      background: none;
+      border: none;
+      color: #c0392b;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 0 4px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .perm-item-remove:hover { color: #e74c3c; }
+    .perm-empty {
+      color: #555;
+      font-size: 13px;
+      font-style: italic;
+      margin: 0 0 16px;
+    }
+    .perm-add-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .perm-add-row input {
+      flex: 1;
+      background: #252535;
+      border: 1px solid #444;
+      border-radius: 6px;
+      color: #eee;
+      padding: 7px 10px;
+      font-size: 13px;
+      font-family: monospace;
+    }
+    .perm-add-row input:focus { outline: none; border-color: #2ecc70; }
+    .perm-add-row input::placeholder { color: #555; }
+    .perm-add-btn {
+      background: #2ecc70;
+      border: none;
+      border-radius: 6px;
+      color: #111;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 7px 14px;
+      flex-shrink: 0;
+    }
+    .perm-add-btn:hover { background: #27ae60; }
+    .perm-error-msg {
+      color: #e74c3c;
+      font-size: 12px;
+      margin: 4px 0 0;
+      min-height: 16px;
+    }
+    .perm-section-sep {
+      border: none;
+      border-top: 1px solid #333;
+      margin: 12px 0;
+    }
+    .perm-hint {
+      font-size: 11px;
+      color: #666;
+      margin: 0;
+    }
     .sidebar-header {
       padding: 14px 16px 10px;
       border-bottom: 1px solid rgba(255,255,255,0.08);
@@ -1729,6 +1889,11 @@
     </svg>
     <span id="taskBadge" class="task-badge" style="display:none">0</span>
   </button>
+  <button id="permMgrBtn" onclick="openPermManager()" title="Claude Code 権限管理" aria-label="権限管理">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    </svg>
+  </button>
   <button id="restartServerBtn" onclick="restartServer()" title="サーバーを再起動して最新コードを適用します">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></svg>
   </button>
@@ -1796,6 +1961,51 @@
 
 <!-- タスク管理パネル（右スライドドロワー） -->
 <div id="taskPanelOverlay" class="task-panel-overlay" onclick="closeTaskPanel()"></div>
+
+<!-- Permission Manager モーダル -->
+<div id="permMgrOverlay" onclick="closePermManager(event)">
+  <div id="permMgrModal" onclick="event.stopPropagation()">
+    <div class="perm-modal-header">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#2ecc70" stroke-width="2" width="18" height="18">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+      <h2>Claude Code 権限管理</h2>
+      <button class="perm-modal-close" onclick="closePermManager()" title="閉じる">×</button>
+    </div>
+    <div class="perm-modal-body">
+
+      <p class="perm-section-title">許可 (allow)</p>
+      <ul id="permAllowList" class="perm-list"></ul>
+
+      <div class="perm-add-row">
+        <input id="permAllowInput" type="text"
+          placeholder="例: Write(C:/Users/you/.claude/skills/**)"
+          onkeydown="if(event.key==='Enter')addPermission('allow')" />
+        <button class="perm-add-btn" onclick="addPermission('allow')">追加</button>
+      </div>
+      <p id="permAllowError" class="perm-error-msg"></p>
+
+      <hr class="perm-section-sep">
+
+      <p class="perm-section-title">拒否 (deny)</p>
+      <ul id="permDenyList" class="perm-list"></ul>
+
+      <div class="perm-add-row">
+        <input id="permDenyInput" type="text"
+          placeholder="例: Write(C:/sensitive/**)"
+          onkeydown="if(event.key==='Enter')addPermission('deny')" />
+        <button class="perm-add-btn" style="background:#c0392b;color:#fff" onclick="addPermission('deny')">追加</button>
+      </div>
+      <p id="permDenyError" class="perm-error-msg"></p>
+
+      <hr class="perm-section-sep">
+      <p class="perm-hint">
+        設定は <code>~/.claude/settings.json</code> の <code>permissions</code> に保存されます。<br>
+        フォーマット例: <code>Write(C:/path/**)</code> / <code>Read(C:/path/file.txt)</code> / <code>Bash(git *)</code>
+      </p>
+    </div>
+  </div>
+</div>
 <aside id="taskPanel" class="task-panel">
   <div class="task-panel-header">
     <span class="task-panel-title">タスク管理</span>
@@ -3790,6 +4000,107 @@
   initSidebar();
 
   // ── サーバー再起動 ──────────────────────────────────
+  // ── Permission Manager ──────────────────────────────────────────
+  async function openPermManager() {
+    document.getElementById('permMgrOverlay').classList.add('visible');
+    await loadPermissions();
+  }
+
+  function closePermManager(e) {
+    if (e && e.target !== document.getElementById('permMgrOverlay')) return;
+    document.getElementById('permMgrOverlay').classList.remove('visible');
+  }
+
+  async function loadPermissions() {
+    try {
+      const res = await fetch('/api/permissions');
+      const data = await res.json();
+      renderPermList('allow', data.allow || []);
+      renderPermList('deny', data.deny || []);
+    } catch (err) {
+      console.error('権限リスト取得失敗:', err);
+    }
+  }
+
+  function renderPermList(listType, items) {
+    const ul = document.getElementById('perm' + (listType === 'allow' ? 'Allow' : 'Deny') + 'List');
+    ul.innerHTML = '';
+    if (items.length === 0) {
+      ul.innerHTML = '<p class="perm-empty">（なし）</p>';
+      return;
+    }
+    items.forEach(pattern => {
+      const li = document.createElement('li');
+      li.className = 'perm-item';
+      const span = document.createElement('span');
+      span.textContent = pattern;
+      const btn = document.createElement('button');
+      btn.className = 'perm-item-remove';
+      btn.title = '削除';
+      btn.textContent = '×';
+      btn.onclick = () => removePermission(listType, pattern);
+      li.appendChild(span);
+      li.appendChild(btn);
+      ul.appendChild(li);
+    });
+  }
+
+  async function addPermission(listType) {
+    const inputId = 'perm' + (listType === 'allow' ? 'Allow' : 'Deny') + 'Input';
+    const errorId = 'perm' + (listType === 'allow' ? 'Allow' : 'Deny') + 'Error';
+    const input = document.getElementById(inputId);
+    const errorEl = document.getElementById(errorId);
+    const pattern = input.value.trim();
+    errorEl.textContent = '';
+
+    if (!pattern) {
+      errorEl.textContent = 'パターンを入力してください。';
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/permissions/allow', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ list: listType, pattern }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        errorEl.textContent = data.error || '追加に失敗しました。';
+        return;
+      }
+      input.value = '';
+      renderPermList('allow', data.allow || []);
+      renderPermList('deny', data.deny || []);
+    } catch (err) {
+      errorEl.textContent = 'ネットワークエラーが発生しました。';
+    }
+  }
+
+  async function removePermission(listType, pattern) {
+    const errorId = 'perm' + (listType === 'allow' ? 'Allow' : 'Deny') + 'Error';
+    const errorEl = document.getElementById(errorId);
+    errorEl.textContent = '';
+
+    try {
+      const res = await fetch('/api/permissions/allow', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ list: listType, pattern }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        errorEl.textContent = data.error || '削除に失敗しました。';
+        return;
+      }
+      renderPermList('allow', data.allow || []);
+      renderPermList('deny', data.deny || []);
+    } catch (err) {
+      errorEl.textContent = 'ネットワークエラーが発生しました。';
+    }
+  }
+  // ─────────────────────────────────────────────────────────────────
+
   async function restartServer() {
     const btn = document.getElementById('restartServerBtn');
     if (!confirm('サーバーを再起動します。\n数秒後にページが自動でリロードされます。')) return;
