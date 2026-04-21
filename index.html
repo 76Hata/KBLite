@@ -2884,6 +2884,200 @@
           transparent      12px
         ) !important;
       }
+
+      /* =================================================================
+         P5 PHASE 4 — メッセージ / スピナー / メニュー / フォーム / ライトボックス
+         ================================================================= */
+
+      /* ---- User message bubble: P5 赤/黒スタイル ---- */
+      .msg.user {
+        background: linear-gradient(
+          135deg,
+          var(--p5-red-deep) 0%,
+          var(--p5-red)      60%,
+          var(--p5-red-deep) 100%
+        ) !important;
+        color: var(--p5-white-pure) !important;
+        border-radius: 2px !important;
+        border-bottom-right-radius: 0 !important;
+        border-left: 3px solid var(--p5-yellow) !important;
+        box-shadow: 3px 3px 0 rgba(0,0,0,0.35) !important;
+        position: relative;
+      }
+      /* 右下の斜め切り欠き */
+      .msg.user::after {
+        content: '';
+        position: absolute;
+        bottom: 0; right: 0;
+        border-style: solid;
+        border-width: 0 0 10px 10px;
+        border-color: transparent transparent var(--p5-yellow) transparent;
+      }
+
+      /* ---- AI message bubble: P5 クリーン + 左アクセント ---- */
+      .msg.assistant {
+        background: #fdfdfd !important;
+        color: var(--p5-black) !important;
+        border-radius: 2px !important;
+        border-bottom-left-radius: 0 !important;
+        border-left: 4px solid var(--p5-red) !important;
+        box-shadow: 2px 2px 0 rgba(0,0,0,0.12) !important;
+      }
+
+      /* ---- Waiting spinner: 赤に変更 ---- */
+      .waiting-indicator .spinner {
+        border: 2px solid rgba(215,0,15,0.25) !important;
+        border-top-color: var(--p5-red) !important;
+      }
+      .waiting-indicator {
+        color: var(--p5-red) !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.03em;
+      }
+
+      /* ---- Sidebar search: P5フォーカス ---- */
+      .sidebar-search-input {
+        border-color: rgba(215,0,15,0.4) !important;
+        background: rgba(215,0,15,0.06) !important;
+        color: var(--p5-white) !important;
+      }
+      .sidebar-search-input:focus {
+        border-color: var(--p5-red) !important;
+        background: rgba(215,0,15,0.14) !important;
+        box-shadow: 0 0 0 2px rgba(215,0,15,0.25) !important;
+        outline: none !important;
+      }
+      .sidebar-search-input::placeholder {
+        color: rgba(244,244,244,0.4) !important;
+      }
+
+      /* ---- Session context menu: P5ダーク ---- */
+      .session-menu {
+        background: var(--p5-black-soft) !important;
+        border: 1px solid var(--p5-red) !important;
+        border-radius: 0 !important;
+        box-shadow: 4px 4px 0 rgba(0,0,0,0.5) !important;
+      }
+      .session-menu-item {
+        color: var(--p5-white) !important;
+        font-size: 12px !important;
+        letter-spacing: 0.04em;
+      }
+      .session-menu-item:hover {
+        background: rgba(215,0,15,0.25) !important;
+        color: var(--p5-white-pure) !important;
+        padding-left: 18px !important;
+        transition: padding-left 0.1s ease !important;
+      }
+      .session-menu-item.danger { color: #ff4d6a !important; }
+      .session-menu-item.danger:hover {
+        background: rgba(215,0,15,0.4) !important;
+      }
+      .session-menu-divider {
+        border-color: rgba(215,0,15,0.3) !important;
+      }
+
+      /* ---- Response title (h2): P5赤アンダーライン ---- */
+      .msg-content h2.response-title {
+        border-bottom: 2px solid var(--p5-red) !important;
+        color: var(--p5-black) !important;
+        padding-bottom: 4px !important;
+      }
+      .msg-content h2.response-title .title-icon {
+        color: var(--p5-red) !important;
+      }
+
+      /* ---- Task form inputs/buttons: P5スタイル ---- */
+      .task-form-input,
+      .task-form-textarea,
+      .task-form-row select,
+      .task-form-date {
+        background: var(--p5-gray) !important;
+        border: 1px solid rgba(215,0,15,0.4) !important;
+        color: var(--p5-white) !important;
+        border-radius: 0 !important;
+      }
+      .task-form-input:focus,
+      .task-form-textarea:focus,
+      .task-form-row select:focus,
+      .task-form-date:focus {
+        border-color: var(--p5-red) !important;
+        box-shadow: 0 0 0 2px rgba(215,0,15,0.2) !important;
+        outline: none !important;
+      }
+      .task-form-input::placeholder,
+      .task-form-textarea::placeholder {
+        color: rgba(244,244,244,0.35) !important;
+      }
+      .task-btn-primary {
+        background: var(--p5-red) !important;
+        color: var(--p5-white-pure) !important;
+        border: none !important;
+        border-radius: 0 !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.06em !important;
+        text-transform: uppercase !important;
+        box-shadow: 2px 2px 0 rgba(0,0,0,0.4) !important;
+        transition: transform 0.08s ease, box-shadow 0.08s ease !important;
+      }
+      .task-btn-primary:hover {
+        background: var(--p5-red-bright) !important;
+        transform: translate(-1px, -1px) !important;
+        box-shadow: 3px 3px 0 rgba(0,0,0,0.5) !important;
+      }
+      .task-btn-secondary {
+        background: transparent !important;
+        border: 1px solid rgba(215,0,15,0.5) !important;
+        color: var(--p5-red-bright) !important;
+        border-radius: 0 !important;
+        font-weight: 600 !important;
+      }
+      .task-btn-secondary:hover {
+        background: rgba(215,0,15,0.15) !important;
+        border-color: var(--p5-red) !important;
+      }
+
+      /* ---- Diagram lightbox: P5ダークオーバーレイ ---- */
+      .diagram-lightbox {
+        background: rgba(10,10,10,0.93) !important;
+      }
+      .diagram-lightbox-content {
+        background: var(--p5-black-soft) !important;
+        border: 2px solid var(--p5-red) !important;
+        border-radius: 0 !important;
+        box-shadow: 8px 8px 0 rgba(0,0,0,0.7) !important;
+      }
+      .diagram-lightbox-toolbar {
+        background: var(--p5-black) !important;
+        border-top: 1px solid var(--p5-red) !important;
+      }
+      .diagram-lightbox-toolbar button {
+        background: transparent !important;
+        color: var(--p5-white) !important;
+        border: 1px solid rgba(215,0,15,0.4) !important;
+        border-radius: 0 !important;
+      }
+      .diagram-lightbox-toolbar button:hover {
+        background: rgba(215,0,15,0.2) !important;
+        border-color: var(--p5-red) !important;
+        color: var(--p5-white-pure) !important;
+      }
+      .diagram-lightbox-close {
+        background: var(--p5-red) !important;
+        color: var(--p5-white-pure) !important;
+        border-radius: 0 !important;
+        font-weight: 900 !important;
+        border: none !important;
+      }
+      .diagram-lightbox-close:hover {
+        background: var(--p5-red-bright) !important;
+        transform: scale(1.1) !important;
+      }
+      .diagram-lightbox-zoom-info {
+        color: var(--p5-yellow) !important;
+        font-weight: 700 !important;
+        font-family: var(--p5-font-disp) !important;
+      }
     }
 
   </style>
