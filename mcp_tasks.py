@@ -16,8 +16,8 @@ Claude Code から以下のコマンドで登録:
 
 import json
 import os
-import sys
 import sqlite3
+import sys
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -59,9 +59,7 @@ def _get_conn() -> sqlite3.Connection:
         );
     """)
     # 既存DBの ALTER TABLE（冪等）
-    existing_cols = {
-        r["name"] for r in conn.execute("PRAGMA table_info(tasks)").fetchall()
-    }
+    existing_cols = {r["name"] for r in conn.execute("PRAGMA table_info(tasks)").fetchall()}
     if "source" not in existing_cols:
         conn.execute("ALTER TABLE tasks ADD COLUMN source TEXT DEFAULT 'manual'")
     if "scope" not in existing_cols:
@@ -70,12 +68,9 @@ def _get_conn() -> sqlite3.Connection:
         conn.execute("ALTER TABLE tasks ADD COLUMN todo_key TEXT DEFAULT NULL")
     # 列が揃ってからインデックスを作る
     conn.execute(
-        "CREATE UNIQUE INDEX IF NOT EXISTS idx_tasks_todo_key "
-        "ON tasks(todo_key) WHERE todo_key IS NOT NULL"
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_tasks_todo_key ON tasks(todo_key) WHERE todo_key IS NOT NULL"
     )
-    conn.execute(
-        "CREATE INDEX IF NOT EXISTS idx_tasks_scope_status ON tasks(scope, status)"
-    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_tasks_scope_status ON tasks(scope, status)")
     conn.commit()
     return conn
 
@@ -85,10 +80,13 @@ _conn = _get_conn()
 
 # ── DB 操作ユーティリティ ────────────────────────────────────────────────────
 
+
 def _row_to_task(row) -> dict:
     keys = row.keys() if hasattr(row, "keys") else []
+
     def _get(key, default=None):
         return row[key] if key in keys else default
+
     return {
         "id": row["id"],
         "title": row["title"],
@@ -115,6 +113,7 @@ def _notes_for(task_id: str) -> list[dict]:
 
 
 # ── ツール実装 ───────────────────────────────────────────────────────────────
+
 
 def tool_task_create(args: dict) -> str:
     title = str(args.get("title", "")).strip()
@@ -166,10 +165,12 @@ def tool_task_list(args: dict) -> str:
     if source:
         sql += " AND source = ?"
         params.append(source)
-    sql += (" ORDER BY CASE status "
-            "WHEN 'in_progress' THEN 0 "
-            "WHEN 'todo' THEN 1 "
-            "WHEN 'done' THEN 2 ELSE 3 END, updated_at DESC")
+    sql += (
+        " ORDER BY CASE status "
+        "WHEN 'in_progress' THEN 0 "
+        "WHEN 'todo' THEN 1 "
+        "WHEN 'done' THEN 2 ELSE 3 END, updated_at DESC"
+    )
 
     rows = _conn.execute(sql, params).fetchall()
     tasks = []
@@ -197,7 +198,9 @@ def tool_task_update(args: dict) -> str:
         return json.dumps({"ok": True, "task": task}, ensure_ascii=False)
 
     if "status" in updates and updates["status"] not in ("todo", "in_progress", "done", "cancelled"):
-        return json.dumps({"error": "status は todo/in_progress/done/cancelled のいずれかです"}, ensure_ascii=False)
+        return json.dumps(
+            {"error": "status は todo/in_progress/done/cancelled のいずれかです"}, ensure_ascii=False
+        )
 
     if updates.get("status") == "done":
         updates["completed_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -276,9 +279,7 @@ def tool_task_resume_context(args: dict) -> str:
     def _fmt(t):
         lines = []
         badge = "[進行中]" if t["status"] == "in_progress" else "[未着手]"
-        prio = {"high": "★高", "normal": "中", "low": "▽低"}.get(
-            t["priority"], t["priority"]
-        )
+        prio = {"high": "★高", "normal": "中", "low": "▽低"}.get(t["priority"], t["priority"])
         src = t.get("source") or "manual"
         lines.append(f"### {badge} {t['title']} (優先度:{prio} / source:{src})")
         lines.append(f"- ID: `{t['id']}`")
@@ -318,13 +319,21 @@ TOOLS = {
         "inputSchema": {
             "type": "object",
             "properties": {
-                "title":       {"type": "string", "description": "タスクのタイトル（必須）"},
+                "title": {"type": "string", "description": "タスクのタイトル（必須）"},
                 "description": {"type": "string", "description": "詳細説明"},
-                "priority":    {"type": "string", "enum": ["low", "normal", "high"], "description": "優先度"},
-                "session_id":  {"type": "string", "description": "関連する会話セッションのID"},
-                "due_date":    {"type": "string", "description": "期限（YYYY-MM-DD形式）"},
-                "scope":       {"type": "string", "enum": ["session", "global"], "description": "スコープ。既定は global。session は TodoWrite 連携専用で通常使わない"},
-                "source":      {"type": "string", "enum": ["manual", "todowrite", "mcp"], "description": "出どころ。既定は manual"},
+                "priority": {"type": "string", "enum": ["low", "normal", "high"], "description": "優先度"},
+                "session_id": {"type": "string", "description": "関連する会話セッションのID"},
+                "due_date": {"type": "string", "description": "期限（YYYY-MM-DD形式）"},
+                "scope": {
+                    "type": "string",
+                    "enum": ["session", "global"],
+                    "description": "スコープ。既定は global。session は TodoWrite 連携専用で通常使わない",
+                },
+                "source": {
+                    "type": "string",
+                    "enum": ["manual", "todowrite", "mcp"],
+                    "description": "出どころ。既定は manual",
+                },
             },
             "required": ["title"],
         },
@@ -334,10 +343,22 @@ TOOLS = {
         "inputSchema": {
             "type": "object",
             "properties": {
-                "status":     {"type": "string", "enum": ["todo", "in_progress", "done", "cancelled"], "description": "ステータスでフィルタ"},
+                "status": {
+                    "type": "string",
+                    "enum": ["todo", "in_progress", "done", "cancelled"],
+                    "description": "ステータスでフィルタ",
+                },
                 "session_id": {"type": "string", "description": "セッションIDでフィルタ"},
-                "scope":      {"type": "string", "enum": ["session", "global"], "description": "スコープでフィルタ"},
-                "source":     {"type": "string", "enum": ["manual", "todowrite", "mcp"], "description": "出どころでフィルタ"},
+                "scope": {
+                    "type": "string",
+                    "enum": ["session", "global"],
+                    "description": "スコープでフィルタ",
+                },
+                "source": {
+                    "type": "string",
+                    "enum": ["manual", "todowrite", "mcp"],
+                    "description": "出どころでフィルタ",
+                },
             },
         },
     },
@@ -346,12 +367,12 @@ TOOLS = {
         "inputSchema": {
             "type": "object",
             "properties": {
-                "task_id":     {"type": "string", "description": "タスクID（必須）"},
-                "title":       {"type": "string"},
+                "task_id": {"type": "string", "description": "タスクID（必須）"},
+                "title": {"type": "string"},
                 "description": {"type": "string"},
-                "status":      {"type": "string", "enum": ["todo", "in_progress", "done", "cancelled"]},
-                "priority":    {"type": "string", "enum": ["low", "normal", "high"]},
-                "due_date":    {"type": "string"},
+                "status": {"type": "string", "enum": ["todo", "in_progress", "done", "cancelled"]},
+                "priority": {"type": "string", "enum": ["low", "normal", "high"]},
+                "due_date": {"type": "string"},
             },
             "required": ["task_id"],
         },
@@ -362,7 +383,7 @@ TOOLS = {
             "type": "object",
             "properties": {
                 "task_id": {"type": "string", "description": "タスクID（必須）"},
-                "note":    {"type": "string", "description": "メモ内容（必須）"},
+                "note": {"type": "string", "description": "メモ内容（必須）"},
             },
             "required": ["task_id", "note"],
         },
@@ -407,22 +428,24 @@ def _handle(msg: dict):
     msg_id = msg.get("id")
 
     if method == "initialize":
-        _send({
-            "jsonrpc": "2.0", "id": msg_id,
-            "result": {
-                "protocolVersion": "2024-11-05",
-                "capabilities": {"tools": {}},
-                "serverInfo": {"name": "kblite-tasks", "version": "1.0.0"},
-            },
-        })
+        _send(
+            {
+                "jsonrpc": "2.0",
+                "id": msg_id,
+                "result": {
+                    "protocolVersion": "2024-11-05",
+                    "capabilities": {"tools": {}},
+                    "serverInfo": {"name": "kblite-tasks", "version": "1.0.0"},
+                },
+            }
+        )
 
     elif method == "notifications/initialized":
         pass  # 通知なのでレスポンス不要
 
     elif method == "tools/list":
         tools_list = [
-            {"name": name, "description": spec["description"],
-             "inputSchema": spec["inputSchema"]}
+            {"name": name, "description": spec["description"], "inputSchema": spec["inputSchema"]}
             for name, spec in TOOLS.items()
         ]
         _send({"jsonrpc": "2.0", "id": msg_id, "result": {"tools": tools_list}})
@@ -433,25 +456,38 @@ def _handle(msg: dict):
         args = params.get("arguments", {})
         handler = TOOL_HANDLERS.get(tool_name)
         if handler is None:
-            _send({"jsonrpc": "2.0", "id": msg_id,
-                   "error": {"code": -32601, "message": f"Unknown tool: {tool_name}"}})
+            _send(
+                {
+                    "jsonrpc": "2.0",
+                    "id": msg_id,
+                    "error": {"code": -32601, "message": f"Unknown tool: {tool_name}"},
+                }
+            )
             return
         try:
             result_text = handler(args)
         except Exception as e:
             result_text = json.dumps({"error": str(e)}, ensure_ascii=False)
-        _send({
-            "jsonrpc": "2.0", "id": msg_id,
-            "result": {
-                "content": [{"type": "text", "text": result_text}],
-                "isError": False,
-            },
-        })
+        _send(
+            {
+                "jsonrpc": "2.0",
+                "id": msg_id,
+                "result": {
+                    "content": [{"type": "text", "text": result_text}],
+                    "isError": False,
+                },
+            }
+        )
 
     else:
         if msg_id is not None:
-            _send({"jsonrpc": "2.0", "id": msg_id,
-                   "error": {"code": -32601, "message": f"Method not found: {method}"}})
+            _send(
+                {
+                    "jsonrpc": "2.0",
+                    "id": msg_id,
+                    "error": {"code": -32601, "message": f"Method not found: {method}"},
+                }
+            )
 
 
 def main():

@@ -1,9 +1,10 @@
 """KBLite SQLite ストア — session/conversation/project/task を管理"""
+
 import logging
 import sqlite3
 from pathlib import Path
 
-from stores import SessionMixin, ConversationMixin, ProjectMixin, FtsMixin, TaskMixin
+from stores import ConversationMixin, FtsMixin, ProjectMixin, SessionMixin, TaskMixin
 
 logger = logging.getLogger(__name__)
 
@@ -14,6 +15,7 @@ class SQLiteStore(SessionMixin, ConversationMixin, ProjectMixin, FtsMixin, TaskM
     def __init__(self, db_path: str | None = None):
         if db_path is None:
             import os
+
             db_path = os.getenv("SQLITE_PATH", str(Path(__file__).parent / "data" / "sqlite" / "kblite.db"))
         self.db_path = db_path
         Path(db_path).parent.mkdir(parents=True, exist_ok=True)
@@ -129,9 +131,9 @@ class SQLiteStore(SessionMixin, ConversationMixin, ProjectMixin, FtsMixin, TaskM
         if not needs_rebuild:
             try:
                 hit = self._conn.execute(
-                    "SELECT COUNT(*) FROM conversations_fts WHERE conversations_fts MATCH '\"a\" OR \"e\" OR \"i\"'"
+                    'SELECT COUNT(*) FROM conversations_fts WHERE conversations_fts MATCH \'"a" OR "e" OR "i"\''
                 ).fetchone()[0]
-                needs_rebuild = (hit == 0 and conv_count > 10)
+                needs_rebuild = hit == 0 and conv_count > 10
             except Exception:
                 needs_rebuild = True
         if needs_rebuild:

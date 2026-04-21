@@ -1,0 +1,33 @@
+[project]
+name = "kblite"
+version = "0.1.0"
+description = "KBLite - Knowledge Base Lite"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "starlette>=0.37.0",
+    "uvicorn>=0.27.0",
+    "python-dotenv>=1.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.9.0",
+    "mypy>=1.14.0",
+    "pre-commit>=4.0.0",
+]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 110
+exclude = ["installer/"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+ignore = ["E402", "E501"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = false
+ignore_missing_imports = true
+exclude = ["installer/"]

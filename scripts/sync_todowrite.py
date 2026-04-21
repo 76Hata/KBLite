@@ -20,6 +20,7 @@ Claude Code の TodoWrite ツールが書き出す ``~/.claude/todos/<session_id
     CLAUDE_TODOS_DIR : TodoWrite の JSON ディレクトリ
                   （未指定なら ~/.claude/todos）
 """
+
 from __future__ import annotations
 
 import argparse
@@ -32,7 +33,6 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 
-
 # ── パス解決 ────────────────────────────────────────────────────────────
 
 _DEFAULT_DB = Path(__file__).resolve().parent.parent / "data" / "sqlite" / "kblite.db"
@@ -40,9 +40,7 @@ _DB_PATH = Path(os.getenv("SQLITE_PATH", str(_DEFAULT_DB)))
 _TODOS_DIR = Path(os.getenv("CLAUDE_TODOS_DIR", str(Path.home() / ".claude" / "todos")))
 
 # ファイル名例: "<session_id>-agent-<agent_id>.json"
-_TODO_FILENAME_RE = re.compile(
-    r"^(?P<session>[0-9a-fA-F-]{8,})-agent-(?P<agent>[0-9a-fA-F-]+)\.json$"
-)
+_TODO_FILENAME_RE = re.compile(r"^(?P<session>[0-9a-fA-F-]{8,})-agent-(?P<agent>[0-9a-fA-F-]+)\.json$")
 
 
 # ── TodoWrite JSON の正規化 ─────────────────────────────────────────────
@@ -114,19 +112,16 @@ def _open_db() -> sqlite3.Connection:
         conn.execute("ALTER TABLE tasks ADD COLUMN todo_key TEXT DEFAULT NULL")
     # 3) 列が揃ってからインデックスを作る
     conn.execute(
-        "CREATE UNIQUE INDEX IF NOT EXISTS idx_tasks_todo_key "
-        "ON tasks(todo_key) WHERE todo_key IS NOT NULL"
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_tasks_todo_key ON tasks(todo_key) WHERE todo_key IS NOT NULL"
     )
-    conn.execute(
-        "CREATE INDEX IF NOT EXISTS idx_tasks_scope_status ON tasks(scope, status)"
-    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_tasks_scope_status ON tasks(scope, status)")
     conn.commit()
     return conn
 
 
-def _upsert_todowrite(conn: sqlite3.Connection, todo_key: str,
-                      title: str, status: str,
-                      session_id: str | None) -> str:
+def _upsert_todowrite(
+    conn: sqlite3.Connection, todo_key: str, title: str, status: str, session_id: str | None
+) -> str:
     """todo_key をキーに tasks を UPSERT する。戻り値は tasks.id"""
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     norm_status = _normalize_status(status)
@@ -145,8 +140,7 @@ def _upsert_todowrite(conn: sqlite3.Connection, todo_key: str,
                                   created_at, updated_at, completed_at)
                VALUES (?, ?, '', ?, 'normal', ?, 'todowrite', 'session', ?,
                        ?, ?, ?)""",
-            (task_id, title, norm_status, session_id, todo_key,
-             now, now, completed_at),
+            (task_id, title, norm_status, session_id, todo_key, now, now, completed_at),
         )
         return task_id
 
@@ -169,6 +163,7 @@ def _upsert_todowrite(conn: sqlite3.Connection, todo_key: str,
 
 
 # ── 同期本体 ────────────────────────────────────────────────────────────
+
 
 def sync_file(path: Path, conn: sqlite3.Connection) -> int:
     """1ファイルを同期する。戻り値は処理した todo 件数。"""
@@ -208,6 +203,7 @@ def sync_all(conn: sqlite3.Connection) -> int:
 
 # ── hooks 入力パース（PostToolUse から stdin JSON で呼ばれる） ──────────
 
+
 def _extract_path_from_hook_input(data: dict) -> Path | None:
     """Claude Code hook の stdin JSON から対象ファイルパスを推定する。
 
@@ -238,10 +234,8 @@ def _extract_path_from_hook_input(data: dict) -> Path | None:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Sync TodoWrite JSON to KBLite DB.")
     parser.add_argument("--file", help="同期する JSON ファイルパス")
-    parser.add_argument("--stdin", action="store_true",
-                        help="Claude Code hook の JSON を stdin で受け取る")
-    parser.add_argument("--all", action="store_true",
-                        help="~/.claude/todos/*.json を全て同期する（既定）")
+    parser.add_argument("--stdin", action="store_true", help="Claude Code hook の JSON を stdin で受け取る")
+    parser.add_argument("--all", action="store_true", help="~/.claude/todos/*.json を全て同期する（既定）")
     args = parser.parse_args(argv)
 
     try:
@@ -252,7 +246,6 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     total = 0
-    stdin_had_path = False
     try:
         target_file: Path | None = None
 
@@ -268,7 +261,6 @@ def main(argv: list[str] | None = None) -> int:
                         p = _extract_path_from_hook_input(data)
                         if p is not None:
                             target_file = p
-                            stdin_had_path = True
             except Exception:
                 # stdin が壊れていても黙って fallback
                 pass

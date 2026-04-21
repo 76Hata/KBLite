@@ -1,4 +1,5 @@
 """システム系エンドポイント — ヘルスチェック・設定・Rate Limits"""
+
 import asyncio
 import json
 import os
@@ -11,12 +12,12 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
 
 from deps import (
+    _INDEX_HTML_PATH,
     AI_SERVICES,
     CATEGORIES,
     MODELS,
     TEAMS,
     WORKSPACE_PROJECTS,
-    _INDEX_HTML_PATH,
     resolve_project_cwd,
     store,
 )
@@ -33,7 +34,10 @@ def _workspace_projects_with_resolved_cwd() -> list[dict]:
     return enriched
 
 
-_RATE_LIMITS_PATH = Path(os.getenv("SQLITE_PATH", str(Path(__file__).parent.parent / "data" / "sqlite" / "kblite.db"))).parent / "rate-limits.json"
+_RATE_LIMITS_PATH = (
+    Path(os.getenv("SQLITE_PATH", str(Path(__file__).parent.parent / "data" / "sqlite" / "kblite.db"))).parent
+    / "rate-limits.json"
+)
 
 
 async def index(request: Request) -> HTMLResponse:
@@ -41,13 +45,15 @@ async def index(request: Request) -> HTMLResponse:
 
 
 async def get_app_config(request: Request) -> JSONResponse:
-    return JSONResponse({
-        "categories": CATEGORIES,
-        "teams": TEAMS,
-        "models": MODELS,
-        "ai_services": AI_SERVICES,
-        "workspace_projects": _workspace_projects_with_resolved_cwd(),
-    })
+    return JSONResponse(
+        {
+            "categories": CATEGORIES,
+            "teams": TEAMS,
+            "models": MODELS,
+            "ai_services": AI_SERVICES,
+            "workspace_projects": _workspace_projects_with_resolved_cwd(),
+        }
+    )
 
 
 async def get_rate_limits(request: Request) -> JSONResponse:
@@ -191,11 +197,13 @@ async def debug_env(request: Request) -> JSONResponse:
     """デバッグ用: Claude CLI パス・イベントループ・環境情報を返す"""
     claude_path = shutil.which("claude")
     loop = asyncio.get_event_loop()
-    return JSONResponse({
-        "platform": sys.platform,
-        "python_version": sys.version,
-        "event_loop_type": type(loop).__name__,
-        "claude_which": claude_path,
-        "PATH": os.environ.get("PATH", ""),
-        "sqlite_ok": store.sqlite_healthcheck(),
-    })
+    return JSONResponse(
+        {
+            "platform": sys.platform,
+            "python_version": sys.version,
+            "event_loop_type": type(loop).__name__,
+            "claude_which": claude_path,
+            "PATH": os.environ.get("PATH", ""),
+            "sqlite_ok": store.sqlite_healthcheck(),
+        }
+    )

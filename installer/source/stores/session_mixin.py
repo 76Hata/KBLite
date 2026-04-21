@@ -1,6 +1,6 @@
 """セッション操作 Mixin"""
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -12,7 +12,7 @@ class SessionMixin:
     def create_session(self, session_id: str, title: str, first_message: str,
                        category: str = "", project_id: str = "",
                        parent_session_id: str = "") -> dict:
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         fork_number = 0
         if parent_session_id:
             cursor = self._conn.execute(
@@ -53,7 +53,7 @@ class SessionMixin:
         params: list[Any] = []
         if touch_updated_at:
             updates.append("updated_at = ?")
-            params.append(datetime.now(timezone.utc).isoformat())
+            params.append(datetime.now(UTC).isoformat())
         if title is not None:
             updates.append("title = ?")
             params.append(title)

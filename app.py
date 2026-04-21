@@ -1,10 +1,12 @@
 """KBLite — KBブラウザの軽量版（ChromaDB/RAG機能なし）"""
+
 import sys
 
 # Windows で asyncio.create_subprocess_exec を使うには ProactorEventLoop が必要。
 # uvicorn は SelectorEventLoop を使う場合があるため、起動前に明示的に設定する。
 if sys.platform == "win32":
     import asyncio
+
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
 from pathlib import Path
@@ -14,7 +16,6 @@ from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 
 from deps import logger  # noqa: F401
-
 from routes.chat import cancel_task, get_task_result, team_chat
 from routes.project import (
     create_project,
@@ -23,6 +24,7 @@ from routes.project import (
     move_session,
     rename_project,
 )
+from routes.search import rebuild_index, search_conversations, search_stats
 from routes.session import (
     create_session,
     delete_session,
@@ -31,11 +33,18 @@ from routes.session import (
     rename_session,
     save_conversation,
     update_conversation,
-    update_session_bookmark,
     update_conversation_title,
+    update_session_bookmark,
 )
-from routes.search import rebuild_index, search_conversations, search_stats
-from routes.system import debug_env, get_app_config, get_rate_limits, health, index, open_file, restart_server
+from routes.system import (
+    debug_env,
+    get_app_config,
+    get_rate_limits,
+    health,
+    index,
+    open_file,
+    restart_server,
+)
 from routes.task import (
     add_task_note,
     create_task,
@@ -79,7 +88,7 @@ _routes = [
     Route("/api/tasks/{task_id}", update_task, methods=["PUT"]),
     Route("/api/tasks/{task_id}", delete_task, methods=["DELETE"]),
     Route("/api/tasks/{task_id}/notes", add_task_note, methods=["POST"]),
-    Mount("/static", app=StaticFiles(directory=str(Path(__file__).parent / "static")), name="static"),
+    Mount("/static", app=StaticFiles(directory=str(Path(__file__).parent / "static")), name="static"),  # noqa: E501
 ]
 
 app = Starlette(routes=_routes)

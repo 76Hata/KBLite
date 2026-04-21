@@ -1,0 +1,10 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.11
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  # mypy は既存コードに多数の型エラーがあるため pre-commit から外し CI 専用とする
+  # - repo: https://github.com/pre-commit/mirrors-mypy

@@ -3,7 +3,7 @@ import logging
 import sqlite3
 from pathlib import Path
 
-from stores import SessionMixin, ConversationMixin, ProjectMixin, FtsMixin, TaskMixin
+from stores import ConversationMixin, FtsMixin, ProjectMixin, SessionMixin, TaskMixin
 
 logger = logging.getLogger(__name__)
 

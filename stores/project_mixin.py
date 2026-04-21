@@ -1,6 +1,7 @@
 """プロジェクト操作 Mixin"""
+
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 logger = logging.getLogger(__name__)
 
@@ -9,7 +10,7 @@ class ProjectMixin:
     """projects テーブルに対する CRUD 操作"""
 
     def create_project(self, project_id: str, name: str) -> dict:
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         self._conn.execute(
             """INSERT OR REPLACE INTO projects
                (id, name, created_at, updated_at, session_count)
@@ -40,7 +41,7 @@ class ProjectMixin:
         logger.info("Deleted project '%s'", project_id)
 
     def rename_project(self, project_id: str, name: str) -> None:
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         self._conn.execute(
             "UPDATE projects SET name = ?, updated_at = ? WHERE id = ?",
             (name, now, project_id),

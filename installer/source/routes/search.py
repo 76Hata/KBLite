@@ -2,7 +2,7 @@
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
-from deps import store, logger
+from deps import logger, store
 
 
 async def search_conversations(request: Request) -> JSONResponse:

@@ -9,7 +9,6 @@ import sqlite3
 import subprocess
 import sys
 import time
-import traceback
 import uuid
 from pathlib import Path
 
@@ -21,8 +20,8 @@ from deps import (
     AI_SERVICES,
     MODELS,
     TEAMS,
-    resolve_project_cwd,
     logger,
+    resolve_project_cwd,
 )
 from prompt import build_team_prompt
 
@@ -521,7 +520,7 @@ async def team_chat(request: Request):
             while True:
                 try:
                     chunk = await asyncio.wait_for(task_state.queue.get(), timeout=15)
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     yield f"data: {json.dumps({'type': 'heartbeat'})}\n\n"
                     continue
                 if chunk is None:
@@ -676,7 +675,7 @@ async def _run_claude_task(
 
     try:
         await asyncio.wait_for(_team_semaphore.acquire(), timeout=_SEMAPHORE_WAIT_TIMEOUT)
-    except asyncio.TimeoutError:
+    except TimeoutError:
         state.status = "error"
         state.error = "同時実行の待機がタイムアウトしました。しばらくしてからお試しください。"
         await state.queue.put({"type": "error", "message": state.error})
@@ -799,14 +798,14 @@ async def _run_claude_task(
             # プロセス終了待ち
             try:
                 await asyncio.wait_for(proc.wait(), timeout=10)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 proc.kill()
                 await proc.wait()
 
             # stderr 収集完了を待つ
             try:
                 await asyncio.wait_for(stderr_task, timeout=3)
-            except (asyncio.TimeoutError, Exception):
+            except (TimeoutError, Exception):
                 stderr_task.cancel()
             stderr_text = b"".join(stderr_chunks).decode("utf-8", errors="replace").strip()
             if stderr_text:
@@ -929,7 +928,7 @@ async def cancel_task(request: Request) -> JSONResponse:
             proc.terminate()
             try:
                 await asyncio.wait_for(proc.wait(), timeout=3)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 proc.kill()
         except ProcessLookupError:
             pass

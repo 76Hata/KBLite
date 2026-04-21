@@ -1,5 +1,6 @@
 """会話操作 Mixin"""
 import logging
+from datetime import UTC
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -11,7 +12,7 @@ class ConversationMixin:
     def save_conversation(self, session_id: str, sequence: int, question: str,
                           answer: str, title: str = "",
                           summary: str = "") -> str:
-        from datetime import datetime, timezone
+        from datetime import datetime
 
         # 同一セッション内で同じ question+answer が既に存在する場合はスキップ
         dup = self._conn.execute(
@@ -27,7 +28,7 @@ class ConversationMixin:
             )
             return dup["id"]
 
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         conv_id = f"conv_{session_id}_{sequence}"
         self._conn.execute(
             """INSERT OR REPLACE INTO conversations

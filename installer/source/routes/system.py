@@ -11,12 +11,12 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
 
 from deps import (
+    _INDEX_HTML_PATH,
     AI_SERVICES,
     CATEGORIES,
     MODELS,
     TEAMS,
     WORKSPACE_PROJECTS,
-    _INDEX_HTML_PATH,
     resolve_project_cwd,
     store,
 )

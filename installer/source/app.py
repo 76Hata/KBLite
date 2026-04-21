@@ -14,7 +14,6 @@ from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 
 from deps import logger  # noqa: F401
-
 from routes.chat import cancel_task, get_task_result, team_chat
 from routes.project import (
     create_project,
@@ -23,6 +22,7 @@ from routes.project import (
     move_session,
     rename_project,
 )
+from routes.search import rebuild_index, search_conversations, search_stats
 from routes.session import (
     create_session,
     delete_session,
@@ -31,11 +31,18 @@ from routes.session import (
     rename_session,
     save_conversation,
     update_conversation,
-    update_session_bookmark,
     update_conversation_title,
+    update_session_bookmark,
 )
-from routes.search import rebuild_index, search_conversations, search_stats
-from routes.system import debug_env, get_app_config, get_rate_limits, health, index, open_file, restart_server
+from routes.system import (
+    debug_env,
+    get_app_config,
+    get_rate_limits,
+    health,
+    index,
+    open_file,
+    restart_server,
+)
 from routes.task import (
     add_task_note,
     create_task,

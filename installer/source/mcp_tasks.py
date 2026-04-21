@@ -16,8 +16,8 @@ Claude Code から以下のコマンドで登録:
 
 import json
 import os
-import sys
 import sqlite3
+import sys
 import uuid
 from datetime import datetime
 from pathlib import Path

@@ -1,21 +1,20 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 KBLite インストーラー
 Windows GUI ウィザード形式インストーラー
 """
 
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
+import threading
 import tkinter as tk
 import tkinter.scrolledtext as st
-from tkinter import ttk, filedialog, messagebox
-import subprocess
-import shutil
-import os
-import sys
-import threading
 import webbrowser
-import tempfile
 from pathlib import Path
+from tkinter import filedialog, messagebox, ttk
 
 # ============================================================
 # 定数
@@ -507,7 +506,7 @@ class KBLiteInstaller(tk.Tk):
                 creationflags=subprocess.CREATE_NO_WINDOW,
                 shell=True
             )
-        except Exception as e:
+        except Exception:
             self.after(0, lambda: messagebox.showerror(
                 "エラー", f"認証の開始に失敗しました:\n{e}"))
         self.after(0, lambda: self._btn_auth.configure(
@@ -624,7 +623,7 @@ class KBLiteInstaller(tk.Tk):
             self._log("[5/6] 起動スクリプト作成...")
             python_exe = self._find_python()
             self._create_startup_bat(install_path, python_exe)
-            self._log(f"  start_kblite.bat 作成完了")
+            self._log("  start_kblite.bat 作成完了")
 
             # ---- Step 6: ショートカット / スタートアップ ----
             self._set_progress(85, "ショートカットを作成しています...")
@@ -638,14 +637,14 @@ class KBLiteInstaller(tk.Tk):
             self._set_progress(100, "インストール完了")
             self._log("")
             self._log("=" * 50)
-            self._log(f"  KBLite のインストールが完了しました")
+            self._log("  KBLite のインストールが完了しました")
             self._log(f"  場所: {install_path}")
             self._log("=" * 50)
 
             self._install_done = True
             self.after(1200, lambda: self._show_page(4))
 
-        except Exception as e:
+        except Exception:
             import traceback
             self._log(f"\nエラーが発生しました:\n{traceback.format_exc()}")
             self.after(0, lambda: messagebox.showerror(
