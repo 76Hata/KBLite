@@ -8,6 +8,7 @@ Claude Code v2.1.80+ が stdin に渡す JSON から rate_limits を取得し:
   2. stdout に整形済み文字列を出力 → ターミナルのステータスバーに表示
   3. Weekly バジェット超過時に推奨モデルを書き出し
 """
+
 import json
 import math
 import sys

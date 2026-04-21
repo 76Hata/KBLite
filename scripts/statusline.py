@@ -15,6 +15,7 @@ Claude Code v2.1.80+ が stdin に渡す JSON から rate_limits を取得し:
     }
   }
 """
+
 import json
 import math
 import sys

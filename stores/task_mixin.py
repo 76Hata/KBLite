@@ -1,4 +1,5 @@
 """タスク管理 Mixin — tasks / task_notes テーブルの CRUD"""
+
 import uuid
 from datetime import datetime
 
@@ -45,10 +46,7 @@ class TaskMixin:
 
     def _migrate_tasks_columns(self):
         """既存tasksテーブルに source/scope/todo_key が無い場合に追加する。"""
-        cols = {
-            r["name"]
-            for r in self._conn.execute("PRAGMA table_info(tasks)").fetchall()
-        }
+        cols = {r["name"] for r in self._conn.execute("PRAGMA table_info(tasks)").fetchall()}
         if "source" not in cols:
             self._conn.execute("ALTER TABLE tasks ADD COLUMN source TEXT DEFAULT 'manual'")
         if "scope" not in cols:
@@ -60,38 +58,40 @@ class TaskMixin:
             "CREATE UNIQUE INDEX IF NOT EXISTS idx_tasks_todo_key "
             "ON tasks(todo_key) WHERE todo_key IS NOT NULL"
         )
-        self._conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_tasks_scope_status ON tasks(scope, status)"
-        )
+        self._conn.execute("CREATE INDEX IF NOT EXISTS idx_tasks_scope_status ON tasks(scope, status)")
 
     # ── タスク CRUD ─────────────────────────────────────────
 
-    def create_task(self, title: str, description: str = "",
-                    priority: str = "normal", session_id: str | None = None,
-                    due_date: str | None = None,
-                    source: str = "manual", scope: str = "global",
-                    todo_key: str | None = None) -> dict:
+    def create_task(
+        self,
+        title: str,
+        description: str = "",
+        priority: str = "normal",
+        session_id: str | None = None,
+        due_date: str | None = None,
+        source: str = "manual",
+        scope: str = "global",
+        todo_key: str | None = None,
+    ) -> dict:
         task_id = str(uuid.uuid4())
         self._conn.execute(
             """INSERT INTO tasks (id, title, description, priority, session_id, due_date,
                                   source, scope, todo_key)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-            (task_id, title, description, priority, session_id, due_date,
-             source, scope, todo_key),
+            (task_id, title, description, priority, session_id, due_date, source, scope, todo_key),
         )
         self._conn.commit()
         return self.get_task(task_id)
 
-    def upsert_todowrite_task(self, todo_key: str, title: str, status: str,
-                              session_id: str | None = None) -> dict:
+    def upsert_todowrite_task(
+        self, todo_key: str, title: str, status: str, session_id: str | None = None
+    ) -> dict:
         """TodoWrite由来のタスクを todo_key をキーに UPSERT する。
 
         既存があれば title/status/session_id/updated_at を更新、
         無ければ scope='session', source='todowrite' で新規作成する。
         """
-        row = self._conn.execute(
-            "SELECT * FROM tasks WHERE todo_key = ?", (todo_key,)
-        ).fetchone()
+        row = self._conn.execute("SELECT * FROM tasks WHERE todo_key = ?", (todo_key,)).fetchone()
 
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         norm_status = self._normalize_todowrite_status(status)
@@ -105,8 +105,7 @@ class TaskMixin:
                                       created_at, updated_at, completed_at)
                    VALUES (?, ?, '', ?, 'normal', ?, 'todowrite', 'session', ?,
                            ?, ?, ?)""",
-                (task_id, title, norm_status, session_id, todo_key,
-                 now, now, completed_at),
+                (task_id, title, norm_status, session_id, todo_key, now, now, completed_at),
             )
             self._conn.commit()
             return self.get_task(task_id)
@@ -140,17 +139,18 @@ class TaskMixin:
         return mapping.get((status or "").strip(), "todo")
 
     def get_task(self, task_id: str) -> dict | None:
-        row = self._conn.execute(
-            "SELECT * FROM tasks WHERE id = ?", (task_id,)
-        ).fetchone()
+        row = self._conn.execute("SELECT * FROM tasks WHERE id = ?", (task_id,)).fetchone()
         if row is None:
             return None
         return self._task_to_dict(row)
 
-    def list_tasks(self, status: str | None = None,
-                   session_id: str | None = None,
-                   scope: str | None = None,
-                   source: str | None = None) -> list[dict]:
+    def list_tasks(
+        self,
+        status: str | None = None,
+        session_id: str | None = None,
+        scope: str | None = None,
+        source: str | None = None,
+    ) -> list[dict]:
         sql = "SELECT * FROM tasks WHERE 1=1"
         params: list = []
         if status:
@@ -175,8 +175,17 @@ class TaskMixin:
         return result
 
     def update_task(self, task_id: str, **kwargs) -> dict | None:
-        allowed = {"title", "description", "status", "priority",
-                   "session_id", "due_date", "source", "scope", "todo_key"}
+        allowed = {
+            "title",
+            "description",
+            "status",
+            "priority",
+            "session_id",
+            "due_date",
+            "source",
+            "scope",
+            "todo_key",
+        }
         updates = {k: v for k, v in kwargs.items() if k in allowed}
         if not updates:
             return self.get_task(task_id)
@@ -191,9 +200,7 @@ class TaskMixin:
 
         set_clause = ", ".join(f"{k} = ?" for k in updates)
         values = list(updates.values()) + [task_id]
-        self._conn.execute(
-            f"UPDATE tasks SET {set_clause} WHERE id = ?", values
-        )
+        self._conn.execute(f"UPDATE tasks SET {set_clause} WHERE id = ?", values)
         self._conn.commit()
         return self.get_task(task_id)
 
@@ -216,9 +223,7 @@ class TaskMixin:
             (task_id,),
         )
         self._conn.commit()
-        row = self._conn.execute(
-            "SELECT * FROM task_notes WHERE id = ?", (note_id,)
-        ).fetchone()
+        row = self._conn.execute("SELECT * FROM task_notes WHERE id = ?", (note_id,)).fetchone()
         return dict(row)
 
     def _list_notes_for(self, task_id: str) -> list[dict]:
@@ -233,8 +238,10 @@ class TaskMixin:
     @staticmethod
     def _task_to_dict(row) -> dict:
         keys = row.keys() if hasattr(row, "keys") else []
+
         def _get(key, default=None):
             return row[key] if key in keys else default
+
         return {
             "id": row["id"],
             "title": row["title"],

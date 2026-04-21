@@ -33,3 +33,11 @@ venv/
 Thumbs.db
 Desktop.ini
 .DS_Store
+
+# Shell stray files (cmd.exe が展開失敗した %TEMP%* が残ることがある)
+%TEMP%*
+
+# Tool caches
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/

@@ -8,6 +8,7 @@ stdout に Markdown を出力すると、Claude Code はそれをセッション
 環境変数:
     SQLITE_PATH : KBLite の SQLite ファイルパス
 """
+
 from __future__ import annotations
 
 import os
@@ -33,9 +34,7 @@ def _build_banner() -> str:
         return ""
 
     try:
-        cols = {
-            r["name"] for r in conn.execute("PRAGMA table_info(tasks)").fetchall()
-        }
+        cols = {r["name"] for r in conn.execute("PRAGMA table_info(tasks)").fetchall()}
         if "scope" not in cols or "source" not in cols:
             return ""  # マイグレーション未実施
 
