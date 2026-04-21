@@ -2592,6 +2592,310 @@
         clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%) !important;
         animation: p5-msg-in 0.2s cubic-bezier(0.22, 1, 0.36, 1) both !important;
       }
+
+      /* ================================================================
+         P5 PHASE 3 — テクスチャ / チャージアニメ / UI細部磨き込み
+         ================================================================ */
+
+      /* ---- Chat area: subtle diagonal grid texture ---- */
+      #chat {
+        background-image:
+          repeating-linear-gradient(
+            -45deg,
+            rgba(215,0,15,0.022) 0px,
+            rgba(215,0,15,0.022) 1px,
+            transparent        1px,
+            transparent        28px
+          ),
+          repeating-linear-gradient(
+            45deg,
+            rgba(215,0,15,0.015) 0px,
+            rgba(215,0,15,0.015) 1px,
+            transparent        1px,
+            transparent        28px
+          ) !important;
+        background-attachment: local !important;
+      }
+
+      /* ---- Sidebar: faint dot-grid texture ---- */
+      #sidebar {
+        background-image:
+          radial-gradient(
+            circle,
+            rgba(215,0,15,0.06) 1px,
+            transparent        1px
+          ) !important;
+        background-size: 20px 20px !important;
+        background-position: 10px 10px !important;
+      }
+
+      /* ---- Send button: charge effect on :active ---- */
+      @keyframes p5-charge {
+        0%   { box-shadow: 0 0 0   0   rgba(215,0,15,0), 4px 4px 0 var(--p5-red); }
+        40%  { box-shadow: 0 0 0   6px rgba(215,0,15,0.35), 4px 4px 0 var(--p5-red); }
+        70%  { box-shadow: 0 0 0  10px rgba(215,0,15,0.15), 3px 3px 0 var(--p5-red); }
+        100% { box-shadow: 0 0 0   0   rgba(215,0,15,0), 4px 4px 0 var(--p5-red); }
+      }
+      @keyframes p5-shoot {
+        0%   { transform: scale(1)    skewX(0deg); }
+        30%  { transform: scale(1.08) skewX(-3deg); }
+        60%  { transform: scale(0.95) skewX(2deg); }
+        100% { transform: scale(1)    skewX(0deg); }
+      }
+      #sendBtn:active {
+        animation: p5-shoot 0.18s cubic-bezier(0.22, 1, 0.36, 1) !important;
+        background: var(--p5-red-bright) !important;
+      }
+      #sendBtn.sending {
+        animation: p5-charge 0.6s ease infinite !important;
+      }
+
+      /* ---- Empty state: P5 stylized welcome ---- */
+      #emptyState {
+        position: relative !important;
+        font-family: var(--p5-font-disp) !important;
+        font-size: 1.05rem !important;
+        letter-spacing: 0.18em !important;
+        color: rgba(10,10,10,0.38) !important;
+        text-transform: uppercase !important;
+      }
+      #emptyState::before {
+        content: '// PHANTOM THIEVES';
+        display: block;
+        font-family: var(--p5-font-disp) !important;
+        font-size: 2.8rem;
+        letter-spacing: 0.14em;
+        color: rgba(215,0,15,0.07);
+        text-align: center;
+        margin-bottom: 0.5rem;
+        pointer-events: none;
+        user-select: none;
+      }
+      #emptyState::after {
+        content: '';
+        display: block;
+        width: 80px;
+        height: 4px;
+        margin: 1rem auto 0;
+        background: linear-gradient(
+          90deg,
+          var(--p5-red)    0%,
+          var(--p5-red)    60%,
+          var(--p5-yellow) 60%,
+          var(--p5-yellow) 80%,
+          transparent      80%
+        );
+      }
+
+      /* ---- Select / dropdown: P5 styling ---- */
+      select {
+        appearance: none !important;
+        -webkit-appearance: none !important;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23d7000f'/%3E%3C/svg%3E") !important;
+        background-repeat: no-repeat !important;
+        background-position: right 8px center !important;
+        padding-right: 24px !important;
+        border-color: rgba(215,0,15,0.3) !important;
+        transition: border-color 0.1s ease, box-shadow 0.1s ease !important;
+      }
+      select:focus {
+        outline: none !important;
+        border-color: var(--p5-red) !important;
+        box-shadow: 2px 2px 0 rgba(215,0,15,0.3) !important;
+      }
+
+      /* ---- Placeholder: P5 subtle style ---- */
+      ::placeholder {
+        color: rgba(215,0,15,0.28) !important;
+        font-style: italic !important;
+        font-size: 0.88em !important;
+        letter-spacing: 0.04em !important;
+      }
+
+      /* ---- Session category / project badges: P5 pill ---- */
+      .session-category-badge,
+      .session-project-badge {
+        font-family: var(--p5-font-disp) !important;
+        font-size: 0.7rem !important;
+        letter-spacing: 0.1em !important;
+        border-radius: 0 !important;
+        clip-path: polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%) !important;
+        padding: 1px 6px !important;
+      }
+      .session-category-badge {
+        background: var(--p5-red) !important;
+        color: var(--p5-white-pure) !important;
+      }
+      .session-project-badge {
+        background: var(--p5-black-soft) !important;
+        color: var(--p5-yellow) !important;
+        border: 1px solid rgba(255,210,0,0.35) !important;
+      }
+
+      /* ---- Bookmark star: yellow pulse ---- */
+      .session-bookmark-icon {
+        color: var(--p5-yellow) !important;
+        filter: drop-shadow(0 0 3px rgba(255,210,0,0.6)) !important;
+        font-size: 0.9em !important;
+      }
+
+      /* ---- Scroll-to-top button: P5 style ---- */
+      #scrollTopBtn {
+        border-radius: 0 !important;
+        clip-path: polygon(0 6px, 6px 0, 100% 0, 100% 100%, 0 100%) !important;
+        background: var(--p5-black) !important;
+        color: var(--p5-red) !important;
+        border: 2px solid var(--p5-red) !important;
+        font-family: var(--p5-font-disp) !important;
+        font-size: 1.1rem !important;
+        letter-spacing: 0.08em !important;
+        box-shadow: 3px 3px 0 var(--p5-red) !important;
+        transition: box-shadow 0.08s ease, transform 0.08s ease, background 0.08s ease !important;
+      }
+      #scrollTopBtn:hover {
+        background: var(--p5-red) !important;
+        color: var(--p5-white-pure) !important;
+        box-shadow: 1px 1px 0 var(--p5-red) !important;
+        transform: translate(2px, 2px) !important;
+      }
+
+      /* ---- Sidebar header h2: P5 display font ---- */
+      .sidebar-header h2,
+      .sidebar-header .sidebar-title {
+        font-family: var(--p5-font-disp) !important;
+        letter-spacing: 0.18em !important;
+        text-transform: uppercase !important;
+        font-size: 0.9rem !important;
+        color: var(--p5-white) !important;
+      }
+
+      /* ---- New chat button (sidebar): P5 style ---- */
+      #sidebarNewChatBtn {
+        clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px)) !important;
+        font-family: var(--p5-font-disp) !important;
+        letter-spacing: 0.12em !important;
+        transition: background 0.1s ease, box-shadow 0.1s ease, transform 0.08s ease !important;
+      }
+      #sidebarNewChatBtn:hover {
+        box-shadow: 2px 2px 0 rgba(255,255,255,0.2) !important;
+        transform: translate(-1px, -1px) !important;
+      }
+
+      /* ---- Task panel: P5 header band ---- */
+      .task-panel-header {
+        border-bottom: 2px solid var(--p5-red) !important;
+        background: linear-gradient(
+          90deg,
+          var(--p5-red) 0%,
+          var(--p5-red) 5px,
+          transparent 5px
+        ) !important;
+        position: relative !important;
+      }
+      .task-panel-title {
+        font-family: var(--p5-font-disp) !important;
+        letter-spacing: 0.18em !important;
+        text-transform: uppercase !important;
+      }
+
+      /* ---- Task add button: P5 style ---- */
+      .task-add-btn {
+        clip-path: polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%) !important;
+        font-family: var(--p5-font-disp) !important;
+        letter-spacing: 0.1em !important;
+        background: var(--p5-red) !important;
+        color: var(--p5-white-pure) !important;
+        border: none !important;
+        transition: box-shadow 0.08s ease, transform 0.08s ease !important;
+      }
+      .task-add-btn:hover {
+        box-shadow: 2px 2px 0 rgba(215,0,15,0.5) !important;
+        transform: translate(-1px, -1px) !important;
+      }
+
+      /* ---- Permission modal header: P5 style ---- */
+      .perm-modal-header {
+        font-family: var(--p5-font-disp) !important;
+        letter-spacing: 0.14em !important;
+        border-bottom: 2px solid var(--p5-red) !important;
+        background: linear-gradient(
+          90deg,
+          var(--p5-red) 0%,
+          var(--p5-red) 6px,
+          transparent  6px
+        ) !important;
+        text-transform: uppercase !important;
+      }
+
+      /* ---- Permission request banner: P5 bold diagonal ---- */
+      #permReqBanner {
+        border-left: 5px solid var(--p5-yellow) !important;
+        border-top: 2px solid var(--p5-red) !important;
+        background: var(--p5-black) !important;
+        clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%) !important;
+        animation: p5-msg-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both !important;
+      }
+      .perm-req-title {
+        font-family: var(--p5-font-disp) !important;
+        letter-spacing: 0.14em !important;
+        text-transform: uppercase !important;
+        color: var(--p5-yellow) !important;
+      }
+
+      /* ---- readonly banner: P5 warning style ---- */
+      #readonlyBanner {
+        background: var(--p5-red) !important;
+        color: var(--p5-white-pure) !important;
+        font-family: var(--p5-font-disp) !important;
+        letter-spacing: 0.16em !important;
+        border-bottom: 2px solid var(--p5-yellow) !important;
+        clip-path: polygon(0 0, 100% 0, 100% calc(100% - 4px), calc(100% - 16px) 100%, 0 100%) !important;
+      }
+
+      /* ---- @keyframes: page-in for panels ---- */
+      @keyframes p5-panel-in {
+        from { opacity: 0; transform: translateX(30px) skewX(-1deg); }
+        to   { opacity: 1; transform: translateX(0)   skewX(0deg); }
+      }
+      .task-panel[style*="flex"] {
+        animation: p5-panel-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both !important;
+      }
+
+      /* ---- Session empty state ---- */
+      .session-empty,
+      .task-empty {
+        font-family: var(--p5-font-disp) !important;
+        letter-spacing: 0.12em !important;
+        color: rgba(215,0,15,0.35) !important;
+        text-transform: uppercase !important;
+        font-size: 0.8rem !important;
+      }
+
+      /* ---- Input resizer handle: P5 style ---- */
+      #inputResizer {
+        background: repeating-linear-gradient(
+          90deg,
+          var(--p5-red)       0px,
+          var(--p5-red)       3px,
+          transparent         3px,
+          transparent         7px
+        ) !important;
+        opacity: 0.35 !important;
+        transition: opacity 0.15s ease !important;
+      }
+      #inputResizer:hover,
+      #inputResizer.dragging {
+        opacity: 0.85 !important;
+        background: repeating-linear-gradient(
+          90deg,
+          var(--p5-red)    0px,
+          var(--p5-red)    4px,
+          var(--p5-yellow) 4px,
+          var(--p5-yellow) 8px,
+          transparent      8px,
+          transparent      12px
+        ) !important;
+      }
     }
 
   </style>
@@ -3953,7 +4257,7 @@
     btn.innerHTML = _sendIcon;
     btn.title = '送信';
     btn.onclick = sendMessage;
-    btn.classList.remove('cancel-mode');
+    btn.classList.remove('cancel-mode', 'sending');
     btn.disabled = false;
   }
 
@@ -3963,7 +4267,7 @@
     btn.innerHTML = _cancelIcon;
     btn.title = '中止';
     btn.onclick = cancelMessage;
-    btn.classList.add('cancel-mode');
+    btn.classList.add('cancel-mode', 'sending');
     btn.disabled = false;
   }
 
