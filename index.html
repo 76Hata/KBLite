@@ -3078,6 +3078,84 @@
         font-weight: 700 !important;
         font-family: var(--p5-font-disp) !important;
       }
+
+      /* =====================================================
+         P5 PHASE 5 — 検索結果 / 添付チップ / バッジ残余
+         ===================================================== */
+
+      /* ---- Sidebar search results: P5 dark ---- */
+      .search-result-item {
+        border-bottom: 1px solid rgba(215,0,15,0.15) !important;
+        transition: background 0.15s ease !important;
+      }
+      .search-result-item:hover {
+        background: rgba(215,0,15,0.12) !important;
+        border-left: 2px solid var(--p5-red) !important;
+        padding-left: 14px !important;
+      }
+      .search-result-question {
+        color: var(--p5-white) !important;
+        font-family: var(--p5-font-ui) !important;
+        font-weight: 600 !important;
+      }
+      .search-result-answer {
+        color: rgba(240,235,220,0.6) !important;
+      }
+      .search-result-meta {
+        color: var(--p5-yellow) !important;
+        font-family: var(--p5-font-disp) !important;
+        font-size: 9px !important;
+        letter-spacing: 0.05em !important;
+      }
+      .search-no-result {
+        color: rgba(240,235,220,0.4) !important;
+        font-style: italic !important;
+      }
+
+      /* ---- Attach chips: P5 dark/red ---- */
+      .attach-chip {
+        background: rgba(215,0,15,0.08) !important;
+        border: 1px solid rgba(215,0,15,0.4) !important;
+        border-radius: 0 !important;
+        color: var(--p5-white) !important;
+        clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 0 100%) !important;
+      }
+      .attach-chip-remove {
+        color: rgba(215,0,15,0.6) !important;
+      }
+      .attach-chip-remove:hover {
+        color: var(--p5-red) !important;
+      }
+
+      /* ---- Session fork badge: P5 yellow ---- */
+      .session-fork-badge {
+        background: rgba(253,209,0,0.15) !important;
+        color: var(--p5-yellow) !important;
+        border-radius: 0 !important;
+        font-family: var(--p5-font-disp) !important;
+        font-size: 9px !important;
+        letter-spacing: 0.05em !important;
+        border: 1px solid rgba(253,209,0,0.3) !important;
+      }
+
+      /* ---- Task source badge: P5 overrides ---- */
+      .task-source-badge.todowrite {
+        background: rgba(215,0,15,0.08) !important;
+        color: var(--p5-red) !important;
+        border-color: rgba(215,0,15,0.3) !important;
+        border-radius: 0 !important;
+      }
+      .task-source-badge.mcp {
+        background: rgba(253,209,0,0.08) !important;
+        color: var(--p5-yellow) !important;
+        border-color: rgba(253,209,0,0.3) !important;
+        border-radius: 0 !important;
+      }
+      .task-source-badge.manual {
+        background: rgba(240,235,220,0.05) !important;
+        color: rgba(240,235,220,0.5) !important;
+        border-radius: 0 !important;
+      }
     }
 
   </style>
