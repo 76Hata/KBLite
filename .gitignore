@@ -1,3 +1,10 @@
+# Secrets
+.env
+.env.*
+*.credentials.json
+secrets.json
+config.local.json
+
 # Data
 data/*.db
 data/*.db-journal
