@@ -173,7 +173,7 @@ class TaskMixin(StoreMixinBase):
         if source:
             sql += " AND source = ?"
             params.append(source)
-        sql += " ORDER BY CASE status WHEN 'in_progress' THEN 0 WHEN 'todo' THEN 1 WHEN 'done' THEN 2 ELSE 3 END, updated_at DESC"
+        sql += " ORDER BY CASE status WHEN 'in_progress' THEN 0 WHEN 'todo' THEN 1 WHEN 'done' THEN 2 ELSE 3 END, created_at ASC"
         rows = self._conn.execute(sql, params).fetchall()
         result = []
         for row in rows:
