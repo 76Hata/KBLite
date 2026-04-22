@@ -3158,39 +3158,41 @@
     }
 
   /* =====================================================
-     テーマトグルボタン
+     スキン選択ドロップダウン
      ===================================================== */
-  #themeToggleBtn {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    padding: 0 8px;
+  #skinSelect {
+    appearance: none;
+    -webkit-appearance: none;
     height: 36px;
-    border: 1px solid rgba(255,255,255,0.2);
+    padding: 0 24px 0 10px;
     border-radius: 6px;
-    background: transparent;
-    color: rgba(255,255,255,0.7);
-    cursor: pointer;
-    font-size: 10px;
+    border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.08) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='rgba(255,255,255,0.6)'/%3E%3C/svg%3E") no-repeat right 8px center;
+    color: rgba(255,255,255,0.85);
+    font-size: 0.82rem;
     font-weight: 700;
     letter-spacing: 0.5px;
-    transition: all 0.2s;
+    cursor: pointer;
     flex-shrink: 0;
+    transition: all 0.2s;
+    outline: none;
   }
-  #themeToggleBtn svg { width: 16px; height: 16px; }
-  #themeToggleBtn:hover {
-    background: rgba(255,255,255,0.1);
-    color: #fff;
+  #skinSelect:hover {
+    background-color: rgba(255,255,255,0.15);
     border-color: rgba(255,255,255,0.4);
   }
-  /* P5テーマON時のボタン外観 */
-  html[data-theme="p5"] #themeToggleBtn {
+  #skinSelect option {
+    background: #2a2a2a;
+    color: #fff;
+  }
+  /* P5テーマON時のselect外観 */
+  html[data-theme="p5"] #skinSelect {
     border-color: var(--p5-red, #e50000);
     color: var(--p5-yellow, #ffd700);
-    background: rgba(229,0,0,0.15);
+    background-color: rgba(229,0,0,0.15);
   }
-  html[data-theme="p5"] #themeToggleBtn:hover {
-    background: rgba(229,0,0,0.3);
+  html[data-theme="p5"] #skinSelect:hover {
+    background-color: rgba(229,0,0,0.3);
     box-shadow: 0 0 8px rgba(229,0,0,0.4);
   }
 
@@ -3285,14 +3287,10 @@
   <button id="restartServerBtn" onclick="restartServer()" title="サーバーを再起動して最新コードを適用します">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></svg>
   </button>
-  <button id="themeToggleBtn" onclick="toggleTheme()" title="Persona5テーマ 切り替え" aria-label="テーマ切り替え">
-    <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M12 2C8.13 2 5 5.13 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.87-3.13-7-7-7z"/>
-      <path d="M9 21h6"/>
-      <path d="M10 17v4"/><path d="M14 17v4"/>
-    </svg>
-    <span id="themeLabel">P5</span>
-  </button>
+  <select id="skinSelect" onchange="onSkinChange(this.value)" title="スキン選択" aria-label="スキン選択">
+    <option value="default">デフォルト</option>
+    <option value="p5">P5</option>
+  </select>
   </header>
 
   <div id="readonlyBanner">
@@ -3472,7 +3470,19 @@
       <h2 style="margin:0;font-size:15px;font-weight:600;color:#eee;">Claude Code 認証設定</h2>
       <button onclick="closeAuthModal()" style="margin-left:auto;background:none;border:none;color:#aaa;font-size:20px;cursor:pointer;line-height:1;padding:0;">&times;</button>
     </div>
-    <div style="padding:18px;">
+    <!-- タブ切り替え -->
+    <div style="display:flex;border-bottom:1px solid rgba(255,255,255,0.08);">
+      <button id="authTabApiKey" onclick="switchAuthTab('apikey')"
+        style="flex:1;padding:10px;background:#2c2c3e;color:#f1c40f;border:none;border-bottom:2px solid #f1c40f;font-size:13px;cursor:pointer;font-weight:600;">
+        APIキー
+      </button>
+      <button id="authTabLogin" onclick="switchAuthTab('login')"
+        style="flex:1;padding:10px;background:transparent;color:#888;border:none;border-bottom:2px solid transparent;font-size:13px;cursor:pointer;">
+        claude login
+      </button>
+    </div>
+    <!-- APIキー タブ -->
+    <div id="authPanelApiKey" style="padding:18px;">
       <div id="authStatus" style="font-size:13px;margin-bottom:14px;padding:8px 10px;border-radius:6px;"></div>
       <label style="display:block;font-size:13px;color:#ccc;margin-bottom:6px;">Anthropic APIキー</label>
       <input id="authApiKeyInput" type="password"
@@ -3486,6 +3496,31 @@
       <div style="display:flex;gap:8px;margin-top:16px;">
         <button onclick="saveAuthKey()" style="flex:1;padding:9px;background:#2ecc71;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;">保存</button>
         <button id="authClearBtn" onclick="clearAuthKey()" style="padding:9px 14px;background:#444;color:#ccc;border:none;border-radius:6px;font-size:13px;cursor:pointer;">削除</button>
+        <button onclick="closeAuthModal()" style="padding:9px 14px;background:#333;color:#aaa;border:none;border-radius:6px;font-size:13px;cursor:pointer;">閉じる</button>
+      </div>
+    </div>
+    <!-- claude login タブ -->
+    <div id="authPanelLogin" style="padding:18px;display:none;">
+      <div style="font-size:13px;color:#ccc;margin-bottom:14px;line-height:1.6;">
+        Anthropic アカウントでログインします。<br>
+        ボタンを押すと認証URLが表示されるので、ブラウザで開いて認証を完了してください。
+      </div>
+      <div id="loginStatus" style="font-size:13px;margin-bottom:12px;padding:8px 10px;border-radius:6px;display:none;"></div>
+      <div id="loginUrlBox" style="display:none;margin-bottom:14px;background:#2a2a3e;border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:10px;">
+        <div style="font-size:11px;color:#888;margin-bottom:6px;">以下のURLをブラウザで開いて認証してください:</div>
+        <a id="loginUrl" href="#" target="_blank" rel="noopener"
+          style="font-size:12px;color:#3498db;word-break:break-all;text-decoration:underline;cursor:pointer;"></a>
+        <button onclick="copyLoginUrl()" style="display:block;margin-top:8px;padding:4px 10px;background:#444;color:#ccc;border:none;border-radius:4px;font-size:11px;cursor:pointer;">URLをコピー</button>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button id="loginStartBtn" onclick="startClaudeLogin()"
+          style="flex:1;padding:9px;background:#3498db;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;min-width:120px;">
+          ログイン開始
+        </button>
+        <button id="loginCancelBtn" onclick="cancelClaudeLogin()"
+          style="padding:9px 14px;background:#444;color:#ccc;border:none;border-radius:6px;font-size:13px;cursor:pointer;display:none;">
+          キャンセル
+        </button>
         <button onclick="closeAuthModal()" style="padding:9px 14px;background:#333;color:#aaa;border:none;border-radius:6px;font-size:13px;cursor:pointer;">閉じる</button>
       </div>
     </div>
@@ -3597,30 +3632,15 @@
   // テーマ管理（Persona5 / デフォルト切り替え）
   // =====================================================
   (function initTheme() {
-    const saved = localStorage.getItem('kblite-theme') || 'p5';
+    const saved = localStorage.getItem('kblite-theme') || 'default';
     document.documentElement.setAttribute('data-theme', saved);
-    updateThemeBtn(saved);
+    const sel = document.getElementById('skinSelect');
+    if (sel) sel.value = saved;
   })();
 
-  function updateThemeBtn(theme) {
-    const label = document.getElementById('themeLabel');
-    const btn   = document.getElementById('themeToggleBtn');
-    if (!label || !btn) return;
-    if (theme === 'p5') {
-      label.textContent = 'P5';
-      btn.title = 'Persona5テーマ ON（クリックでOFF）';
-    } else {
-      label.textContent = 'OFF';
-      btn.title = 'Persona5テーマ OFF（クリックでON）';
-    }
-  }
-
-  function toggleTheme() {
-    const current = document.documentElement.getAttribute('data-theme') || 'p5';
-    const next = current === 'p5' ? 'default' : 'p5';
-    document.documentElement.setAttribute('data-theme', next);
-    localStorage.setItem('kblite-theme', next);
-    updateThemeBtn(next);
+  function onSkinChange(value) {
+    document.documentElement.setAttribute('data-theme', value);
+    localStorage.setItem('kblite-theme', value);
   }
 
   // Mermaid.js の初期化（自動起動は無効化、エラー表示を抑制）
@@ -4690,6 +4710,168 @@
       btn.title = 'Claude Code 認証設定（未認証）';
       btn.querySelector('svg').setAttribute('stroke', '#e74c3c');
     }
+  }
+
+  // ── 認証モーダル タブ切り替え ──────────────────────────
+  function switchAuthTab(tab) {
+    const apiKeyPanel = document.getElementById('authPanelApiKey');
+    const loginPanel  = document.getElementById('authPanelLogin');
+    const tabApiKey   = document.getElementById('authTabApiKey');
+    const tabLogin    = document.getElementById('authTabLogin');
+    if (tab === 'apikey') {
+      apiKeyPanel.style.display = '';
+      loginPanel.style.display  = 'none';
+      tabApiKey.style.color        = '#f1c40f';
+      tabApiKey.style.borderBottom = '2px solid #f1c40f';
+      tabApiKey.style.background   = '#2c2c3e';
+      tabLogin.style.color         = '#888';
+      tabLogin.style.borderBottom  = '2px solid transparent';
+      tabLogin.style.background    = 'transparent';
+    } else {
+      apiKeyPanel.style.display = 'none';
+      loginPanel.style.display  = '';
+      tabLogin.style.color        = '#f1c40f';
+      tabLogin.style.borderBottom = '2px solid #f1c40f';
+      tabLogin.style.background   = '#2c2c3e';
+      tabApiKey.style.color        = '#888';
+      tabApiKey.style.borderBottom = '2px solid transparent';
+      tabApiKey.style.background   = 'transparent';
+      // ログイン状態を確認して表示
+      _loadClaudeAuthInfo();
+    }
+  }
+
+  async function _loadClaudeAuthInfo() {
+    try {
+      const res  = await fetch('/api/auth/claude-auth-info');
+      const data = await res.json();
+      if (data.loggedIn) {
+        _setLoginStatus(
+          'ログイン済み: ' + (data.email || '') + (data.subscriptionType ? ' [' + data.subscriptionType + ']' : ''),
+          'ok'
+        );
+        document.getElementById('loginStartBtn').textContent = '再ログイン';
+        _updateAuthBtnStyle(true);
+      } else {
+        _setLoginStatus('未ログインです。ログインボタンを押して認証してください。', 'info');
+        document.getElementById('loginStartBtn').textContent = 'ログイン開始';
+      }
+    } catch (_) {}
+  }
+
+  // ── claude login OAuth フロー ──────────────────────────
+  let _loginPollTimer = null;
+
+  function _setLoginStatus(msg, color) {
+    const el = document.getElementById('loginStatus');
+    el.style.display  = msg ? '' : 'none';
+    el.textContent    = msg;
+    el.style.background = color === 'ok'  ? 'rgba(46,204,113,0.12)'
+                        : color === 'err' ? 'rgba(231,76,60,0.12)'
+                        : 'rgba(255,255,255,0.05)';
+    el.style.color    = color === 'ok'  ? '#2ecc71'
+                      : color === 'err' ? '#e74c3c'
+                      : '#aaa';
+  }
+
+  async function startClaudeLogin() {
+    const startBtn  = document.getElementById('loginStartBtn');
+    const cancelBtn = document.getElementById('loginCancelBtn');
+    const urlBox    = document.getElementById('loginUrlBox');
+    const urlEl     = document.getElementById('loginUrl');
+
+    startBtn.disabled    = true;
+    startBtn.textContent = '接続中...';
+    cancelBtn.style.display = '';
+    urlBox.style.display    = 'none';
+    _setLoginStatus('claude login を起動しています...', 'info');
+
+    try {
+      const res  = await fetch('/api/auth/claude-login/start', { method: 'POST' });
+      const data = await res.json();
+
+      if (!res.ok) {
+        _setLoginStatus('エラー: ' + (data.detail || data.error), 'err');
+        startBtn.disabled    = false;
+        startBtn.textContent = 'ログイン開始';
+        cancelBtn.style.display = 'none';
+        return;
+      }
+
+      if (data.url) {
+        urlEl.href        = data.url;
+        urlEl.textContent = data.url;
+        urlBox.style.display = '';
+        _setLoginStatus('URLをブラウザで開いて認証を完了してください。', 'info');
+      } else {
+        _setLoginStatus('URL取得中... しばらくお待ちください。', 'info');
+      }
+
+      startBtn.textContent = '認証待機中';
+      _startLoginPoll();
+    } catch (e) {
+      _setLoginStatus('通信エラー: ' + e.message, 'err');
+      startBtn.disabled    = false;
+      startBtn.textContent = 'ログイン開始';
+      cancelBtn.style.display = 'none';
+    }
+  }
+
+  function _startLoginPoll() {
+    if (_loginPollTimer) clearInterval(_loginPollTimer);
+    _loginPollTimer = setInterval(async () => {
+      try {
+        const res  = await fetch('/api/auth/claude-login/status');
+        const data = await res.json();
+        const urlEl  = document.getElementById('loginUrl');
+        const urlBox = document.getElementById('loginUrlBox');
+
+        // URLが後から届いた場合に反映
+        if (data.url && !urlEl.href.startsWith('http')) {
+          urlEl.href        = data.url;
+          urlEl.textContent = data.url;
+          urlBox.style.display = '';
+          _setLoginStatus('URLをブラウザで開いて認証を完了してください。', 'info');
+        }
+
+        if (data.status === 'done') {
+          _stopLoginPoll();
+          _setLoginStatus('認証が完了しました！', 'ok');
+          document.getElementById('loginStartBtn').textContent = 'ログイン開始';
+          document.getElementById('loginStartBtn').disabled    = false;
+          document.getElementById('loginCancelBtn').style.display = 'none';
+          _updateAuthBtnStyle(true);
+          showToast('Claude アカウントで認証完了');
+        } else if (data.status === 'failed' || data.status === 'idle') {
+          _stopLoginPoll();
+          if (data.status === 'failed') _setLoginStatus('認証に失敗しました。再試行してください。', 'err');
+          document.getElementById('loginStartBtn').textContent = 'ログイン開始';
+          document.getElementById('loginStartBtn').disabled    = false;
+          document.getElementById('loginCancelBtn').style.display = 'none';
+        }
+      } catch (_) {}
+    }, 2000);
+  }
+
+  function _stopLoginPoll() {
+    if (_loginPollTimer) { clearInterval(_loginPollTimer); _loginPollTimer = null; }
+  }
+
+  async function cancelClaudeLogin() {
+    _stopLoginPoll();
+    await fetch('/api/auth/claude-login/cancel', { method: 'DELETE' }).catch(() => {});
+    const startBtn  = document.getElementById('loginStartBtn');
+    const cancelBtn = document.getElementById('loginCancelBtn');
+    startBtn.disabled    = false;
+    startBtn.textContent = 'ログイン開始';
+    cancelBtn.style.display = 'none';
+    document.getElementById('loginUrlBox').style.display = 'none';
+    _setLoginStatus('キャンセルしました。', 'info');
+  }
+
+  function copyLoginUrl() {
+    const url = document.getElementById('loginUrl').href;
+    navigator.clipboard.writeText(url).then(() => showToast('URLをコピーしました')).catch(() => {});
   }
 
   // ページ読み込み時に認証状態をチェックしてボタンに反映
