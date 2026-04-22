@@ -491,6 +491,10 @@ def _handle(msg: dict):
 
 
 def main():
+    import io
+
+    sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding="utf-8")
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", line_buffering=True)
     for line in sys.stdin:
         line = line.strip()
         if not line:
