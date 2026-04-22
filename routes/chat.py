@@ -818,6 +818,21 @@ async def _run_claude_task(
                         logger.warning("API overloaded in stream (task=%s)", task_id)
                         break
 
+                    # not logged in チェック（JSON パース前）
+                    _line_lower = line.lower()
+                    if "not logged in" in _line_lower or "please run /login" in _line_lower:
+                        state.status = "error"
+                        state.error = "認証エラー"
+                        _persist_task_result(task_id, "error", "", state.error)
+                        await state.queue.put(
+                            {
+                                "type": "auth_error",
+                                "message": "ログインが必要です。認証設定を確認してください。",
+                            }
+                        )
+                        await state.queue.put(None)
+                        return
+
                     ui_evt = _parse_stream_event(line, state)
                     if ui_evt is None:
                         continue
@@ -864,8 +879,14 @@ async def _run_claude_task(
                 return
 
             # stderr からの認証エラー検出
-            _AUTH_MARKERS = ("authentication_error", "Invalid authentication credentials", "401")
-            if state.status != "error" and any(m in stderr_text for m in _AUTH_MARKERS):
+            _AUTH_MARKERS = (
+                "authentication_error",
+                "invalid authentication credentials",
+                "401",
+                "not logged in",
+                "please run /login",
+            )
+            if state.status != "error" and any(m in stderr_text.lower() for m in _AUTH_MARKERS):
                 state.status = "error"
                 state.error = "認証エラー"
                 _persist_task_result(task_id, "error", "", state.error)

@@ -19,7 +19,7 @@ _claude_login: dict = {
 }
 
 from starlette.requests import Request
-from starlette.responses import HTMLResponse, JSONResponse
+from starlette.responses import HTMLResponse, JSONResponse, StreamingResponse
 
 from deps import (
     _INDEX_HTML_PATH,
@@ -408,3 +408,18 @@ async def get_claude_auth_info(request: Request) -> JSONResponse:
             return JSONResponse({"raw": text})
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
+
+
+# ── テスト用：auth_error SSEイベントを発火するエンドポイント ──
+async def test_auth_error(request: Request) -> StreamingResponse:
+    """動作確認用: auth_error SSEイベントをブラウザに送信する"""
+
+    async def _gen():
+        payload = json.dumps({"type": "auth_error", "message": "テスト: 認証エラーが発生しました"})
+        yield f"data: {payload}\n\n"
+
+    return StreamingResponse(
+        _gen(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )

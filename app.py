@@ -60,6 +60,7 @@ from routes.system import (
     restart_server,
     set_auth_key,
     start_claude_login,
+    test_auth_error,
 )
 from routes.task import (
     add_task_note,
@@ -83,6 +84,7 @@ _routes = [
     Route("/api/auth/claude-login/cancel", cancel_claude_login, methods=["DELETE"]),
     Route("/api/auth/claude-auth-info", get_claude_auth_info, methods=["GET"]),
     Route("/api/debug-env", debug_env, methods=["GET"]),
+    Route("/api/test/auth-error", test_auth_error, methods=["GET"]),
     Route("/api/restart", restart_server, methods=["POST"]),
     Route("/api/open_file", open_file, methods=["POST"]),
     Route("/api/team-chat", team_chat, methods=["POST"]),
