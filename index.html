@@ -3271,6 +3271,12 @@
     </svg>
     <span id="taskBadge" class="task-badge" style="display:none">0</span>
   </button>
+  <button id="authBtn" onclick="openAuthModal()" title="Claude Code 認証設定" aria-label="認証設定">
+    <svg id="authBtnIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+    </svg>
+  </button>
   <button id="permMgrBtn" onclick="openPermManager()" title="Claude Code 権限管理" aria-label="権限管理">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
@@ -3454,6 +3460,37 @@
     </div>
   </div>
 </aside>
+
+<!-- 認証設定モーダル -->
+<div id="authModalOverlay" onclick="closeAuthModal(event)" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;">
+  <div id="authModal" onclick="event.stopPropagation()" style="background:#1e1e2e;border-radius:10px;padding:0;min-width:340px;max-width:480px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.5);overflow:hidden;">
+    <div style="background:#2c2c3e;padding:14px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,0.08);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#f1c40f" stroke-width="2" width="18" height="18">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+      <h2 style="margin:0;font-size:15px;font-weight:600;color:#eee;">Claude Code 認証設定</h2>
+      <button onclick="closeAuthModal()" style="margin-left:auto;background:none;border:none;color:#aaa;font-size:20px;cursor:pointer;line-height:1;padding:0;">&times;</button>
+    </div>
+    <div style="padding:18px;">
+      <div id="authStatus" style="font-size:13px;margin-bottom:14px;padding:8px 10px;border-radius:6px;"></div>
+      <label style="display:block;font-size:13px;color:#ccc;margin-bottom:6px;">Anthropic APIキー</label>
+      <input id="authApiKeyInput" type="password"
+        placeholder="sk-ant-..."
+        style="width:100%;box-sizing:border-box;padding:9px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.15);background:#2a2a3e;color:#eee;font-size:14px;font-family:monospace;outline:none;"
+        onkeydown="if(event.key==='Enter')saveAuthKey()">
+      <div style="font-size:11px;color:#888;margin-top:6px;">
+        Anthropic Console でAPIキーを取得してください。キーは <code style="background:#333;padding:1px 4px;border-radius:3px;">sk-ant-</code> で始まります。
+      </div>
+      <div id="authError" style="color:#e74c3c;font-size:12px;margin-top:8px;display:none;"></div>
+      <div style="display:flex;gap:8px;margin-top:16px;">
+        <button onclick="saveAuthKey()" style="flex:1;padding:9px;background:#2ecc71;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;">保存</button>
+        <button id="authClearBtn" onclick="clearAuthKey()" style="padding:9px 14px;background:#444;color:#ccc;border:none;border-radius:6px;font-size:13px;cursor:pointer;">削除</button>
+        <button onclick="closeAuthModal()" style="padding:9px 14px;background:#333;color:#aaa;border:none;border-radius:6px;font-size:13px;cursor:pointer;">閉じる</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
   // ── 設定のAPI読み込みとセレクトボックス動的構築 ────
@@ -4546,6 +4583,12 @@
             if (onFirstChunk) { onFirstChunk(); onFirstChunk = null; }
             aiDiv.classList.remove('typing');
             aiContent.innerHTML = '<p style="color:#c0392b">' + esc(evt.message) + '</p>';
+          } else if (evt.type === 'auth_error') {
+            _activeTaskId = null;
+            if (onFirstChunk) { onFirstChunk(); onFirstChunk = null; }
+            aiDiv.classList.remove('typing');
+            aiContent.innerHTML = '<p style="color:#c0392b">認証エラー: APIキーが無効か未設定です。<button onclick="openAuthModal()" style="margin-left:8px;padding:3px 10px;background:#f1c40f;color:#111;border:none;border-radius:4px;cursor:pointer;font-size:12px;">認証設定を開く</button></p>';
+            openAuthModal();
           }
         } catch (_) {}
       }
@@ -4553,6 +4596,113 @@
     _activeTaskId = null;
     return fullText;
   }
+
+  // ── 認証モーダル ──────────────────────────────────────
+  async function openAuthModal() {
+    const overlay = document.getElementById('authModalOverlay');
+    overlay.style.display = 'flex';
+    const statusEl = document.getElementById('authStatus');
+    const clearBtn = document.getElementById('authClearBtn');
+    const input = document.getElementById('authApiKeyInput');
+    statusEl.textContent = '確認中...';
+    statusEl.style.background = 'rgba(255,255,255,0.05)';
+    statusEl.style.color = '#aaa';
+    try {
+      const res = await fetch('/api/auth/status');
+      const data = await res.json();
+      if (data.has_api_key) {
+        statusEl.textContent = '認証済み: ' + data.key_prefix;
+        statusEl.style.background = 'rgba(46,204,113,0.12)';
+        statusEl.style.color = '#2ecc71';
+        clearBtn.style.display = '';
+        input.value = '';
+        input.placeholder = '新しいキーを入力（空のままにすると変更しません）';
+      } else {
+        statusEl.textContent = '未認証: APIキーが設定されていません';
+        statusEl.style.background = 'rgba(231,76,60,0.12)';
+        statusEl.style.color = '#e74c3c';
+        clearBtn.style.display = 'none';
+        input.placeholder = 'sk-ant-...';
+      }
+    } catch (e) {
+      statusEl.textContent = '状態取得に失敗しました';
+      statusEl.style.color = '#e74c3c';
+    }
+    document.getElementById('authError').style.display = 'none';
+    setTimeout(() => input.focus(), 50);
+  }
+
+  function closeAuthModal(e) {
+    if (e && e.target !== document.getElementById('authModalOverlay')) return;
+    document.getElementById('authModalOverlay').style.display = 'none';
+  }
+
+  async function saveAuthKey() {
+    const input = document.getElementById('authApiKeyInput');
+    const errEl = document.getElementById('authError');
+    const key = input.value.trim();
+    if (!key) {
+      closeAuthModal();
+      return;
+    }
+    errEl.style.display = 'none';
+    try {
+      const res = await fetch('/api/auth/set-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ api_key: key }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        errEl.textContent = data.detail || data.error || '保存に失敗しました';
+        errEl.style.display = '';
+        return;
+      }
+      document.getElementById('authModalOverlay').style.display = 'none';
+      showToast('APIキーを保存しました (' + data.key_prefix + ')');
+      // ヘッダーボタンを認証済みスタイルに
+      _updateAuthBtnStyle(true);
+    } catch (e) {
+      errEl.textContent = 'エラー: ' + e.message;
+      errEl.style.display = '';
+    }
+  }
+
+  async function clearAuthKey() {
+    if (!confirm('APIキーを削除しますか？')) return;
+    try {
+      await fetch('/api/auth/clear', { method: 'DELETE' });
+      document.getElementById('authModalOverlay').style.display = 'none';
+      showToast('APIキーを削除しました');
+      _updateAuthBtnStyle(false);
+    } catch (e) {
+      alert('削除に失敗しました: ' + e.message);
+    }
+  }
+
+  function _updateAuthBtnStyle(authenticated) {
+    const btn = document.getElementById('authBtn');
+    if (!btn) return;
+    if (authenticated) {
+      btn.title = 'Claude Code 認証設定（認証済み）';
+      btn.querySelector('svg').setAttribute('stroke', '#2ecc71');
+    } else {
+      btn.title = 'Claude Code 認証設定（未認証）';
+      btn.querySelector('svg').setAttribute('stroke', '#e74c3c');
+    }
+  }
+
+  // ページ読み込み時に認証状態をチェックしてボタンに反映
+  (async function _checkAuthOnLoad() {
+    try {
+      const res = await fetch('/api/auth/status');
+      const data = await res.json();
+      _updateAuthBtnStyle(data.has_api_key);
+      if (!data.has_api_key) {
+        console.info('[auth] APIキー未設定 — 認証ボタンが赤色で表示されます');
+      }
+    } catch (_) {}
+  })();
 
   // ── 待機インジケーター ──────────────────────────────
   let _elapsedTimer = null;

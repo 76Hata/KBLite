@@ -648,8 +648,12 @@ def _parse_stream_event(line: str, state: _TaskState) -> dict | None:
 
     if evt_type == "error":
         err_info = evt.get("error", {})
-        if isinstance(err_info, dict) and err_info.get("type") == "overloaded_error":
-            return {"type": "_overloaded"}
+        if isinstance(err_info, dict):
+            err_type = err_info.get("type", "")
+            if err_type == "overloaded_error":
+                return {"type": "_overloaded"}
+            if err_type == "authentication_error":
+                return {"type": "_auth_error", "message": err_info.get("message", "認証エラー")}
         return None
 
     if evt_type == "assistant":
@@ -820,6 +824,20 @@ async def _run_claude_task(
                     if ui_evt.get("type") == "_overloaded":
                         _api_overloaded = True
                         break
+                    if ui_evt.get("type") == "_auth_error":
+                        state.status = "error"
+                        state.error = "認証エラー"
+                        _persist_task_result(task_id, "error", "", state.error)
+                        await state.queue.put(
+                            {
+                                "type": "auth_error",
+                                "message": ui_evt.get(
+                                    "message", "APIキーが無効です。認証設定を確認してください。"
+                                ),
+                            }
+                        )
+                        await state.queue.put(None)
+                        return
                     if ui_evt.get("type") == "_result":
                         break
                     await state.queue.put(ui_evt)
@@ -843,6 +861,21 @@ async def _run_claude_task(
                 logger.info("Claude CLI stderr (task=%s): %s", task_id, stderr_text[:500])
 
             if state.status == "cancelled":
+                return
+
+            # stderr からの認証エラー検出
+            _AUTH_MARKERS = ("authentication_error", "Invalid authentication credentials", "401")
+            if state.status != "error" and any(m in stderr_text for m in _AUTH_MARKERS):
+                state.status = "error"
+                state.error = "認証エラー"
+                _persist_task_result(task_id, "error", "", state.error)
+                await state.queue.put(
+                    {
+                        "type": "auth_error",
+                        "message": "APIキーが無効か未設定です。認証設定を確認してください。",
+                    }
+                )
+                await state.queue.put(None)
                 return
 
             # API overloaded → リトライ（指数バックオフ + モデルダウングレード）

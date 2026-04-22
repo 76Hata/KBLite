@@ -8,6 +8,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+_AUTH_CONFIG_PATH = Path(__file__).parent.parent / "data" / "auth.json"
+
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
 
@@ -191,6 +193,57 @@ async def open_file(request: Request) -> JSONResponse:
 
     print(f"[open_file] OK via={opened_via} path={target}", file=sys.stderr)
     return JSONResponse({"status": "ok", "path": str(target), "via": opened_via})
+
+
+async def get_auth_status(request: Request) -> JSONResponse:
+    """現在の認証状態を返す（APIキーが設定されているかどうか）"""
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
+    has_key = bool(api_key)
+    prefix = (api_key[:8] + "...") if has_key else ""
+    return JSONResponse({"has_api_key": has_key, "key_prefix": prefix})
+
+
+async def set_auth_key(request: Request) -> JSONResponse:
+    """APIキーを設定し、data/auth.json に永続化する"""
+    try:
+        data = await request.json()
+    except Exception:
+        return JSONResponse({"error": "invalid_json"}, status_code=400)
+
+    api_key = str(data.get("api_key", "")).strip()
+    if not api_key:
+        return JSONResponse({"error": "api_key_required"}, status_code=400)
+    if not api_key.startswith("sk-ant-"):
+        return JSONResponse(
+            {"error": "invalid_api_key_format", "detail": "Anthropic APIキーは sk-ant- で始まります"},
+            status_code=400,
+        )
+
+    # 環境変数に即時反映（現プロセス）
+    os.environ["ANTHROPIC_API_KEY"] = api_key
+
+    # data/auth.json に永続化
+    try:
+        _AUTH_CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
+        _AUTH_CONFIG_PATH.write_text(
+            json.dumps({"ANTHROPIC_API_KEY": api_key}, ensure_ascii=False),
+            encoding="utf-8",
+        )
+    except Exception as e:
+        return JSONResponse({"error": "save_failed", "detail": str(e)}, status_code=500)
+
+    return JSONResponse({"status": "ok", "key_prefix": api_key[:8] + "..."})
+
+
+async def clear_auth_key(request: Request) -> JSONResponse:
+    """APIキーを削除する"""
+    os.environ.pop("ANTHROPIC_API_KEY", None)
+    try:
+        if _AUTH_CONFIG_PATH.is_file():
+            _AUTH_CONFIG_PATH.unlink()
+    except Exception as e:
+        return JSONResponse({"error": "delete_failed", "detail": str(e)}, status_code=500)
+    return JSONResponse({"status": "ok"})
 
 
 async def debug_env(request: Request) -> JSONResponse:

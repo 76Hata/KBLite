@@ -46,13 +46,16 @@ from routes.session import (
     update_session_bookmark,
 )
 from routes.system import (
+    clear_auth_key,
     debug_env,
     get_app_config,
+    get_auth_status,
     get_rate_limits,
     health,
     index,
     open_file,
     restart_server,
+    set_auth_key,
 )
 from routes.task import (
     add_task_note,
@@ -68,6 +71,9 @@ _routes = [
     Route("/api/config", get_app_config, methods=["GET"]),
     Route("/health", health),
     Route("/api/rate-limits", get_rate_limits, methods=["GET"]),
+    Route("/api/auth/status", get_auth_status, methods=["GET"]),
+    Route("/api/auth/set-key", set_auth_key, methods=["POST"]),
+    Route("/api/auth/clear", clear_auth_key, methods=["DELETE"]),
     Route("/api/debug-env", debug_env, methods=["GET"]),
     Route("/api/restart", restart_server, methods=["POST"]),
     Route("/api/open_file", open_file, methods=["POST"]),
