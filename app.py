@@ -46,16 +46,20 @@ from routes.session import (
     update_session_bookmark,
 )
 from routes.system import (
+    cancel_claude_login,
     clear_auth_key,
     debug_env,
     get_app_config,
     get_auth_status,
+    get_claude_auth_info,
+    get_claude_login_status,
     get_rate_limits,
     health,
     index,
     open_file,
     restart_server,
     set_auth_key,
+    start_claude_login,
 )
 from routes.task import (
     add_task_note,
@@ -74,6 +78,10 @@ _routes = [
     Route("/api/auth/status", get_auth_status, methods=["GET"]),
     Route("/api/auth/set-key", set_auth_key, methods=["POST"]),
     Route("/api/auth/clear", clear_auth_key, methods=["DELETE"]),
+    Route("/api/auth/claude-login/start", start_claude_login, methods=["POST"]),
+    Route("/api/auth/claude-login/status", get_claude_login_status, methods=["GET"]),
+    Route("/api/auth/claude-login/cancel", cancel_claude_login, methods=["DELETE"]),
+    Route("/api/auth/claude-auth-info", get_claude_auth_info, methods=["GET"]),
     Route("/api/debug-env", debug_env, methods=["GET"]),
     Route("/api/restart", restart_server, methods=["POST"]),
     Route("/api/open_file", open_file, methods=["POST"]),

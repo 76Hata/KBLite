@@ -3,12 +3,20 @@
 import asyncio
 import json
 import os
+import re as _re
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 
 _AUTH_CONFIG_PATH = Path(__file__).parent.parent / "data" / "auth.json"
+
+# ── claude login OAuth フロー 状態管理 ─────────────────────────
+_claude_login: dict = {
+    "proc": None,  # asyncio.subprocess.Process | None
+    "url": None,  # str | None — 認証URL
+    "status": "idle",  # "idle" | "starting" | "pending" | "done" | "failed"
+}
 
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
@@ -260,3 +268,143 @@ async def debug_env(request: Request) -> JSONResponse:
             "sqlite_ok": store.sqlite_healthcheck(),
         }
     )
+
+
+# ── claude login OAuth フロー ──────────────────────────────────
+
+
+async def _collect_login_output(proc: asyncio.subprocess.Process) -> None:
+    """バックグラウンドで stdout/stderr を読み込み、認証URLと完了状態を更新する"""
+    try:
+
+        async def read_stream(stream: asyncio.StreamReader | None) -> None:
+            if stream is None:
+                return
+            async for raw in stream:
+                line = raw.decode(errors="replace").strip()
+                if not _claude_login["url"]:
+                    m = _re.search(r"https://[^\s<>\"']+", line)
+                    if m:
+                        _claude_login["url"] = m.group(0)
+                        _claude_login["status"] = "pending"
+
+        await asyncio.gather(
+            read_stream(proc.stdout),
+            read_stream(proc.stderr),
+            return_exceptions=True,
+        )
+        ret = await proc.wait()
+        _claude_login["status"] = "done" if ret == 0 else "failed"
+    except Exception:
+        _claude_login["status"] = "failed"
+
+
+async def start_claude_login(request: Request) -> JSONResponse:
+    """claude login を起動して認証URLを取得する（OAuth フロー開始）"""
+    # 既存プロセスを終了
+    old_proc = _claude_login.get("proc")
+    if old_proc is not None and old_proc.returncode is None:
+        try:
+            old_proc.terminate()
+        except Exception:
+            pass
+
+    _claude_login["proc"] = None
+    _claude_login["url"] = None
+    _claude_login["status"] = "starting"
+
+    claude_path = shutil.which("claude")
+    if not claude_path:
+        _claude_login["status"] = "failed"
+        return JSONResponse(
+            {"error": "claude_not_found", "detail": "Claude CLI が PATH に見つかりません"},
+            status_code=500,
+        )
+
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            claude_path,
+            "auth",
+            "login",
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            env=os.environ.copy(),
+        )
+        _claude_login["proc"] = proc
+
+        # バックグラウンドでURL収集タスクを起動
+        asyncio.get_event_loop().create_task(_collect_login_output(proc))
+
+        # URL が届くまで最大10秒待つ
+        for _ in range(20):
+            await asyncio.sleep(0.5)
+            if _claude_login["url"] or _claude_login["status"] == "failed":
+                break
+
+        if _claude_login["url"]:
+            return JSONResponse({"status": "pending", "url": _claude_login["url"]})
+        elif _claude_login["status"] == "failed":
+            return JSONResponse(
+                {"error": "login_failed", "detail": "claude login の起動に失敗しました"},
+                status_code=500,
+            )
+        else:
+            # タイムアウト: URLはまだ取得できていないが処理は継続
+            return JSONResponse({"status": "starting", "url": None})
+
+    except Exception as e:
+        _claude_login["status"] = "failed"
+        return JSONResponse({"error": "start_failed", "detail": str(e)}, status_code=500)
+
+
+async def get_claude_login_status(request: Request) -> JSONResponse:
+    """claude login の進捗状態とURLを返す"""
+    status = _claude_login["status"]
+    url = _claude_login["url"]
+    proc = _claude_login.get("proc")
+
+    # プロセス終了チェック（バックグラウンドタスクが間に合っていない場合の補完）
+    if proc is not None and proc.returncode is not None and status == "pending":
+        _claude_login["status"] = "done" if proc.returncode == 0 else "failed"
+        status = _claude_login["status"]
+
+    return JSONResponse({"status": status, "url": url})
+
+
+async def cancel_claude_login(request: Request) -> JSONResponse:
+    """実行中の claude login をキャンセルする"""
+    proc = _claude_login.get("proc")
+    if proc is not None and proc.returncode is None:
+        try:
+            proc.terminate()
+        except Exception:
+            pass
+    _claude_login["proc"] = None
+    _claude_login["url"] = None
+    _claude_login["status"] = "idle"
+    return JSONResponse({"status": "cancelled"})
+
+
+async def get_claude_auth_info(request: Request) -> JSONResponse:
+    """claude auth status を実行してログイン状態を返す"""
+    claude_path = shutil.which("claude")
+    if not claude_path:
+        return JSONResponse({"error": "claude_not_found"}, status_code=500)
+    try:
+        result = await asyncio.create_subprocess_exec(
+            claude_path,
+            "auth",
+            "status",
+            "--json",
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            env=os.environ.copy(),
+        )
+        stdout, stderr = await asyncio.wait_for(result.communicate(), timeout=10.0)
+        text = stdout.decode(errors="replace").strip() or stderr.decode(errors="replace").strip()
+        try:
+            return JSONResponse(json.loads(text))
+        except Exception:
+            return JSONResponse({"raw": text})
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
