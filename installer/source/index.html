@@ -383,6 +383,161 @@
     }
     .project-manage-row button:hover { background: rgba(255,255,255,0.15); color: #ccc; }
 
+    /* ── ワークスペース管理セクション ── */
+    .workspace-section {
+      padding: 6px 10px 4px;
+      border-top: 1px solid rgba(255,255,255,0.07);
+    }
+    .workspace-section-title {
+      font-size: 10px;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 4px;
+    }
+    .workspace-btn-row {
+      display: flex;
+      gap: 4px;
+    }
+    .workspace-btn-row button {
+      flex: 1;
+      font-size: 11px;
+      padding: 4px 6px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.05);
+      color: #aaa;
+      border-radius: 4px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .workspace-btn-row button:hover { background: rgba(255,255,255,0.12); color: #ddd; }
+
+    /* scaffold / analyze 共通モーダル */
+    #scaffoldModalOverlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 10100;
+      background: rgba(0,0,0,0.65);
+      align-items: center;
+      justify-content: center;
+    }
+    #scaffoldModalOverlay.open { display: flex; }
+    #scaffoldModal,
+    #analyzeModal {
+      background: #1e1e2e;
+      border-radius: 10px;
+      min-width: 340px;
+      max-width: 480px;
+      width: 92%;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.55);
+      overflow: hidden;
+    }
+    #scaffoldModal .sm-header,
+    #analyzeModal .sm-header {
+      background: #2c2c3e;
+      padding: 13px 16px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    #scaffoldModal .sm-header h2,
+    #analyzeModal .sm-header h2 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 600;
+      color: #eee;
+      flex: 1;
+    }
+    #scaffoldModal .sm-header button,
+    #analyzeModal .sm-header button {
+      background: none;
+      border: none;
+      color: #999;
+      font-size: 20px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0;
+    }
+    #scaffoldModal .sm-body,
+    #analyzeModal .sm-body {
+      padding: 18px;
+    }
+    #scaffoldModal label,
+    #analyzeModal label {
+      display: block;
+      font-size: 12px;
+      color: #aaa;
+      margin-bottom: 5px;
+    }
+    #scaffoldModal input[type="text"],
+    #scaffoldModal select,
+    #analyzeModal input[type="text"],
+    #analyzeModal select {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.13);
+      background: #2a2a3e;
+      color: #eee;
+      font-size: 13px;
+      outline: none;
+      margin-bottom: 12px;
+    }
+    #scaffoldModal .folder-row,
+    #analyzeModal .folder-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    #scaffoldModal .folder-row input,
+    #analyzeModal .folder-row input {
+      flex: 1;
+      margin-bottom: 0;
+    }
+    #scaffoldModal .folder-row button,
+    #analyzeModal .folder-row button {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.13);
+      background: rgba(255,255,255,0.07);
+      color: #ccc;
+      font-size: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    #scaffoldModal .folder-row button:hover,
+    #analyzeModal .folder-row button:hover { background: rgba(255,255,255,0.14); }
+    #scaffoldModal .sm-footer,
+    #analyzeModal .sm-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 0 18px 16px;
+    }
+    #scaffoldModal .sm-footer button,
+    #analyzeModal .sm-footer button {
+      padding: 8px 18px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      border: none;
+    }
+    #scaffoldModal .sm-cancel,
+    #analyzeModal .sm-cancel { background: rgba(255,255,255,0.08); color: #aaa; }
+    #scaffoldModal .sm-cancel:hover,
+    #analyzeModal .sm-cancel:hover { background: rgba(255,255,255,0.14); }
+    #scaffoldModal .sm-create,
+    #analyzeModal .sm-create { background: #3b82f6; color: #fff; font-weight: 600; }
+    #scaffoldModal .sm-create:hover,
+    #analyzeModal .sm-create:hover { background: #2563eb; }
+    #scaffoldModal .sm-create:disabled,
+    #analyzeModal .sm-create:disabled { background: #333; color: #666; cursor: not-allowed; }
+    #scaffoldModal .sm-error,
+    #analyzeModal .sm-error { font-size: 12px; color: #f87171; margin-bottom: 10px; display: none; }
+
     .session-empty {
       text-align: center;
       padding: 30px 16px;
@@ -1716,6 +1871,13 @@
       <button onclick="promptDeleteProject()">削除</button>
     </div>
   </div>
+  <div class="workspace-section">
+    <div class="workspace-section-title">ワークスペース</div>
+    <div class="workspace-btn-row">
+      <button onclick="openScaffoldModal()">+ 新規プロジェクト</button>
+      <button onclick="openAnalyzeModal()">既存を開く</button>
+    </div>
+  </div>
   <div class="sidebar-search">
     <div class="sidebar-search-wrap">
       <input type="text" id="ftsSearchInput" class="sidebar-search-input" placeholder="会話を検索...">
@@ -1727,6 +1889,99 @@
     <div class="session-loading" id="sessionLoading">読み込み中...</div>
   </div>
 </aside>
+
+<!-- 再起動確認モーダル (scaffold/analyze 完了後) -->
+<div id="restartConfirmOverlay" onclick="closeRestartModal(event)" style="display:none;position:fixed;inset:0;z-index:10200;background:rgba(0,0,0,0.65);align-items:center;justify-content:center;">
+  <div id="restartConfirmModal" onclick="event.stopPropagation()" style="background:#1e1e2e;border-radius:10px;min-width:300px;max-width:420px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.55);overflow:hidden;">
+    <div style="background:#2c2c3e;padding:13px 16px;display:flex;align-items:center;gap:9px;border-bottom:1px solid rgba(255,255,255,0.08);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" width="18" height="18">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+      <h2 style="margin:0;font-size:14px;font-weight:600;color:#eee;flex:1;">完了</h2>
+    </div>
+    <div style="padding:18px;">
+      <p id="restartConfirmMsg" style="font-size:13px;color:#ccc;margin:0 0 16px;line-height:1.6;white-space:pre-wrap;"></p>
+      <p style="font-size:12px;color:#888;margin:0;">設定を反映するにはサーバーの再起動が必要です。</p>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;padding:0 18px 16px;">
+      <button onclick="closeRestartModal()" style="padding:8px 16px;border-radius:6px;border:none;background:rgba(255,255,255,0.08);color:#aaa;font-size:13px;cursor:pointer;">後で</button>
+      <button onclick="doRestartNow()" style="padding:8px 18px;border-radius:6px;border:none;background:#22c55e;color:#fff;font-size:13px;font-weight:600;cursor:pointer;">今すぐ再起動</button>
+    </div>
+  </div>
+</div>
+
+<!-- 既存フォルダを開くモーダル (analyze + scaffold) -->
+<div id="analyzeModalOverlay" onclick="closeAnalyzeModal(event)" style="display:none;position:fixed;inset:0;z-index:10100;background:rgba(0,0,0,0.65);align-items:center;justify-content:center;">
+  <div id="analyzeModal" onclick="event.stopPropagation()" style="background:#1e1e2e;border-radius:10px;min-width:340px;max-width:480px;width:92%;box-shadow:0 8px 32px rgba(0,0,0,0.55);overflow:hidden;">
+    <div class="sm-header">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" width="18" height="18">
+        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+        <line x1="12" y1="11" x2="12" y2="17"/>
+        <line x1="9" y1="14" x2="15" y2="14"/>
+      </svg>
+      <h2>既存フォルダを開く</h2>
+      <button onclick="closeAnalyzeModal()" title="閉じる">&times;</button>
+    </div>
+    <div class="sm-body">
+      <label>フォルダ</label>
+      <div class="folder-row">
+        <input type="text" id="analyzeFolder" placeholder="フォルダを選択..." readonly />
+        <button onclick="pickFolderForAnalyze()">選択...</button>
+      </div>
+      <div id="analyzeResult" style="display:none;">
+        <label for="analyzeName">プロジェクト名</label>
+        <input type="text" id="analyzeName" placeholder="プロジェクト名" oninput="onAnalyzeInput()" />
+        <label for="analyzeLang">検出された言語 / フレームワーク</label>
+        <select id="analyzeLang" onchange="onAnalyzeInput()">
+          <option value="blank">なし（共通のみ）</option>
+          <option value="react">React + TypeScript</option>
+          <option value="php">PHP</option>
+          <option value="python">Python</option>
+        </select>
+        <p id="analyzeDetected" style="font-size:11px;color:#888;margin:-8px 0 12px;"></p>
+      </div>
+      <p class="sm-error" id="analyzeError"></p>
+    </div>
+    <div class="sm-footer">
+      <button class="sm-cancel" onclick="closeAnalyzeModal()">キャンセル</button>
+      <button class="sm-create" id="analyzeCreateBtn" onclick="doAnalyzeScaffold()" disabled>設定を生成</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新規プロジェクト作成モーダル (scaffold) -->
+<div id="scaffoldModalOverlay" onclick="closeScaffoldModal(event)">
+  <div id="scaffoldModal" onclick="event.stopPropagation()">
+    <div class="sm-header">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" width="18" height="18">
+        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+      </svg>
+      <h2>新規プロジェクト作成</h2>
+      <button onclick="closeScaffoldModal()" title="閉じる">&times;</button>
+    </div>
+    <div class="sm-body">
+      <label for="scaffoldName">プロジェクト名</label>
+      <input type="text" id="scaffoldName" placeholder="my-project" oninput="onScaffoldInput()" />
+      <label>フォルダ</label>
+      <div class="folder-row">
+        <input type="text" id="scaffoldFolder" placeholder="フォルダを選択..." readonly oninput="onScaffoldInput()" />
+        <button onclick="pickFolderForScaffold()">選択...</button>
+      </div>
+      <label for="scaffoldLang">言語 / フレームワーク</label>
+      <select id="scaffoldLang">
+        <option value="blank">なし（共通のみ）</option>
+        <option value="react">React + TypeScript</option>
+        <option value="php">PHP</option>
+        <option value="python">Python</option>
+      </select>
+      <p class="sm-error" id="scaffoldError"></p>
+    </div>
+    <div class="sm-footer">
+      <button class="sm-cancel" onclick="closeScaffoldModal()">キャンセル</button>
+      <button class="sm-create" id="scaffoldCreateBtn" onclick="doScaffold()" disabled>作成</button>
+    </div>
+  </div>
+</div>
 
 <!-- メインコンテンツ -->
 <div id="main">
@@ -3827,6 +4082,206 @@
   // ── 初期化 ─────────────────────────────────────────
   loadProjects();
   initSidebar();
+
+  // ── 再起動確認モーダル ────────────────────────────────────────
+  function openRestartModal(msg) {
+    document.getElementById('restartConfirmMsg').textContent = msg || '';
+    const el = document.getElementById('restartConfirmOverlay');
+    el.style.display = 'flex';
+  }
+
+  function closeRestartModal(e) {
+    if (e && e.target !== document.getElementById('restartConfirmOverlay')) return;
+    document.getElementById('restartConfirmOverlay').style.display = 'none';
+  }
+
+  async function doRestartNow() {
+    document.getElementById('restartConfirmOverlay').style.display = 'none';
+    try {
+      await fetch('/api/restart', { method: 'POST' });
+    } catch (_) { /* サーバーが落ちると fetch が失敗するが正常 */ }
+    showToast('再起動中... 5秒後に自動リロードします');
+    setTimeout(() => location.reload(), 5000);
+  }
+
+  // ── analyze (既存フォルダを開く) ─────────────────────────────
+  function openAnalyzeModal() {
+    document.getElementById('analyzeFolder').value = '';
+    document.getElementById('analyzeName').value = '';
+    document.getElementById('analyzeLang').value = 'blank';
+    document.getElementById('analyzeResult').style.display = 'none';
+    document.getElementById('analyzeError').style.display = 'none';
+    document.getElementById('analyzeCreateBtn').disabled = true;
+    const el = document.getElementById('analyzeModalOverlay');
+    el.style.display = 'flex';
+  }
+
+  function closeAnalyzeModal(e) {
+    if (e && e.target !== document.getElementById('analyzeModalOverlay')) return;
+    document.getElementById('analyzeModalOverlay').style.display = 'none';
+  }
+
+  function onAnalyzeInput() {
+    const name = document.getElementById('analyzeName').value.trim();
+    const folder = document.getElementById('analyzeFolder').value.trim();
+    document.getElementById('analyzeCreateBtn').disabled = !(name && folder);
+  }
+
+  async function pickFolderForAnalyze() {
+    const btn = document.querySelector('#analyzeModal .folder-row button');
+    const orig = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '選択中...';
+    const errEl = document.getElementById('analyzeError');
+    errEl.style.display = 'none';
+    try {
+      const res = await fetch('/api/system/pick-folder', { method: 'POST' });
+      const data = await res.json();
+      if (data.cancelled || !data.folder) {
+        btn.disabled = false;
+        btn.textContent = orig;
+        return;
+      }
+      const folder = data.folder;
+      document.getElementById('analyzeFolder').value = folder;
+      const folderName = folder.replace(/\\/g, '/').split('/').filter(Boolean).pop() || '';
+      document.getElementById('analyzeName').value = folderName;
+      btn.textContent = '解析中...';
+      const aRes = await fetch('/api/workspace-projects/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ root_folder: folder }),
+      });
+      const aData = await aRes.json();
+      if (aRes.ok && !aData.error) {
+        const langMap = { react: 'react', javascript: 'blank', php: 'php', python: 'python' };
+        const detected = langMap[aData.language] || 'blank';
+        document.getElementById('analyzeLang').value = detected;
+        const desc = aData.framework
+          ? aData.language + ' / ' + aData.framework
+          : (aData.language !== 'unknown' ? aData.language : '不明');
+        const detectedFiles = (aData.files || []).join(', ');
+        document.getElementById('analyzeDetected').textContent =
+          '検出: ' + desc + (detectedFiles ? '（' + detectedFiles + '）' : '');
+      }
+      document.getElementById('analyzeResult').style.display = 'block';
+      onAnalyzeInput();
+    } catch (e) {
+      errEl.textContent = 'フォルダ選択または解析に失敗しました';
+      errEl.style.display = 'block';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = orig;
+    }
+  }
+
+  async function doAnalyzeScaffold() {
+    const name = document.getElementById('analyzeName').value.trim();
+    const root_folder = document.getElementById('analyzeFolder').value.trim();
+    const language = document.getElementById('analyzeLang').value;
+    const errEl = document.getElementById('analyzeError');
+    const btn = document.getElementById('analyzeCreateBtn');
+    errEl.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = '生成中...';
+    try {
+      const res = await fetch('/api/workspace-projects/scaffold', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, root_folder, language }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        errEl.textContent = data.detail || data.error || '生成に失敗しました';
+        errEl.style.display = 'block';
+        return;
+      }
+      document.getElementById('analyzeModalOverlay').style.display = 'none';
+      openRestartModal('「' + name + '」の設定ファイルを生成しました。\napp-config.json に反映するためサーバーを再起動します。');
+    } catch (e) {
+      errEl.textContent = 'ネットワークエラーが発生しました';
+      errEl.style.display = 'block';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '設定を生成';
+      onAnalyzeInput();
+    }
+  }
+
+  // ── scaffold (新規プロジェクト作成) ──────────────────────────
+  function openScaffoldModal() {
+    document.getElementById('scaffoldName').value = '';
+    document.getElementById('scaffoldFolder').value = '';
+    document.getElementById('scaffoldLang').value = 'blank';
+    document.getElementById('scaffoldError').style.display = 'none';
+    document.getElementById('scaffoldCreateBtn').disabled = true;
+    document.getElementById('scaffoldModalOverlay').classList.add('open');
+    document.getElementById('scaffoldName').focus();
+  }
+
+  function closeScaffoldModal(e) {
+    if (e && e.target !== document.getElementById('scaffoldModalOverlay')) return;
+    document.getElementById('scaffoldModalOverlay').classList.remove('open');
+  }
+
+  function onScaffoldInput() {
+    const name = document.getElementById('scaffoldName').value.trim();
+    const folder = document.getElementById('scaffoldFolder').value.trim();
+    document.getElementById('scaffoldCreateBtn').disabled = !(name && folder);
+  }
+
+  async function pickFolderForScaffold() {
+    const btn = document.querySelector('#scaffoldModal .folder-row button');
+    const orig = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '選択中...';
+    try {
+      const res = await fetch('/api/system/pick-folder', { method: 'POST' });
+      const data = await res.json();
+      if (!data.cancelled && data.folder) {
+        document.getElementById('scaffoldFolder').value = data.folder;
+        onScaffoldInput();
+      }
+    } catch (e) {
+      showToast('フォルダ選択に失敗しました');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = orig;
+    }
+  }
+
+  async function doScaffold() {
+    const name = document.getElementById('scaffoldName').value.trim();
+    const root_folder = document.getElementById('scaffoldFolder').value.trim();
+    const language = document.getElementById('scaffoldLang').value;
+    const errEl = document.getElementById('scaffoldError');
+    const btn = document.getElementById('scaffoldCreateBtn');
+    errEl.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = '作成中...';
+    try {
+      const res = await fetch('/api/workspace-projects/scaffold', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, root_folder, language }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        errEl.textContent = data.detail || data.error || '作成に失敗しました';
+        errEl.style.display = 'block';
+        return;
+      }
+      document.getElementById('scaffoldModalOverlay').classList.remove('open');
+      openRestartModal('プロジェクト「' + name + '」を作成しました。\napp-config.json に反映するためサーバーを再起動します。');
+    } catch (e) {
+      errEl.textContent = 'ネットワークエラーが発生しました';
+      errEl.style.display = 'block';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '作成';
+      onScaffoldInput();
+    }
+  }
 
   // ── サーバー再起動 ──────────────────────────────────
   async function restartServer() {

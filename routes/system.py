@@ -423,3 +423,49 @@ async def test_auth_error(request: Request) -> StreamingResponse:
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
+
+
+# ── フォルダ選択ダイアログ（Windows専用） ──────────────────────────
+
+
+async def pick_folder(request: Request) -> JSONResponse:
+    """PowerShell FolderBrowserDialog でフォルダを選択して返す（Windows専用）"""
+    if sys.platform != "win32":
+        return JSONResponse({"error": "windows_only"}, status_code=400)
+
+    ps_script = (
+        "Add-Type -AssemblyName System.Windows.Forms; "
+        "$f = New-Object System.Windows.Forms.Form; "
+        "$f.TopMost = $true; "
+        "$f.StartPosition = 'CenterScreen'; "
+        "$f.Size = New-Object System.Drawing.Size(0,0); "
+        "$f.ShowInTaskbar = $false; "
+        "$f.Show(); "
+        "$f.Activate(); "
+        "$d = New-Object System.Windows.Forms.FolderBrowserDialog; "
+        "$d.Description = 'プロジェクトフォルダを選択してください'; "
+        "$d.ShowNewFolderButton = $true; "
+        "$result = $d.ShowDialog($f); "
+        "$f.Close(); "
+        "if ($result -eq [System.Windows.Forms.DialogResult]::OK) "
+        "{ [Console]::Out.WriteLine($d.SelectedPath) } else { [Console]::Out.WriteLine('') }"
+    )
+
+    def _run_dialog():
+        return subprocess.run(
+            ["powershell", "-STA", "-NoProfile", "-Command", ps_script],
+            capture_output=True,
+            timeout=120,
+            creationflags=subprocess.CREATE_NO_WINDOW,
+        )
+
+    try:
+        result = await asyncio.to_thread(_run_dialog)
+        folder = result.stdout.decode("utf-8", errors="replace").strip()
+        if not folder:
+            return JSONResponse({"folder": None, "cancelled": True})
+        return JSONResponse({"folder": folder, "cancelled": False})
+    except subprocess.TimeoutExpired:
+        return JSONResponse({"error": "timeout"}, status_code=500)
+    except Exception as e:
+        return JSONResponse({"error": "pick_failed", "detail": str(e)}, status_code=500)
