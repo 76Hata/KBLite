@@ -1,7 +1,7 @@
 # KBLite — Claude Codeを、ブラウザで。
 
 > All conversations stay on your machine. No external transmission.
-> すべての会話はあなたのPC内に保存されます。外部への送信は一切ありません。
+> KBlite内でのすべての会話はあなたのPC内に保存されます。外部への送信は一切ありません。
 
 ---
 
@@ -73,103 +73,9 @@ KBLiteの画面は **3つのエリア** で構成されています。
 
 **実際の画面:**
 
-![KBLiteメイン画面](images/kblite-main-screen.png)
+![KBLiteメイン画面](doc/images/kblite-main-screen.png)
 
-```drawio
-<mxfile>
-  <diagram name="KBLite画面レイアウト">
-    <mxGraphModel dx="1200" dy="800" grid="0" gridSize="10" guides="1" tooltips="1" connect="0" arrows="0" fold="0" page="0" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
-      <root>
-        <mxCell id="0"/>
-        <mxCell id="1" parent="0"/>
 
-        <!-- ブラウザ外枠 -->
-        <mxCell id="2" value="KBLite（ブラウザ画面）" style="rounded=1;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;fontSize=13;fontStyle=1;verticalAlign=top;" vertex="1" parent="1">
-          <mxGeometry x="10" y="10" width="1000" height="620" as="geometry"/>
-        </mxCell>
-
-        <!-- ヘッダー -->
-        <mxCell id="3" value="① ヘッダー" style="rounded=0;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;fontStyle=1;verticalAlign=middle;" vertex="1" parent="1">
-          <mxGeometry x="10" y="10" width="1000" height="50" as="geometry"/>
-        </mxCell>
-        <mxCell id="4" value="KBLite" style="rounded=0;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="20" y="18" width="80" height="34" as="geometry"/>
-        </mxCell>
-        <mxCell id="5" value="チームモード" style="rounded=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
-          <mxGeometry x="350" y="18" width="110" height="34" as="geometry"/>
-        </mxCell>
-        <mxCell id="6" value="Auto ▼" style="rounded=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
-          <mxGeometry x="475" y="18" width="70" height="34" as="geometry"/>
-        </mxCell>
-        <mxCell id="7" value="モデル選択 ▼" style="rounded=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
-          <mxGeometry x="555" y="18" width="110" height="34" as="geometry"/>
-        </mxCell>
-        <mxCell id="8" value="+ 新しい会話" style="rounded=1;whiteSpace=wrap;fillColor=#0050ef;strokeColor=#0050ef;fontColor=#ffffff;fontSize=10;" vertex="1" parent="1">
-          <mxGeometry x="880" y="18" width="120" height="34" as="geometry"/>
-        </mxCell>
-
-        <!-- 左サイドバー -->
-        <mxCell id="9" value="② 左サイドバー" style="rounded=0;whiteSpace=wrap;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontStyle=1;verticalAlign=top;" vertex="1" parent="1">
-          <mxGeometry x="10" y="60" width="220" height="570" as="geometry"/>
-        </mxCell>
-        <mxCell id="10" value="🔍 キーワードで検索..." style="rounded=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#82b366;fontSize=10;align=left;" vertex="1" parent="1">
-          <mxGeometry x="18" y="75" width="204" height="34" as="geometry"/>
-        </mxCell>
-        <mxCell id="11" value="会話履歴一覧" style="rounded=0;whiteSpace=wrap;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="18" y="118" width="204" height="24" as="geometry"/>
-        </mxCell>
-        <mxCell id="12" value="React設計の相談 (今日)" style="rounded=0;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#82b366;fontSize=9;align=left;" vertex="1" parent="1">
-          <mxGeometry x="18" y="148" width="204" height="36" as="geometry"/>
-        </mxCell>
-        <mxCell id="13" value="売上データ分析 (昨日)" style="rounded=0;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#cccccc;fontSize=9;align=left;" vertex="1" parent="1">
-          <mxGeometry x="18" y="188" width="204" height="36" as="geometry"/>
-        </mxCell>
-        <mxCell id="14" value="週報テンプレート作成 ↳fork #1" style="rounded=0;whiteSpace=wrap;fillColor=#fff8e1;strokeColor=#cccccc;fontSize=9;align=left;" vertex="1" parent="1">
-          <mxGeometry x="18" y="228" width="204" height="36" as="geometry"/>
-        </mxCell>
-        <mxCell id="15" value="..." style="rounded=0;whiteSpace=wrap;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="18" y="268" width="204" height="24" as="geometry"/>
-        </mxCell>
-
-        <!-- メインエリア -->
-        <mxCell id="16" value="③ メインエリア" style="rounded=0;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1;verticalAlign=top;" vertex="1" parent="1">
-          <mxGeometry x="230" y="60" width="780" height="570" as="geometry"/>
-        </mxCell>
-
-        <!-- 回答カード -->
-        <mxCell id="17" value="Claudeの回答" style="rounded=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#d6b656;fontSize=10;verticalAlign=top;align=left;" vertex="1" parent="1">
-          <mxGeometry x="240" y="75" width="760" height="200" as="geometry"/>
-        </mxCell>
-
-        <!-- アクションボタン -->
-        <mxCell id="18" value="📋 コピー" style="rounded=1;whiteSpace=wrap;fillColor=#f8f8f8;strokeColor=#999999;fontSize=9;" vertex="1" parent="1">
-          <mxGeometry x="820" y="80" width="60" height="28" as="geometry"/>
-        </mxCell>
-        <mxCell id="19" value="⬇ DL" style="rounded=1;whiteSpace=wrap;fillColor=#f8f8f8;strokeColor=#999999;fontSize=9;" vertex="1" parent="1">
-          <mxGeometry x="884" y="80" width="50" height="28" as="geometry"/>
-        </mxCell>
-        <mxCell id="20" value="⎇ 分岐" style="rounded=1;whiteSpace=wrap;fillColor=#e8f4fd;strokeColor=#0078d4;fontSize=9;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="938" y="80" width="55" height="28" as="geometry"/>
-        </mxCell>
-
-        <!-- 入力欄 -->
-        <mxCell id="21" value="質問・指示を入力してください..." style="rounded=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#d6b656;fontSize=11;align=left;verticalAlign=top;" vertex="1" parent="1">
-          <mxGeometry x="240" y="545" width="700" height="70" as="geometry"/>
-        </mxCell>
-        <mxCell id="22" value="送信 ➤" style="rounded=1;whiteSpace=wrap;fillColor=#0050ef;strokeColor=#0050ef;fontColor=#ffffff;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="948" y="559" width="62" height="42" as="geometry"/>
-        </mxCell>
-
-        <!-- 注釈ラベル -->
-        <mxCell id="23" value="回答右上：アクションボタン群" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;fontSize=10;fontColor=#d6b656;fontStyle=2;" vertex="1" parent="1">
-          <mxGeometry x="700" y="113" width="180" height="20" as="geometry"/>
-        </mxCell>
-
-      </root>
-    </mxGraphModel>
-  </diagram>
-</mxfile>
-```
 
 ### ① ヘッダー（画面上部）
 
