@@ -3,8 +3,10 @@
 import uuid
 from datetime import datetime
 
+from stores._base import StoreMixinBase
 
-class TaskMixin:
+
+class TaskMixin(StoreMixinBase):
     """tasks と task_notes テーブルを操作する Mixin"""
 
     # ── スキーマ定義 ────────────────────────────────────────
@@ -81,7 +83,9 @@ class TaskMixin:
             (task_id, title, description, priority, session_id, due_date, source, scope, todo_key),
         )
         self._conn.commit()
-        return self.get_task(task_id)
+        result = self.get_task(task_id)
+        assert result is not None
+        return result
 
     def upsert_todowrite_task(
         self, todo_key: str, title: str, status: str, session_id: str | None = None
@@ -108,7 +112,9 @@ class TaskMixin:
                 (task_id, title, norm_status, session_id, todo_key, now, now, completed_at),
             )
             self._conn.commit()
-            return self.get_task(task_id)
+            result = self.get_task(task_id)
+            assert result is not None
+            return result
 
         # 既存レコード更新
         prev_status = row["status"]
@@ -126,7 +132,9 @@ class TaskMixin:
             (title, norm_status, session_id, now, completed_at, todo_key),
         )
         self._conn.commit()
-        return self.get_task(row["id"])
+        result = self.get_task(row["id"])
+        assert result is not None
+        return result
 
     @staticmethod
     def _normalize_todowrite_status(status: str) -> str:

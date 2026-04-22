@@ -4,10 +4,12 @@ import logging
 from datetime import UTC
 from typing import Any
 
+from stores._base import StoreMixinBase
+
 logger = logging.getLogger(__name__)
 
 
-class ConversationMixin:
+class ConversationMixin(StoreMixinBase):
     """conversations テーブルに対する CRUD・検索操作"""
 
     def save_conversation(

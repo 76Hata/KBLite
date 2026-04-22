@@ -3,10 +3,12 @@
 import logging
 from typing import Any
 
+from stores._base import StoreMixinBase
+
 logger = logging.getLogger(__name__)
 
 
-class FtsMixin:
+class FtsMixin(StoreMixinBase):
     """conversations テーブルに対する FTS5 全文検索"""
 
     def _init_fts(self):

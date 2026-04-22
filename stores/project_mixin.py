@@ -3,10 +3,12 @@
 import logging
 from datetime import UTC, datetime
 
+from stores._base import StoreMixinBase
+
 logger = logging.getLogger(__name__)
 
 
-class ProjectMixin:
+class ProjectMixin(StoreMixinBase):
     """projects テーブルに対する CRUD 操作"""
 
     def create_project(self, project_id: str, name: str) -> dict:

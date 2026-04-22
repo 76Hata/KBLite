@@ -4,10 +4,12 @@ import logging
 from datetime import UTC, datetime
 from typing import Any
 
+from stores._base import StoreMixinBase
+
 logger = logging.getLogger(__name__)
 
 
-class SessionMixin:
+class SessionMixin(StoreMixinBase):
     """sessions テーブルに対する CRUD 操作"""
 
     def create_session(
