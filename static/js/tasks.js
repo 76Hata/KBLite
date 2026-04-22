@@ -4,6 +4,8 @@
 let _taskPanelOpen = false;
 let _editingTaskId = null;   // フォームで編集中のタスクID（null = 新規）
 let _expandedTaskId = null;  // 詳細展開中のタスクID
+let _selectedTaskIds = new Set(); // チェックボックス選択中のタスクID
+let _visibleTaskIds = [];          // 現在表示中のタスクID一覧（全選択用）
 
 // ── パネル開閉 ────────────────────────────────────
 function toggleTaskPanel() {
@@ -67,16 +69,20 @@ function updateTaskBadge(tasks) {
 
 // ── 一覧レンダリング ──────────────────────────────
 function renderTaskList(tasks) {
+  _visibleTaskIds = tasks.map(t => String(t.id));
   const el = document.getElementById('taskList');
   if (tasks.length === 0) {
     el.innerHTML = '<div class="task-empty">タスクはありません</div>';
+    updateBulkBar();
     return;
   }
   el.innerHTML = tasks.map(t => renderTaskItem(t)).join('');
+  updateBulkBar();
 }
 
 function renderTaskItem(t) {
   const isExpanded = _expandedTaskId === t.id;
+  const isSelected = _selectedTaskIds.has(String(t.id));
   const priorityLabel = { high: '★ 高', normal: '中', low: '▽ 低' }[t.priority] || t.priority;
   const notesHtml = (t.notes || []).map(n => {
     const time = (n.created_at || '').replace('T', ' ').slice(0, 16);
@@ -99,8 +105,9 @@ function renderTaskItem(t) {
 
   const statusActions = _statusActions(t);
 
-  return `<div class="task-item ${t.status}${isExpanded ? ' expanded' : ''}" id="task-${_esc(t.id)}" onclick="toggleTaskExpand(event,'${_esc(t.id)}')">
+  return `<div class="task-item ${t.status}${isExpanded ? ' expanded' : ''}${isSelected ? ' selected' : ''}" id="task-${_esc(t.id)}" onclick="toggleTaskExpand(event,'${_esc(t.id)}')">
   <div class="task-item-header">
+    <input type="checkbox" class="task-checkbox" ${isSelected ? 'checked' : ''} onclick="toggleTaskSelect(event,'${_esc(t.id)}')" title="選択">
     <span class="task-status-dot ${t.status}"></span>
     <span class="task-item-title">${_esc(t.title)}</span>
   </div>
@@ -161,8 +168,12 @@ function toggleTaskExpand(e, taskId) {
 }
 
 // ── ステータス変更 ────────────────────────────────
+const _statusLabel = { todo: '未着手', in_progress: '進行中', done: '完了', cancelled: 'キャンセル' };
+
 async function changeStatus(e, taskId, newStatus) {
   e.stopPropagation();
+  const label = _statusLabel[newStatus] || newStatus;
+  if (!confirm(`ステータスを「${label}」に変更しますか？`)) return;
   try {
     await fetch(`/api/tasks/${taskId}`, {
       method: 'PUT',
@@ -286,6 +297,70 @@ async function saveTaskForm() {
     await loadTasks();
   } catch (err) {
     alert('保存に失敗しました');
+  }
+}
+
+// ── チェックボックス選択削除 ──────────────────────
+function toggleTaskSelect(e, taskId) {
+  e.stopPropagation();
+  const id = String(taskId);
+  if (_selectedTaskIds.has(id)) {
+    _selectedTaskIds.delete(id);
+  } else {
+    _selectedTaskIds.add(id);
+  }
+  const el = document.getElementById(`task-${id}`);
+  if (el) el.classList.toggle('selected', _selectedTaskIds.has(id));
+  updateBulkBar();
+}
+
+function updateBulkBar() {
+  const bar = document.getElementById('taskBulkBar');
+  if (!bar) return;
+  const count = _selectedTaskIds.size;
+  bar.style.display = count > 0 ? 'flex' : 'none';
+  const countEl = bar.querySelector('.task-bulk-count');
+  if (countEl) countEl.textContent = `${count}件選択中`;
+  const selectAllBtn = document.getElementById('taskSelectAllBtn');
+  if (selectAllBtn) {
+    const allSelected = _visibleTaskIds.length > 0 &&
+      _visibleTaskIds.every(id => _selectedTaskIds.has(id));
+    selectAllBtn.textContent = allSelected ? '全解除' : '全選択';
+  }
+}
+
+async function deleteSelectedTasks() {
+  const count = _selectedTaskIds.size;
+  if (count === 0) return;
+  if (!confirm(`選択した${count}件のタスクを削除しますか？`)) return;
+  const ids = Array.from(_selectedTaskIds);
+  try {
+    await Promise.all(ids.map(id => fetch(`/api/tasks/${id}`, { method: 'DELETE' })));
+    if (ids.includes(String(_expandedTaskId))) _expandedTaskId = null;
+    _selectedTaskIds.clear();
+    await loadTasks();
+  } catch (err) {
+    alert('削除に失敗しました');
+  }
+}
+
+function clearTaskSelection() {
+  _selectedTaskIds.clear();
+  document.querySelectorAll('.task-item.selected').forEach(el => el.classList.remove('selected'));
+  document.querySelectorAll('.task-checkbox').forEach(cb => { cb.checked = false; });
+  updateBulkBar();
+}
+
+function selectAllTasks() {
+  const allSelected = _visibleTaskIds.length > 0 &&
+    _visibleTaskIds.every(id => _selectedTaskIds.has(id));
+  if (allSelected) {
+    clearTaskSelection();
+  } else {
+    _visibleTaskIds.forEach(id => _selectedTaskIds.add(id));
+    document.querySelectorAll('.task-item').forEach(el => el.classList.add('selected'));
+    document.querySelectorAll('.task-checkbox').forEach(cb => { cb.checked = true; });
+    updateBulkBar();
   }
 }
 
