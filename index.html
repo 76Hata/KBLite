@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Knowledge Base Lite</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23000'/><polygon points='0,0 100,0 100,100' fill='%23d7000f'/><text x='50' y='68' font-size='48' text-anchor='middle' font-weight='900' fill='%23fff' font-family='Impact,sans-serif'>KB</text></svg>">
+  <link id="favicon" rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%232e7dd1'/><text x='50' y='68' font-size='56' text-anchor='middle' font-weight='bold' fill='%23fff'>KB</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Oswald:wght@500;700&family=Bebas+Neue&display=swap" rel="stylesheet">
@@ -1572,7 +1572,8 @@
     .task-panel {
       position: fixed;
       top: 0; right: 0;
-      width: 340px;
+      width: 380px;
+      max-width: 100vw;
       height: 100dvh;
       background: #1a1a2e;
       color: #e0e0e0;
@@ -1611,13 +1612,15 @@
     .task-filter-row {
       display: flex;
       align-items: center;
+      flex-wrap: wrap;
       gap: 8px;
       padding: 10px 12px;
       flex-shrink: 0;
       border-bottom: 1px solid rgba(255,255,255,0.06);
     }
     .task-filter-row select {
-      flex: 1;
+      flex: 1 1 120px;
+      min-width: 0;
       background: rgba(255,255,255,0.07);
       border: 1px solid rgba(255,255,255,0.12);
       color: #ccc;
@@ -1632,6 +1635,34 @@
       cursor: pointer; white-space: nowrap;
     }
     .task-add-btn:hover { background: #256ab8; }
+    .task-bulk-bar {
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      background: rgba(231,76,60,0.08);
+      border-bottom: 1px solid rgba(231,76,60,0.2);
+      flex-shrink: 0;
+    }
+    .task-bulk-count { flex: 1; font-size: 12px; color: rgba(255,255,255,0.75); }
+    .task-checkbox {
+      width: 14px; height: 14px;
+      cursor: pointer;
+      accent-color: #e74c3c;
+      flex-shrink: 0;
+    }
+    .task-item.selected { background: rgba(231,76,60,0.06); }
+    .task-select-all-btn {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.25);
+      color: rgba(255,255,255,0.65);
+      border-radius: 4px;
+      padding: 3px 8px;
+      font-size: 11px;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .task-select-all-btn:hover { border-color: rgba(255,255,255,0.5); color: rgba(255,255,255,0.9); }
 
     .task-list {
       flex: 1;
@@ -1939,34 +1970,34 @@
     .perm-req-deny:hover { background: #c0392b; }
 
     /* =====================================================================
-       Persona 5 Theme Override
+       PHANTOM Theme Override
        ---------------------------------------------------------------------
        既存スタイルに後勝ちで被せるテーマレイヤー。
-       html[data-theme="p5"] で絞ることでテーマ切り替えが可能。
+       html[data-theme="phantom"] で絞ることでテーマ切り替えが可能。
        ===================================================================== */
     :root {
-      --p5-red:        #d7000f;   /* Persona5 インクレッド */
-      --p5-red-deep:   #9c0009;   /* ダーク赤 */
-      --p5-red-bright: #ff1a3c;   /* 明るい赤（ホバー/アクセント） */
-      --p5-black:      #0a0a0a;   /* ジェットブラック */
-      --p5-black-soft: #1a1a1a;   /* ソフトブラック */
-      --p5-white:      #f4f4f4;   /* オフホワイト */
-      --p5-white-pure: #ffffff;
-      --p5-yellow:     #ffd200;   /* 警告/ハイライト */
-      --p5-gray:       #2a2a2a;
-      --p5-gray-mid:   #3a3a3a;
-      --p5-font-body:  'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      --p5-font-disp:  'Bebas Neue', 'Oswald', 'Noto Sans JP', sans-serif;
+      --phantom-red:        #d7000f;   /* PHANTOMテーマ アクセントレッド */
+      --phantom-red-deep:   #9c0009;   /* ダーク赤 */
+      --phantom-red-bright: #ff1a3c;   /* 明るい赤（ホバー/アクセント） */
+      --phantom-black:      #0a0a0a;   /* ジェットブラック */
+      --phantom-black-soft: #1a1a1a;   /* ソフトブラック */
+      --phantom-white:      #f4f4f4;   /* オフホワイト */
+      --phantom-white-pure: #ffffff;
+      --phantom-yellow:     #ffd200;   /* 警告/ハイライト */
+      --phantom-gray:       #2a2a2a;
+      --phantom-gray-mid:   #3a3a3a;
+      --phantom-font-body:  'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --phantom-font-disp:  'Bebas Neue', 'Oswald', 'Noto Sans JP', sans-serif;
     }
 
-    /* P5テーマ: data-theme="p5" のときのみ適用 */
-    html[data-theme="p5"] {
+    /* PHANTOMテーマ: data-theme="phantom" のときのみ適用 */
+    html[data-theme="phantom"] {
 
       /* ---- Typography ---- */
       body {
-        font-family: var(--p5-font-body);
-        background: var(--p5-white);
-        color: var(--p5-black);
+        font-family: var(--phantom-font-body);
+        background: var(--phantom-white);
+        color: var(--phantom-black);
         /* 斜めストライプの微細テクスチャ */
         background-image:
           repeating-linear-gradient(
@@ -1979,27 +2010,27 @@
       .sidebar-header h2,
       .main-header-title,
       .modal-header h2 {
-        font-family: var(--p5-font-disp);
+        font-family: var(--phantom-font-disp);
         letter-spacing: 0.04em;
         font-weight: 700;
       }
 
       /* ---- Sidebar: 黒地 + 赤アクセント ---- */
       #sidebar {
-        background: var(--p5-black);
-        color: var(--p5-white);
-        border-right: 2px solid var(--p5-red);
+        background: var(--phantom-black);
+        color: var(--phantom-white);
+        border-right: 2px solid var(--phantom-red);
         /* 赤スラッシュの装飾 */
         background-image:
-          linear-gradient(125deg, transparent 0 calc(100% - 3px), var(--p5-red) calc(100% - 3px) 100%);
+          linear-gradient(125deg, transparent 0 calc(100% - 3px), var(--phantom-red) calc(100% - 3px) 100%);
       }
       .sidebar-header {
-        border-bottom: 2px solid var(--p5-red);
-        background: linear-gradient(90deg, var(--p5-red) 0%, var(--p5-red) 6px, transparent 6px);
+        border-bottom: 2px solid var(--phantom-red);
+        background: linear-gradient(90deg, var(--phantom-red) 0%, var(--phantom-red) 6px, transparent 6px);
         padding-left: 18px;
       }
       .sidebar-header h2 {
-        color: var(--p5-red-bright);
+        color: var(--phantom-red-bright);
         font-weight: 900;
         letter-spacing: 0.12em;
       }
@@ -2011,8 +2042,8 @@
       #sidebarNewChatBtn,
       .btn-primary,
       button.primary {
-        background: var(--p5-red) !important;
-        color: var(--p5-white-pure) !important;
+        background: var(--phantom-red) !important;
+        color: var(--phantom-white-pure) !important;
         border: none;
         border-radius: 2px !important;
         font-weight: 700;
@@ -2028,18 +2059,18 @@
         position: absolute;
         top: 0; left: 0;
         width: 4px; height: 100%;
-        background: var(--p5-black);
+        background: var(--phantom-black);
         transform: skewX(-20deg);
         transform-origin: top left;
       }
       #sidebarNewChatBtn:hover,
       .btn-primary:hover {
-        background: var(--p5-red-bright) !important;
+        background: var(--phantom-red-bright) !important;
         transform: translate(-1px, -1px);
       }
       #sidebarNewChatBtn:active,
       .btn-primary:active {
-        background: var(--p5-red-deep) !important;
+        background: var(--phantom-red-deep) !important;
         transform: translate(0, 0);
       }
 
@@ -2051,21 +2082,21 @@
       }
       .session-item:hover {
         background: rgba(215,0,15,0.12) !important;
-        border-left-color: var(--p5-red);
+        border-left-color: var(--phantom-red);
       }
       .session-item.active,
       .session-item.selected {
-        background: var(--p5-red) !important;
-        color: var(--p5-white-pure) !important;
-        border-left-color: var(--p5-yellow);
+        background: var(--phantom-red) !important;
+        color: var(--phantom-white-pure) !important;
+        border-left-color: var(--phantom-yellow);
       }
 
       /* ---- Main header ---- */
       .main-header,
       #mainHeader {
-        background: var(--p5-black) !important;
-        color: var(--p5-white) !important;
-        border-bottom: 2px solid var(--p5-red);
+        background: var(--phantom-black) !important;
+        color: var(--phantom-white) !important;
+        border-bottom: 2px solid var(--phantom-red);
         position: relative;
       }
       .main-header::after,
@@ -2074,13 +2105,13 @@
         position: absolute;
         left: 0; bottom: -2px;
         width: 120px; height: 2px;
-        background: var(--p5-yellow);
+        background: var(--phantom-yellow);
         clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
       }
       .main-header .main-header-title,
       #mainHeader h1, #mainHeader h2 {
-        color: var(--p5-white-pure) !important;
-        font-family: var(--p5-font-disp);
+        color: var(--phantom-white-pure) !important;
+        font-family: var(--phantom-font-disp);
         letter-spacing: 0.06em;
       }
 
@@ -2088,39 +2119,39 @@
       .message.user .bubble,
       .msg-user .bubble,
       .message-user .bubble {
-        background: var(--p5-black) !important;
-        color: var(--p5-white) !important;
+        background: var(--phantom-black) !important;
+        color: var(--phantom-white) !important;
         border-radius: 2px 14px 2px 14px !important;
-        border: 1px solid var(--p5-red);
+        border: 1px solid var(--phantom-red);
       }
       .message.assistant .bubble,
       .msg-assistant .bubble,
       .message-assistant .bubble {
-        background: var(--p5-white-pure) !important;
-        color: var(--p5-black) !important;
-        border: 2px solid var(--p5-black);
+        background: var(--phantom-white-pure) !important;
+        color: var(--phantom-black) !important;
+        border: 2px solid var(--phantom-black);
         border-radius: 14px 2px 14px 2px !important;
-        box-shadow: 4px 4px 0 var(--p5-red);
+        box-shadow: 4px 4px 0 var(--phantom-red);
       }
 
       /* ---- Input area ---- */
       .input-area {
-        background: var(--p5-white-pure) !important;
-        border-top: 2px solid var(--p5-red) !important;
+        background: var(--phantom-white-pure) !important;
+        border-top: 2px solid var(--phantom-red) !important;
       }
       .input-inner {
-        border: 2px solid var(--p5-black) !important;
+        border: 2px solid var(--phantom-black) !important;
         border-radius: 2px !important;
-        background: var(--p5-white-pure);
+        background: var(--phantom-white-pure);
         transition: border-color 0.1s ease, box-shadow 0.1s ease;
       }
       .input-inner:focus-within {
-        border-color: var(--p5-red) !important;
-        box-shadow: 4px 4px 0 var(--p5-red) !important;
+        border-color: var(--phantom-red) !important;
+        box-shadow: 4px 4px 0 var(--phantom-red) !important;
       }
       #messageInput {
-        font-family: var(--p5-font-body);
-        color: var(--p5-black);
+        font-family: var(--phantom-font-body);
+        color: var(--phantom-black);
       }
       #messageInput::placeholder {
         color: rgba(0,0,0,0.35);
@@ -2130,23 +2161,23 @@
       /* ---- Modal / dialog ---- */
       .modal,
       .dialog {
-        border: 2px solid var(--p5-black) !important;
+        border: 2px solid var(--phantom-black) !important;
         border-radius: 2px !important;
-        box-shadow: 6px 6px 0 var(--p5-red) !important;
+        box-shadow: 6px 6px 0 var(--phantom-red) !important;
       }
       .modal-header {
-        background: var(--p5-black) !important;
-        color: var(--p5-white-pure) !important;
-        border-bottom: 2px solid var(--p5-red) !important;
+        background: var(--phantom-black) !important;
+        color: var(--phantom-white-pure) !important;
+        border-bottom: 2px solid var(--phantom-red) !important;
       }
 
       /* ---- Scrollbar ---- */
-      ::-webkit-scrollbar-thumb { background: var(--p5-red) !important; border-radius: 0 !important; }
-      ::-webkit-scrollbar-thumb:hover { background: var(--p5-red-bright) !important; }
+      ::-webkit-scrollbar-thumb { background: var(--phantom-red) !important; border-radius: 0 !important; }
+      ::-webkit-scrollbar-thumb:hover { background: var(--phantom-red-bright) !important; }
 
       /* ---- Links / accents ---- */
-      a { color: var(--p5-red); }
-      a:hover { color: var(--p5-red-bright); }
+      a { color: var(--phantom-red); }
+      a:hover { color: var(--phantom-red-bright); }
 
       /* ---- Badges / labels: 鋭角に ---- */
       .task-source-badge,
@@ -2158,13 +2189,13 @@
       #inputResizer:hover,
       #inputResizer.dragging { background: rgba(215,0,15,0.3) !important; }
       #inputResizer:hover::after,
-      #inputResizer.dragging::after { background: var(--p5-red) !important; }
+      #inputResizer.dragging::after { background: var(--phantom-red) !important; }
 
       /* ---- Header: <header> 要素をP5に ---- */
       header {
-        background: var(--p5-black) !important;
-        color: var(--p5-white) !important;
-        border-bottom: 3px solid var(--p5-red) !important;
+        background: var(--phantom-black) !important;
+        color: var(--phantom-white) !important;
+        border-bottom: 3px solid var(--phantom-red) !important;
         position: relative;
       }
       header::after {
@@ -2172,15 +2203,15 @@
         position: absolute;
         left: 0; bottom: -3px;
         width: 80px; height: 3px;
-        background: var(--p5-yellow);
+        background: var(--phantom-yellow);
         clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
         z-index: 1;
       }
       header h1 {
-        font-family: var(--p5-font-disp) !important;
+        font-family: var(--phantom-font-disp) !important;
         font-weight: 900 !important;
         letter-spacing: 0.08em !important;
-        color: var(--p5-white-pure) !important;
+        color: var(--phantom-white-pure) !important;
         text-transform: uppercase;
       }
 
@@ -2193,7 +2224,7 @@
         background: rgba(215,0,15,0.08) !important;
         border: 1px solid rgba(215,0,15,0.4) !important;
         border-radius: 2px !important;
-        color: var(--p5-white) !important;
+        color: var(--phantom-white) !important;
         transition: background 0.1s ease, border-color 0.1s ease, transform 0.08s ease !important;
       }
       #sidebarToggle:hover,
@@ -2201,9 +2232,9 @@
       #taskPanelToggleBtn:hover,
       #permMgrBtn:hover,
       #restartServerBtn:hover {
-        background: var(--p5-red) !important;
-        border-color: var(--p5-red-bright) !important;
-        color: var(--p5-white-pure) !important;
+        background: var(--phantom-red) !important;
+        border-color: var(--phantom-red-bright) !important;
+        color: var(--phantom-white-pure) !important;
         transform: translate(-1px, -1px);
       }
       #sidebarToggle:active,
@@ -2211,58 +2242,58 @@
       #taskPanelToggleBtn:active,
       #permMgrBtn:active,
       #restartServerBtn:active {
-        background: var(--p5-red-deep) !important;
+        background: var(--phantom-red-deep) !important;
         transform: translate(0, 0) !important;
       }
       /* タスクパネル: アクティブ時は黄色 */
       #taskPanelToggleBtn.active {
-        background: var(--p5-yellow) !important;
-        border-color: var(--p5-yellow) !important;
-        color: var(--p5-black) !important;
+        background: var(--phantom-yellow) !important;
+        border-color: var(--phantom-yellow) !important;
+        color: var(--phantom-black) !important;
       }
 
       /* ---- Team / header select ---- */
       #teamSelect {
-        background-color: var(--p5-gray) !important;
-        border: 1px solid var(--p5-red) !important;
+        background-color: var(--phantom-gray) !important;
+        border: 1px solid var(--phantom-red) !important;
         border-radius: 2px !important;
-        color: var(--p5-white) !important;
-        font-family: var(--p5-font-body) !important;
+        color: var(--phantom-white) !important;
+        font-family: var(--phantom-font-body) !important;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23d7000f'/%3E%3C/svg%3E") !important;
       }
       .header-select-label {
-        color: var(--p5-red-bright) !important;
+        color: var(--phantom-red-bright) !important;
         font-weight: 700;
         letter-spacing: 0.05em;
       }
 
       /* ---- Send button: 丸→鋭角P5スタイル ---- */
       #sendBtn {
-        background: var(--p5-red) !important;
+        background: var(--phantom-red) !important;
         border: none !important;
         border-radius: 2px !important;
-        color: var(--p5-white-pure) !important;
+        color: var(--phantom-white-pure) !important;
         width: 38px !important;
         height: 38px !important;
         clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
         transition: background 0.1s ease, transform 0.08s ease !important;
       }
       #sendBtn:hover {
-        background: var(--p5-red-bright) !important;
+        background: var(--phantom-red-bright) !important;
         transform: translate(-1px, -1px);
       }
       #sendBtn:active {
-        background: var(--p5-red-deep) !important;
+        background: var(--phantom-red-deep) !important;
         transform: translate(0, 0) !important;
       }
       #sendBtn:disabled {
-        background: var(--p5-gray-mid) !important;
+        background: var(--phantom-gray-mid) !important;
         opacity: 0.5;
         transform: none !important;
       }
       #sendBtn.cancel-mode {
-        background: var(--p5-yellow) !important;
-        color: var(--p5-black) !important;
+        background: var(--phantom-yellow) !important;
+        color: var(--phantom-black) !important;
       }
       #sendBtn.cancel-mode:hover {
         background: #ffe033 !important;
@@ -2278,8 +2309,8 @@
       }
       #attachBtn:hover {
         background: rgba(215,0,15,0.08) !important;
-        border-color: var(--p5-red) !important;
-        color: var(--p5-red) !important;
+        border-color: var(--phantom-red) !important;
+        color: var(--phantom-red) !important;
       }
 
       /* ---- Model select ---- */
@@ -2287,82 +2318,82 @@
         background-color: transparent !important;
         border: 1px solid rgba(215,0,15,0.3) !important;
         border-radius: 2px !important;
-        color: var(--p5-black) !important;
-        font-family: var(--p5-font-body) !important;
+        color: var(--phantom-black) !important;
+        font-family: var(--phantom-font-body) !important;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23d7000f'/%3E%3C/svg%3E") !important;
         transition: border-color 0.1s ease, background-color 0.1s ease !important;
       }
       #modelSelect:hover,
       #modelSelect:focus {
         background-color: rgba(215,0,15,0.05) !important;
-        border-color: var(--p5-red) !important;
+        border-color: var(--phantom-red) !important;
         outline: none !important;
       }
 
       /* ---- Scroll-to-top button ---- */
       #scrollTopBtn {
         border-radius: 2px !important;
-        border: 2px solid var(--p5-red) !important;
-        background: var(--p5-black) !important;
-        color: var(--p5-red) !important;
-        box-shadow: 3px 3px 0 var(--p5-red) !important;
+        border: 2px solid var(--phantom-red) !important;
+        background: var(--phantom-black) !important;
+        color: var(--phantom-red) !important;
+        box-shadow: 3px 3px 0 var(--phantom-red) !important;
         transition: background 0.1s ease, color 0.1s ease, transform 0.08s ease, opacity 0.2s !important;
       }
       #scrollTopBtn:hover {
-        background: var(--p5-red) !important;
-        color: var(--p5-white-pure) !important;
+        background: var(--phantom-red) !important;
+        color: var(--phantom-white-pure) !important;
         transform: translate(-2px, -2px);
-        box-shadow: 5px 5px 0 var(--p5-red-deep) !important;
+        box-shadow: 5px 5px 0 var(--phantom-red-deep) !important;
       }
 
       /* ---- Readonly banner ---- */
       #readonlyBanner {
-        background: var(--p5-yellow) !important;
-        color: var(--p5-black) !important;
-        border-bottom: 2px solid var(--p5-black) !important;
+        background: var(--phantom-yellow) !important;
+        color: var(--phantom-black) !important;
+        border-bottom: 2px solid var(--phantom-black) !important;
         font-weight: 700;
       }
       #readonlyBanner button {
-        background: var(--p5-black) !important;
-        color: var(--p5-white-pure) !important;
+        background: var(--phantom-black) !important;
+        color: var(--phantom-white-pure) !important;
         border-radius: 2px !important;
         font-weight: 700;
       }
       #readonlyBanner button:hover {
-        background: var(--p5-red) !important;
+        background: var(--phantom-red) !important;
       }
 
       /* ---- Task panel header ---- */
       .task-panel-header {
-        background: var(--p5-black) !important;
-        color: var(--p5-white) !important;
-        border-bottom: 2px solid var(--p5-red) !important;
+        background: var(--phantom-black) !important;
+        color: var(--phantom-white) !important;
+        border-bottom: 2px solid var(--phantom-red) !important;
       }
       .task-panel-header h3,
       .task-panel-header span {
-        font-family: var(--p5-font-disp) !important;
+        font-family: var(--phantom-font-disp) !important;
         letter-spacing: 0.05em;
-        color: var(--p5-white-pure) !important;
+        color: var(--phantom-white-pure) !important;
       }
       .task-add-btn {
-        background: var(--p5-red) !important;
+        background: var(--phantom-red) !important;
         border-radius: 2px !important;
         font-weight: 700;
         letter-spacing: 0.04em;
       }
-      .task-add-btn:hover { background: var(--p5-red-bright) !important; }
+      .task-add-btn:hover { background: var(--phantom-red-bright) !important; }
 
       /* ---- Project manage buttons ---- */
       .project-manage-row button {
         border-radius: 2px !important;
         border: 1px solid rgba(215,0,15,0.4) !important;
-        color: var(--p5-white) !important;
+        color: var(--phantom-white) !important;
         transition: background 0.1s ease, border-color 0.1s ease !important;
       }
       .project-manage-row button:hover {
-        background: var(--p5-red) !important;
-        border-color: var(--p5-red) !important;
-        color: var(--p5-white-pure) !important;
+        background: var(--phantom-red) !important;
+        border-color: var(--phantom-red) !important;
+        color: var(--phantom-white-pure) !important;
       }
 
       /* ================================================================
@@ -2371,9 +2402,9 @@
 
       /* ---- Message entrance: スライドイン ---- */
       .chat-message {
-        animation: p5-msg-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both !important;
+        animation: phantom-msg-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both !important;
       }
-      @keyframes p5-msg-in {
+      @keyframes phantom-msg-in {
         from { opacity: 0; transform: translateY(14px) skewX(-1.5deg); }
         to   { opacity: 1; transform: translateY(0) skewX(0); }
       }
@@ -2388,7 +2419,7 @@
         position: absolute;
         top: 0; left: 0;
         width: 0; height: 0;
-        border-top: 12px solid var(--p5-red);
+        border-top: 12px solid var(--phantom-red);
         border-right: 12px solid transparent;
         opacity: 0.75;
       }
@@ -2397,7 +2428,7 @@
         position: absolute;
         bottom: 0; right: 0;
         width: 0; height: 0;
-        border-bottom: 10px solid var(--p5-yellow);
+        border-bottom: 10px solid var(--phantom-yellow);
         border-left: 10px solid transparent;
         opacity: 0.7;
       }
@@ -2413,7 +2444,7 @@
         position: absolute;
         left: 0; top: 0; bottom: 0;
         width: 3px;
-        background: var(--p5-red);
+        background: var(--phantom-red);
         transform: scaleY(0);
         transform-origin: bottom;
         transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
@@ -2427,7 +2458,7 @@
       }
       .sidebar-history-item.active::before {
         transform: scaleY(1) !important;
-        background: var(--p5-yellow) !important;
+        background: var(--phantom-yellow) !important;
       }
 
       /* ---- Sidebar section headers: red/yellow gradient underline ---- */
@@ -2445,10 +2476,10 @@
         height: 2px;
         background: linear-gradient(
           90deg,
-          var(--p5-red)    0%,
-          var(--p5-red)    65%,
-          var(--p5-yellow) 65%,
-          var(--p5-yellow) 82%,
+          var(--phantom-red)    0%,
+          var(--phantom-red)    65%,
+          var(--phantom-yellow) 65%,
+          var(--phantom-yellow) 82%,
           transparent      82%
         );
       }
@@ -2474,9 +2505,9 @@
       .typing-indicator span,
       .loading-dots span,
       .dot-typing > span {
-        background: var(--p5-red) !important;
+        background: var(--phantom-red) !important;
         border-radius: 0 !important;
-        animation: p5-blink 0.9s steps(1) infinite !important;
+        animation: phantom-blink 0.9s steps(1) infinite !important;
       }
       .typing-indicator span:nth-child(2),
       .loading-dots span:nth-child(2),
@@ -2484,7 +2515,7 @@
       .typing-indicator span:nth-child(3),
       .loading-dots span:nth-child(3),
       .dot-typing > span:nth-child(3) { animation-delay: 0.6s !important; }
-      @keyframes p5-blink {
+      @keyframes phantom-blink {
         0%, 100% { opacity: 1;   transform: scaleY(1); }
         50%       { opacity: 0.15; transform: scaleY(0.35); }
       }
@@ -2493,9 +2524,9 @@
       #chatInput:focus {
         outline: none !important;
         box-shadow:
-          inset -3px -3px 0 var(--p5-red),
+          inset -3px -3px 0 var(--phantom-red),
           inset  2px  2px 0 rgba(215,0,15,0.12) !important;
-        border-color: var(--p5-red) !important;
+        border-color: var(--phantom-red) !important;
       }
 
       /* ---- Task items: slide-left hover ---- */
@@ -2505,7 +2536,7 @@
       }
       .task-item:hover {
         transform: translateX(4px) !important;
-        border-left-color: var(--p5-red) !important;
+        border-left-color: var(--phantom-red) !important;
         background: rgba(215,0,15,0.04) !important;
       }
 
@@ -2513,9 +2544,9 @@
       .modal,
       .dialog-box,
       [class*="modal"]:not(#mainModal) {
-        animation: p5-modal-in 0.2s cubic-bezier(0.22, 1, 0.36, 1) both !important;
+        animation: phantom-modal-in 0.2s cubic-bezier(0.22, 1, 0.36, 1) both !important;
       }
-      @keyframes p5-modal-in {
+      @keyframes phantom-modal-in {
         from { opacity: 0; transform: translateY(-18px) skewY(-0.8deg); }
         to   { opacity: 1; transform: translateY(0) skewY(0); }
       }
@@ -2523,12 +2554,12 @@
       .modal-body,
       .dialog-content {
         clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%) !important;
-        border-top: 3px solid var(--p5-red) !important;
+        border-top: 3px solid var(--phantom-red) !important;
       }
 
       /* ---- Code blocks: P5 terminal label ---- */
       pre {
-        border-left: 3px solid var(--p5-red) !important;
+        border-left: 3px solid var(--phantom-red) !important;
         border-radius: 0 2px 2px 0 !important;
         border-top: 1px solid rgba(215,0,15,0.3) !important;
         position: relative !important;
@@ -2537,15 +2568,15 @@
         content: '// CODE';
         position: absolute;
         top: 5px; right: 8px;
-        font-family: var(--p5-font-disp) !important;
+        font-family: var(--phantom-font-disp) !important;
         font-size: 9px;
         letter-spacing: 0.12em;
-        color: var(--p5-red);
+        color: var(--phantom-red);
         opacity: 0.55;
         pointer-events: none;
       }
       :not(pre) > code {
-        border-left: 2px solid var(--p5-red) !important;
+        border-left: 2px solid var(--phantom-red) !important;
         border-radius: 0 2px 2px 0 !important;
         padding-left: 4px !important;
       }
@@ -2565,8 +2596,8 @@
 
       /* ---- Selection highlight ---- */
       ::selection {
-        background: var(--p5-red) !important;
-        color: var(--p5-white-pure) !important;
+        background: var(--phantom-red) !important;
+        color: var(--phantom-white-pure) !important;
       }
 
       /* ---- Permission / perm items: hover accent ---- */
@@ -2580,16 +2611,16 @@
       .perm-item:hover,
       .perm-entry:hover {
         background: rgba(215,0,15,0.05) !important;
-        border-left-color: var(--p5-red) !important;
+        border-left-color: var(--phantom-red) !important;
       }
 
       /* ---- Notification / toast: diagonal accent ---- */
       .toast,
       .notification,
       .alert-box {
-        border-left: 4px solid var(--p5-red) !important;
+        border-left: 4px solid var(--phantom-red) !important;
         clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%) !important;
-        animation: p5-msg-in 0.2s cubic-bezier(0.22, 1, 0.36, 1) both !important;
+        animation: phantom-msg-in 0.2s cubic-bezier(0.22, 1, 0.36, 1) both !important;
       }
 
       /* ================================================================
@@ -2629,30 +2660,30 @@
       }
 
       /* ---- Send button: charge effect on :active ---- */
-      @keyframes p5-charge {
-        0%   { box-shadow: 0 0 0   0   rgba(215,0,15,0), 4px 4px 0 var(--p5-red); }
-        40%  { box-shadow: 0 0 0   6px rgba(215,0,15,0.35), 4px 4px 0 var(--p5-red); }
-        70%  { box-shadow: 0 0 0  10px rgba(215,0,15,0.15), 3px 3px 0 var(--p5-red); }
-        100% { box-shadow: 0 0 0   0   rgba(215,0,15,0), 4px 4px 0 var(--p5-red); }
+      @keyframes phantom-charge {
+        0%   { box-shadow: 0 0 0   0   rgba(215,0,15,0), 4px 4px 0 var(--phantom-red); }
+        40%  { box-shadow: 0 0 0   6px rgba(215,0,15,0.35), 4px 4px 0 var(--phantom-red); }
+        70%  { box-shadow: 0 0 0  10px rgba(215,0,15,0.15), 3px 3px 0 var(--phantom-red); }
+        100% { box-shadow: 0 0 0   0   rgba(215,0,15,0), 4px 4px 0 var(--phantom-red); }
       }
-      @keyframes p5-shoot {
+      @keyframes phantom-shoot {
         0%   { transform: scale(1)    skewX(0deg); }
         30%  { transform: scale(1.08) skewX(-3deg); }
         60%  { transform: scale(0.95) skewX(2deg); }
         100% { transform: scale(1)    skewX(0deg); }
       }
       #sendBtn:active {
-        animation: p5-shoot 0.18s cubic-bezier(0.22, 1, 0.36, 1) !important;
-        background: var(--p5-red-bright) !important;
+        animation: phantom-shoot 0.18s cubic-bezier(0.22, 1, 0.36, 1) !important;
+        background: var(--phantom-red-bright) !important;
       }
       #sendBtn.sending {
-        animation: p5-charge 0.6s ease infinite !important;
+        animation: phantom-charge 0.6s ease infinite !important;
       }
 
       /* ---- Empty state: P5 stylized welcome ---- */
       #emptyState {
         position: relative !important;
-        font-family: var(--p5-font-disp) !important;
+        font-family: var(--phantom-font-disp) !important;
         font-size: 1.05rem !important;
         letter-spacing: 0.18em !important;
         color: rgba(10,10,10,0.38) !important;
@@ -2666,10 +2697,10 @@
         margin: 1rem auto 0;
         background: linear-gradient(
           90deg,
-          var(--p5-red)    0%,
-          var(--p5-red)    60%,
-          var(--p5-yellow) 60%,
-          var(--p5-yellow) 80%,
+          var(--phantom-red)    0%,
+          var(--phantom-red)    60%,
+          var(--phantom-yellow) 60%,
+          var(--phantom-yellow) 80%,
           transparent      80%
         );
       }
@@ -2687,7 +2718,7 @@
       }
       select:focus {
         outline: none !important;
-        border-color: var(--p5-red) !important;
+        border-color: var(--phantom-red) !important;
         box-shadow: 2px 2px 0 rgba(215,0,15,0.3) !important;
       }
 
@@ -2702,7 +2733,7 @@
       /* ---- Session category / project badges: P5 pill ---- */
       .session-category-badge,
       .session-project-badge {
-        font-family: var(--p5-font-disp) !important;
+        font-family: var(--phantom-font-disp) !important;
         font-size: 0.7rem !important;
         letter-spacing: 0.1em !important;
         border-radius: 0 !important;
@@ -2710,18 +2741,18 @@
         padding: 1px 6px !important;
       }
       .session-category-badge {
-        background: var(--p5-red) !important;
-        color: var(--p5-white-pure) !important;
+        background: var(--phantom-red) !important;
+        color: var(--phantom-white-pure) !important;
       }
       .session-project-badge {
-        background: var(--p5-black-soft) !important;
-        color: var(--p5-yellow) !important;
+        background: var(--phantom-black-soft) !important;
+        color: var(--phantom-yellow) !important;
         border: 1px solid rgba(255,210,0,0.35) !important;
       }
 
       /* ---- Bookmark star: yellow pulse ---- */
       .session-bookmark-icon {
-        color: var(--p5-yellow) !important;
+        color: var(--phantom-yellow) !important;
         filter: drop-shadow(0 0 3px rgba(255,210,0,0.6)) !important;
         font-size: 0.9em !important;
       }
@@ -2730,36 +2761,36 @@
       #scrollTopBtn {
         border-radius: 0 !important;
         clip-path: polygon(0 6px, 6px 0, 100% 0, 100% 100%, 0 100%) !important;
-        background: var(--p5-black) !important;
-        color: var(--p5-red) !important;
-        border: 2px solid var(--p5-red) !important;
-        font-family: var(--p5-font-disp) !important;
+        background: var(--phantom-black) !important;
+        color: var(--phantom-red) !important;
+        border: 2px solid var(--phantom-red) !important;
+        font-family: var(--phantom-font-disp) !important;
         font-size: 1.1rem !important;
         letter-spacing: 0.08em !important;
-        box-shadow: 3px 3px 0 var(--p5-red) !important;
+        box-shadow: 3px 3px 0 var(--phantom-red) !important;
         transition: box-shadow 0.08s ease, transform 0.08s ease, background 0.08s ease !important;
       }
       #scrollTopBtn:hover {
-        background: var(--p5-red) !important;
-        color: var(--p5-white-pure) !important;
-        box-shadow: 1px 1px 0 var(--p5-red) !important;
+        background: var(--phantom-red) !important;
+        color: var(--phantom-white-pure) !important;
+        box-shadow: 1px 1px 0 var(--phantom-red) !important;
         transform: translate(2px, 2px) !important;
       }
 
       /* ---- Sidebar header h2: P5 display font ---- */
       .sidebar-header h2,
       .sidebar-header .sidebar-title {
-        font-family: var(--p5-font-disp) !important;
+        font-family: var(--phantom-font-disp) !important;
         letter-spacing: 0.18em !important;
         text-transform: uppercase !important;
         font-size: 0.9rem !important;
-        color: var(--p5-white) !important;
+        color: var(--phantom-white) !important;
       }
 
       /* ---- New chat button (sidebar): P5 style ---- */
       #sidebarNewChatBtn {
         clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px)) !important;
-        font-family: var(--p5-font-disp) !important;
+        font-family: var(--phantom-font-disp) !important;
         letter-spacing: 0.12em !important;
         transition: background 0.1s ease, box-shadow 0.1s ease, transform 0.08s ease !important;
       }
@@ -2770,17 +2801,17 @@
 
       /* ---- Task panel: P5 header band ---- */
       .task-panel-header {
-        border-bottom: 2px solid var(--p5-red) !important;
+        border-bottom: 2px solid var(--phantom-red) !important;
         background: linear-gradient(
           90deg,
-          var(--p5-red) 0%,
-          var(--p5-red) 5px,
+          var(--phantom-red) 0%,
+          var(--phantom-red) 5px,
           transparent 5px
         ) !important;
         position: relative !important;
       }
       .task-panel-title {
-        font-family: var(--p5-font-disp) !important;
+        font-family: var(--phantom-font-disp) !important;
         letter-spacing: 0.18em !important;
         text-transform: uppercase !important;
       }
@@ -2788,10 +2819,10 @@
       /* ---- Task add button: P5 style ---- */
       .task-add-btn {
         clip-path: polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%) !important;
-        font-family: var(--p5-font-disp) !important;
+        font-family: var(--phantom-font-disp) !important;
         letter-spacing: 0.1em !important;
-        background: var(--p5-red) !important;
-        color: var(--p5-white-pure) !important;
+        background: var(--phantom-red) !important;
+        color: var(--phantom-white-pure) !important;
         border: none !important;
         transition: box-shadow 0.08s ease, transform 0.08s ease !important;
       }
@@ -2802,13 +2833,13 @@
 
       /* ---- Permission modal header: P5 style ---- */
       .perm-modal-header {
-        font-family: var(--p5-font-disp) !important;
+        font-family: var(--phantom-font-disp) !important;
         letter-spacing: 0.14em !important;
-        border-bottom: 2px solid var(--p5-red) !important;
+        border-bottom: 2px solid var(--phantom-red) !important;
         background: linear-gradient(
           90deg,
-          var(--p5-red) 0%,
-          var(--p5-red) 6px,
+          var(--phantom-red) 0%,
+          var(--phantom-red) 6px,
           transparent  6px
         ) !important;
         text-transform: uppercase !important;
@@ -2816,42 +2847,42 @@
 
       /* ---- Permission request banner: P5 bold diagonal ---- */
       #permReqBanner {
-        border-left: 5px solid var(--p5-yellow) !important;
-        border-top: 2px solid var(--p5-red) !important;
-        background: var(--p5-black) !important;
+        border-left: 5px solid var(--phantom-yellow) !important;
+        border-top: 2px solid var(--phantom-red) !important;
+        background: var(--phantom-black) !important;
         clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%) !important;
-        animation: p5-msg-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both !important;
+        animation: phantom-msg-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both !important;
       }
       .perm-req-title {
-        font-family: var(--p5-font-disp) !important;
+        font-family: var(--phantom-font-disp) !important;
         letter-spacing: 0.14em !important;
         text-transform: uppercase !important;
-        color: var(--p5-yellow) !important;
+        color: var(--phantom-yellow) !important;
       }
 
       /* ---- readonly banner: P5 warning style ---- */
       #readonlyBanner {
-        background: var(--p5-red) !important;
-        color: var(--p5-white-pure) !important;
-        font-family: var(--p5-font-disp) !important;
+        background: var(--phantom-red) !important;
+        color: var(--phantom-white-pure) !important;
+        font-family: var(--phantom-font-disp) !important;
         letter-spacing: 0.16em !important;
-        border-bottom: 2px solid var(--p5-yellow) !important;
+        border-bottom: 2px solid var(--phantom-yellow) !important;
         clip-path: polygon(0 0, 100% 0, 100% calc(100% - 4px), calc(100% - 16px) 100%, 0 100%) !important;
       }
 
       /* ---- @keyframes: page-in for panels ---- */
-      @keyframes p5-panel-in {
+      @keyframes phantom-panel-in {
         from { opacity: 0; transform: translateX(30px) skewX(-1deg); }
         to   { opacity: 1; transform: translateX(0)   skewX(0deg); }
       }
       .task-panel[style*="flex"] {
-        animation: p5-panel-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both !important;
+        animation: phantom-panel-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both !important;
       }
 
       /* ---- Session empty state ---- */
       .session-empty,
       .task-empty {
-        font-family: var(--p5-font-disp) !important;
+        font-family: var(--phantom-font-disp) !important;
         letter-spacing: 0.12em !important;
         color: rgba(215,0,15,0.35) !important;
         text-transform: uppercase !important;
@@ -2862,8 +2893,8 @@
       #inputResizer {
         background: repeating-linear-gradient(
           90deg,
-          var(--p5-red)       0px,
-          var(--p5-red)       3px,
+          var(--phantom-red)       0px,
+          var(--phantom-red)       3px,
           transparent         3px,
           transparent         7px
         ) !important;
@@ -2875,10 +2906,10 @@
         opacity: 0.85 !important;
         background: repeating-linear-gradient(
           90deg,
-          var(--p5-red)    0px,
-          var(--p5-red)    4px,
-          var(--p5-yellow) 4px,
-          var(--p5-yellow) 8px,
+          var(--phantom-red)    0px,
+          var(--phantom-red)    4px,
+          var(--phantom-yellow) 4px,
+          var(--phantom-yellow) 8px,
           transparent      8px,
           transparent      12px
         ) !important;
@@ -2892,14 +2923,14 @@
       .msg.user {
         background: linear-gradient(
           135deg,
-          var(--p5-red-deep) 0%,
-          var(--p5-red)      60%,
-          var(--p5-red-deep) 100%
+          var(--phantom-red-deep) 0%,
+          var(--phantom-red)      60%,
+          var(--phantom-red-deep) 100%
         ) !important;
-        color: var(--p5-white-pure) !important;
+        color: var(--phantom-white-pure) !important;
         border-radius: 2px !important;
         border-bottom-right-radius: 0 !important;
-        border-left: 3px solid var(--p5-yellow) !important;
+        border-left: 3px solid var(--phantom-yellow) !important;
         box-shadow: 3px 3px 0 rgba(0,0,0,0.35) !important;
         position: relative;
       }
@@ -2910,26 +2941,26 @@
         bottom: 0; right: 0;
         border-style: solid;
         border-width: 0 0 10px 10px;
-        border-color: transparent transparent var(--p5-yellow) transparent;
+        border-color: transparent transparent var(--phantom-yellow) transparent;
       }
 
       /* ---- AI message bubble: P5 クリーン + 左アクセント ---- */
       .msg.assistant {
         background: #fdfdfd !important;
-        color: var(--p5-black) !important;
+        color: var(--phantom-black) !important;
         border-radius: 2px !important;
         border-bottom-left-radius: 0 !important;
-        border-left: 4px solid var(--p5-red) !important;
+        border-left: 4px solid var(--phantom-red) !important;
         box-shadow: 2px 2px 0 rgba(0,0,0,0.12) !important;
       }
 
       /* ---- Waiting spinner: 赤に変更 ---- */
       .waiting-indicator .spinner {
         border: 2px solid rgba(215,0,15,0.25) !important;
-        border-top-color: var(--p5-red) !important;
+        border-top-color: var(--phantom-red) !important;
       }
       .waiting-indicator {
-        color: var(--p5-red) !important;
+        color: var(--phantom-red) !important;
         font-weight: 600 !important;
         letter-spacing: 0.03em;
       }
@@ -2938,10 +2969,10 @@
       .sidebar-search-input {
         border-color: rgba(215,0,15,0.4) !important;
         background: rgba(215,0,15,0.06) !important;
-        color: var(--p5-white) !important;
+        color: var(--phantom-white) !important;
       }
       .sidebar-search-input:focus {
-        border-color: var(--p5-red) !important;
+        border-color: var(--phantom-red) !important;
         background: rgba(215,0,15,0.14) !important;
         box-shadow: 0 0 0 2px rgba(215,0,15,0.25) !important;
         outline: none !important;
@@ -2952,19 +2983,19 @@
 
       /* ---- Session context menu: P5ダーク ---- */
       .session-menu {
-        background: var(--p5-black-soft) !important;
-        border: 1px solid var(--p5-red) !important;
+        background: var(--phantom-black-soft) !important;
+        border: 1px solid var(--phantom-red) !important;
         border-radius: 0 !important;
         box-shadow: 4px 4px 0 rgba(0,0,0,0.5) !important;
       }
       .session-menu-item {
-        color: var(--p5-white) !important;
+        color: var(--phantom-white) !important;
         font-size: 12px !important;
         letter-spacing: 0.04em;
       }
       .session-menu-item:hover {
         background: rgba(215,0,15,0.25) !important;
-        color: var(--p5-white-pure) !important;
+        color: var(--phantom-white-pure) !important;
         padding-left: 18px !important;
         transition: padding-left 0.1s ease !important;
       }
@@ -2978,12 +3009,12 @@
 
       /* ---- Response title (h2): P5赤アンダーライン ---- */
       .msg-content h2.response-title {
-        border-bottom: 2px solid var(--p5-red) !important;
-        color: var(--p5-black) !important;
+        border-bottom: 2px solid var(--phantom-red) !important;
+        color: var(--phantom-black) !important;
         padding-bottom: 4px !important;
       }
       .msg-content h2.response-title .title-icon {
-        color: var(--p5-red) !important;
+        color: var(--phantom-red) !important;
       }
 
       /* ---- Task form inputs/buttons: P5スタイル ---- */
@@ -2991,16 +3022,16 @@
       .task-form-textarea,
       .task-form-row select,
       .task-form-date {
-        background: var(--p5-gray) !important;
+        background: var(--phantom-gray) !important;
         border: 1px solid rgba(215,0,15,0.4) !important;
-        color: var(--p5-white) !important;
+        color: var(--phantom-white) !important;
         border-radius: 0 !important;
       }
       .task-form-input:focus,
       .task-form-textarea:focus,
       .task-form-row select:focus,
       .task-form-date:focus {
-        border-color: var(--p5-red) !important;
+        border-color: var(--phantom-red) !important;
         box-shadow: 0 0 0 2px rgba(215,0,15,0.2) !important;
         outline: none !important;
       }
@@ -3009,8 +3040,8 @@
         color: rgba(244,244,244,0.35) !important;
       }
       .task-btn-primary {
-        background: var(--p5-red) !important;
-        color: var(--p5-white-pure) !important;
+        background: var(--phantom-red) !important;
+        color: var(--phantom-white-pure) !important;
         border: none !important;
         border-radius: 0 !important;
         font-weight: 700 !important;
@@ -3020,20 +3051,20 @@
         transition: transform 0.08s ease, box-shadow 0.08s ease !important;
       }
       .task-btn-primary:hover {
-        background: var(--p5-red-bright) !important;
+        background: var(--phantom-red-bright) !important;
         transform: translate(-1px, -1px) !important;
         box-shadow: 3px 3px 0 rgba(0,0,0,0.5) !important;
       }
       .task-btn-secondary {
         background: transparent !important;
         border: 1px solid rgba(215,0,15,0.5) !important;
-        color: var(--p5-red-bright) !important;
+        color: var(--phantom-red-bright) !important;
         border-radius: 0 !important;
         font-weight: 600 !important;
       }
       .task-btn-secondary:hover {
         background: rgba(215,0,15,0.15) !important;
-        border-color: var(--p5-red) !important;
+        border-color: var(--phantom-red) !important;
       }
 
       /* ---- Diagram lightbox: P5ダークオーバーレイ ---- */
@@ -3041,41 +3072,41 @@
         background: rgba(10,10,10,0.93) !important;
       }
       .diagram-lightbox-content {
-        background: var(--p5-black-soft) !important;
-        border: 2px solid var(--p5-red) !important;
+        background: var(--phantom-black-soft) !important;
+        border: 2px solid var(--phantom-red) !important;
         border-radius: 0 !important;
         box-shadow: 8px 8px 0 rgba(0,0,0,0.7) !important;
       }
       .diagram-lightbox-toolbar {
-        background: var(--p5-black) !important;
-        border-top: 1px solid var(--p5-red) !important;
+        background: var(--phantom-black) !important;
+        border-top: 1px solid var(--phantom-red) !important;
       }
       .diagram-lightbox-toolbar button {
         background: transparent !important;
-        color: var(--p5-white) !important;
+        color: var(--phantom-white) !important;
         border: 1px solid rgba(215,0,15,0.4) !important;
         border-radius: 0 !important;
       }
       .diagram-lightbox-toolbar button:hover {
         background: rgba(215,0,15,0.2) !important;
-        border-color: var(--p5-red) !important;
-        color: var(--p5-white-pure) !important;
+        border-color: var(--phantom-red) !important;
+        color: var(--phantom-white-pure) !important;
       }
       .diagram-lightbox-close {
-        background: var(--p5-red) !important;
-        color: var(--p5-white-pure) !important;
+        background: var(--phantom-red) !important;
+        color: var(--phantom-white-pure) !important;
         border-radius: 0 !important;
         font-weight: 900 !important;
         border: none !important;
       }
       .diagram-lightbox-close:hover {
-        background: var(--p5-red-bright) !important;
+        background: var(--phantom-red-bright) !important;
         transform: scale(1.1) !important;
       }
       .diagram-lightbox-zoom-info {
-        color: var(--p5-yellow) !important;
+        color: var(--phantom-yellow) !important;
         font-weight: 700 !important;
-        font-family: var(--p5-font-disp) !important;
+        font-family: var(--phantom-font-disp) !important;
       }
 
       /* =====================================================
@@ -3089,20 +3120,20 @@
       }
       .search-result-item:hover {
         background: rgba(215,0,15,0.12) !important;
-        border-left: 2px solid var(--p5-red) !important;
+        border-left: 2px solid var(--phantom-red) !important;
         padding-left: 14px !important;
       }
       .search-result-question {
-        color: var(--p5-white) !important;
-        font-family: var(--p5-font-ui) !important;
+        color: var(--phantom-white) !important;
+        font-family: var(--phantom-font-ui) !important;
         font-weight: 600 !important;
       }
       .search-result-answer {
         color: rgba(240,235,220,0.6) !important;
       }
       .search-result-meta {
-        color: var(--p5-yellow) !important;
-        font-family: var(--p5-font-disp) !important;
+        color: var(--phantom-yellow) !important;
+        font-family: var(--phantom-font-disp) !important;
         font-size: 9px !important;
         letter-spacing: 0.05em !important;
       }
@@ -3116,22 +3147,22 @@
         background: rgba(215,0,15,0.08) !important;
         border: 1px solid rgba(215,0,15,0.4) !important;
         border-radius: 0 !important;
-        color: var(--p5-white) !important;
+        color: var(--phantom-white) !important;
         clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 0 100%) !important;
       }
       .attach-chip-remove {
         color: rgba(215,0,15,0.6) !important;
       }
       .attach-chip-remove:hover {
-        color: var(--p5-red) !important;
+        color: var(--phantom-red) !important;
       }
 
       /* ---- Session fork badge: P5 yellow ---- */
       .session-fork-badge {
         background: rgba(253,209,0,0.15) !important;
-        color: var(--p5-yellow) !important;
+        color: var(--phantom-yellow) !important;
         border-radius: 0 !important;
-        font-family: var(--p5-font-disp) !important;
+        font-family: var(--phantom-font-disp) !important;
         font-size: 9px !important;
         letter-spacing: 0.05em !important;
         border: 1px solid rgba(253,209,0,0.3) !important;
@@ -3140,13 +3171,13 @@
       /* ---- Task source badge: P5 overrides ---- */
       .task-source-badge.todowrite {
         background: rgba(215,0,15,0.08) !important;
-        color: var(--p5-red) !important;
+        color: var(--phantom-red) !important;
         border-color: rgba(215,0,15,0.3) !important;
         border-radius: 0 !important;
       }
       .task-source-badge.mcp {
         background: rgba(253,209,0,0.08) !important;
-        color: var(--p5-yellow) !important;
+        color: var(--phantom-yellow) !important;
         border-color: rgba(253,209,0,0.3) !important;
         border-radius: 0 !important;
       }
@@ -3185,13 +3216,13 @@
     background: #2a2a2a;
     color: #fff;
   }
-  /* P5テーマON時のselect外観 */
-  html[data-theme="p5"] #skinSelect {
-    border-color: var(--p5-red, #e50000);
-    color: var(--p5-yellow, #ffd700);
+  /* PHANTOMテーマON時のselect外観 */
+  html[data-theme="phantom"] #skinSelect {
+    border-color: var(--phantom-red, #e50000);
+    color: var(--phantom-yellow, #ffd700);
     background-color: rgba(229,0,0,0.15);
   }
-  html[data-theme="p5"] #skinSelect:hover {
+  html[data-theme="phantom"] #skinSelect:hover {
     background-color: rgba(229,0,0,0.3);
     box-shadow: 0 0 8px rgba(229,0,0,0.4);
   }
@@ -3289,7 +3320,7 @@
   </button>
   <select id="skinSelect" onchange="onSkinChange(this.value)" title="スキン選択" aria-label="スキン選択">
     <option value="default">デフォルト</option>
-    <option value="p5">P5</option>
+    <option value="phantom">PHANTOM</option>
   </select>
   </header>
 
@@ -3431,7 +3462,15 @@
       <option value="done">完了</option>
       <option value="cancelled">キャンセル</option>
     </select>
+    <button id="taskSelectAllBtn" class="task-select-all-btn" onclick="selectAllTasks()">全選択</button>
     <button class="task-add-btn" onclick="openTaskForm()">+ 追加</button>
+  </div>
+
+  <!-- 選択削除バー -->
+  <div id="taskBulkBar" class="task-bulk-bar" style="display:none">
+    <span class="task-bulk-count">0件選択中</span>
+    <button class="task-action-btn danger" onclick="deleteSelectedTasks()">選択削除</button>
+    <button class="task-action-btn" onclick="clearTaskSelection()">解除</button>
   </div>
 
   <!-- タスク一覧 -->
@@ -3629,18 +3668,30 @@
   marked.setOptions({ breaks: true, gfm: true });
 
   // =====================================================
-  // テーマ管理（Persona5 / デフォルト切り替え）
+  // テーマ管理（PHANTOM / デフォルト切り替え）
   // =====================================================
+  const FAVICONS = {
+    default: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%232e7dd1'/><text x='50' y='68' font-size='56' text-anchor='middle' font-weight='bold' fill='%23fff'>KB</text></svg>",
+    phantom: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230a0a0a'/><polygon points='60,0 100,0 100,40' fill='%23d7000f'/><text x='50' y='68' font-size='56' text-anchor='middle' font-weight='bold' fill='%23fff'>KB</text></svg>",
+  };
+
+  function updateFavicon(theme) {
+    const link = document.getElementById('favicon');
+    if (link) link.href = FAVICONS[theme] || FAVICONS.default;
+  }
+
   (function initTheme() {
     const saved = localStorage.getItem('kblite-theme') || 'default';
     document.documentElement.setAttribute('data-theme', saved);
     const sel = document.getElementById('skinSelect');
     if (sel) sel.value = saved;
+    updateFavicon(saved);
   })();
 
   function onSkinChange(value) {
     document.documentElement.setAttribute('data-theme', value);
     localStorage.setItem('kblite-theme', value);
+    updateFavicon(value);
   }
 
   // Mermaid.js の初期化（自動起動は無効化、エラー表示を抑制）
