@@ -1,21 +1,55 @@
 {
   "categories": [
-    {"system_id": "general", "name": "General"}
+    {
+      "system_id": "general",
+      "name": "General"
+    }
   ],
   "internal_system_ids": [],
   "teams": [
-    {"id": "general", "name": "汎用チーム", "default_model": "auto", "default_category": "general"},
-    {"id": "team-it", "name": "IT専門家チーム", "default_model": "auto", "default_category": "general"}
+    {
+      "id": "general",
+      "name": "汎用チーム",
+      "default_model": "auto",
+      "default_category": "general"
+    },
+    {
+      "id": "team-it",
+      "name": "IT専門家チーム",
+      "default_model": "auto",
+      "default_category": "general"
+    }
   ],
   "models": [
-    {"id": "auto", "name": "Auto", "default": true},
-    {"id": "claude-opus-4-7", "name": "Opus 4.7"},
-    {"id": "claude-opus-4-6", "name": "Opus 4.6"},
-    {"id": "claude-sonnet-4-6", "name": "Sonnet 4.6"},
-    {"id": "claude-haiku-4-5-20251001", "name": "Haiku 4.5"}
+    {
+      "id": "auto",
+      "name": "Auto",
+      "default": true
+    },
+    {
+      "id": "claude-opus-4-7",
+      "name": "Opus 4.7"
+    },
+    {
+      "id": "claude-opus-4-6",
+      "name": "Opus 4.6"
+    },
+    {
+      "id": "claude-sonnet-4-6",
+      "name": "Sonnet 4.6"
+    },
+    {
+      "id": "claude-haiku-4-5-20251001",
+      "name": "Haiku 4.5"
+    }
   ],
   "ai_services": [
-    {"id": "claude", "name": "Claude Code", "cli": "claude", "default": true}
+    {
+      "id": "claude",
+      "name": "Claude Code",
+      "cli": "claude",
+      "default": true
+    }
   ],
   "agents": [],
   "workspace_projects": [

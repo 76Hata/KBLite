@@ -27,11 +27,13 @@ from routes.permission import (
     submit_permission_request,
 )
 from routes.project import (
+    analyze_workspace_project,
     create_project,
     delete_project,
     list_projects,
     move_session,
     rename_project,
+    scaffold_workspace_project,
 )
 from routes.search import rebuild_index, search_conversations, search_stats
 from routes.session import (
@@ -57,6 +59,7 @@ from routes.system import (
     health,
     index,
     open_file,
+    pick_folder,
     restart_server,
     set_auth_key,
     start_claude_login,
@@ -87,6 +90,7 @@ _routes = [
     Route("/api/test/auth-error", test_auth_error, methods=["GET"]),
     Route("/api/restart", restart_server, methods=["POST"]),
     Route("/api/open_file", open_file, methods=["POST"]),
+    Route("/api/system/pick-folder", pick_folder, methods=["POST"]),
     Route("/api/team-chat", team_chat, methods=["POST"]),
     Route("/api/task/{task_id}", get_task_result, methods=["GET"]),
     Route("/api/task/{task_id}/cancel", cancel_task, methods=["POST"]),
@@ -103,6 +107,8 @@ _routes = [
     Route("/api/projects", list_projects, methods=["GET"]),
     Route("/api/projects/{project_id}", delete_project, methods=["DELETE"]),
     Route("/api/projects/{project_id}", rename_project, methods=["PUT"]),
+    Route("/api/workspace-projects/scaffold", scaffold_workspace_project, methods=["POST"]),
+    Route("/api/workspace-projects/analyze", analyze_workspace_project, methods=["POST"]),
     Route("/api/sessions/move", move_session, methods=["PUT"]),
     Route("/api/search", search_conversations, methods=["GET"]),
     Route("/api/search/stats", search_stats, methods=["GET"]),
