@@ -3681,7 +3681,9 @@
   }
 
   (function initTheme() {
-    const saved = localStorage.getItem('kblite-theme') || 'default';
+    let saved = localStorage.getItem('kblite-theme') || 'default';
+    // "p5" → "phantom" へのマイグレーション
+    if (saved === 'p5') { saved = 'phantom'; localStorage.setItem('kblite-theme', saved); }
     document.documentElement.setAttribute('data-theme', saved);
     const sel = document.getElementById('skinSelect');
     if (sel) sel.value = saved;
