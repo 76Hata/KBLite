@@ -4,6 +4,28 @@
 *.credentials.json
 secrets.json
 config.local.json
+# Auth / tokens / service accounts
+data/auth.json
+data/*.token
+credentials.json
+service-account*.json
+# Private keys
+*.pem
+*.key
+*.pfx
+*.p12
+id_rsa
+id_rsa.*
+id_ed25519
+id_ed25519.*
+*.asc
+*.gpg
+# Package / cloud config that often contains tokens
+.npmrc
+.pypirc
+.netrc
+.aws/
+.kube/config
 
 # Data
 data/*.db
@@ -12,6 +34,12 @@ data/*.db-wal
 data/*.db-shm
 data/*.log
 data/sqlite/
+# DB dumps / backups
+data/*.sqlite
+data/*.sqlite3
+*.bak
+*.dump
+*.sql.gz
 
 # Logs
 kblite.log

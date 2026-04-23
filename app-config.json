@@ -59,6 +59,13 @@
       "cwd": "C:/01_Develop/project/kblite",
       "default_team": "general",
       "default_category": "general"
+    },
+    {
+      "id": "test-project",
+      "label": "test-project",
+      "cwd": "C:\\01_Develop\\project\\test-project",
+      "default_team": "general",
+      "default_category": "general"
     }
   ]
 }
