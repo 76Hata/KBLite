@@ -383,8 +383,9 @@ class KBLiteUninstaller(tk.Tk):
     def _stop_kblite_process(self):
         """実行中の KBLite (uvicorn) プロセスを停止する"""
         try:
+            # WINDOWTITLE eq KBLite (完全一致) — "KBLite アンインストール" は除外される
             result = subprocess.run(
-                ["taskkill", "/F", "/FI", "WINDOWTITLE eq KBLite*"],
+                ["taskkill", "/F", "/FI", "WINDOWTITLE eq KBLite"],
                 capture_output=True, text=True,
                 creationflags=subprocess.CREATE_NO_WINDOW
             )
@@ -513,7 +514,7 @@ class KBLiteUninstaller(tk.Tk):
             "@echo off\n"
             "timeout /t 3 /nobreak >nul\n"
             f'rd /s /q "{folder}"\n'
-            "if exist \"{folder}\" (\n"
+            f'if exist "{folder}" (\n'
             "  timeout /t 3 /nobreak >nul\n"
             f'  rd /s /q "{folder}"\n'
             ")\n"
