@@ -1,17 +1,20 @@
 """会話操作 Mixin"""
+
 import logging
 from datetime import UTC
 from typing import Any
 
+from stores._base import StoreMixinBase
+
 logger = logging.getLogger(__name__)
 
 
-class ConversationMixin:
+class ConversationMixin(StoreMixinBase):
     """conversations テーブルに対する CRUD・検索操作"""
 
-    def save_conversation(self, session_id: str, sequence: int, question: str,
-                          answer: str, title: str = "",
-                          summary: str = "") -> str:
+    def save_conversation(
+        self, session_id: str, sequence: int, question: str, answer: str, title: str = "", summary: str = ""
+    ) -> str:
         from datetime import datetime
 
         # 同一セッション内で同じ question+answer が既に存在する場合はスキップ
@@ -24,7 +27,9 @@ class ConversationMixin:
         if dup is not None:
             logger.info(
                 "Duplicate detected: session=%s existing_seq=%d new_seq=%d — skipped",
-                session_id, dup["sequence"], sequence,
+                session_id,
+                dup["sequence"],
+                sequence,
             )
             return dup["id"]
 
@@ -61,10 +66,10 @@ class ConversationMixin:
             items.append(item)
         return items
 
-    def update_conversation(self, conv_id: str, question: str | None = None, answer: str | None = None) -> None:
-        cursor = self._conn.execute(
-            "SELECT id FROM conversations WHERE id = ?", (conv_id,)
-        )
+    def update_conversation(
+        self, conv_id: str, question: str | None = None, answer: str | None = None
+    ) -> None:
+        cursor = self._conn.execute("SELECT id FROM conversations WHERE id = ?", (conv_id,))
         if cursor.fetchone() is None:
             raise ValueError(f"会話が見つかりません: {conv_id}")
         fields: list[str] = []
@@ -83,14 +88,10 @@ class ConversationMixin:
         logger.info("Updated conversation content: %s", conv_id)
 
     def update_conversation_title(self, conv_id: str, title: str) -> None:
-        cursor = self._conn.execute(
-            "SELECT id FROM conversations WHERE id = ?", (conv_id,)
-        )
+        cursor = self._conn.execute("SELECT id FROM conversations WHERE id = ?", (conv_id,))
         if cursor.fetchone() is None:
             raise ValueError(f"会話が見つかりません: {conv_id}")
-        self._conn.execute(
-            "UPDATE conversations SET title = ? WHERE id = ?", (title, conv_id)
-        )
+        self._conn.execute("UPDATE conversations SET title = ? WHERE id = ?", (title, conv_id))
         self._conn.commit()
         logger.info("Updated conversation title: %s -> '%s'", conv_id, title)
 
@@ -143,31 +144,29 @@ class ConversationMixin:
             }
             if row["title"]:
                 meta["title"] = row["title"]
-            results.append({
-                "collection": "kb_conversations",
-                "document": (row["answer"] or "")[:500],
-                "metadata": meta,
-                "distance": 0.0,
-            })
+            results.append(
+                {
+                    "collection": "kb_conversations",
+                    "document": (row["answer"] or "")[:500],
+                    "metadata": meta,
+                    "distance": 0.0,
+                }
+            )
         return results
 
-    def search_by_session_id(
-        self, session_id: str, sequence: int | None = None
-    ) -> list[dict]:
+    def search_by_session_id(self, session_id: str, sequence: int | None = None) -> list[dict]:
         results: list[dict] = []
         errors: list[str] = []
 
         try:
             if sequence is not None:
                 cursor = self._conn.execute(
-                    "SELECT * FROM conversations "
-                    "WHERE session_id = ? AND sequence = ?",
+                    "SELECT * FROM conversations WHERE session_id = ? AND sequence = ?",
                     (session_id, sequence),
                 )
             else:
                 cursor = self._conn.execute(
-                    "SELECT * FROM conversations "
-                    "WHERE session_id = ? ORDER BY sequence",
+                    "SELECT * FROM conversations WHERE session_id = ? ORDER BY sequence",
                     (session_id,),
                 )
             for row in cursor.fetchall():
@@ -179,41 +178,45 @@ class ConversationMixin:
                 }
                 if row["title"]:
                     meta["title"] = row["title"]
-                results.append({
-                    "collection": "kb_conversations",
-                    "document": row["answer"] or "",
-                    "metadata": meta,
-                    "distance": 0.0,
-                })
+                results.append(
+                    {
+                        "collection": "kb_conversations",
+                        "document": row["answer"] or "",
+                        "metadata": meta,
+                        "distance": 0.0,
+                    }
+                )
         except Exception as e:
             msg = f"conversations 検索エラー: {e}"
             logger.warning(msg)
             errors.append(msg)
 
         try:
-            cursor = self._conn.execute(
-                "SELECT * FROM sessions WHERE id = ?", (session_id,)
-            )
+            cursor = self._conn.execute("SELECT * FROM sessions WHERE id = ?", (session_id,))
             row = cursor.fetchone()
             if row:
                 meta_s = self._session_to_dict(row)
-                results.append({
-                    "collection": "kb_sessions",
-                    "document": row["title"] or "",
-                    "metadata": meta_s,
-                    "distance": 0.0,
-                })
+                results.append(
+                    {
+                        "collection": "kb_sessions",
+                        "document": row["title"] or "",
+                        "metadata": meta_s,
+                        "distance": 0.0,
+                    }
+                )
         except Exception as e:
             msg = f"sessions 検索エラー: {e}"
             logger.warning(msg)
             errors.append(msg)
 
         if not results and errors:
-            return [{
-                "collection": "_error",
-                "document": "; ".join(errors),
-                "metadata": {"session_id": session_id},
-                "distance": -1.0,
-            }]
+            return [
+                {
+                    "collection": "_error",
+                    "document": "; ".join(errors),
+                    "metadata": {"session_id": session_id},
+                    "distance": -1.0,
+                }
+            ]
 
         return results

@@ -1,6 +1,8 @@
 """共有依存オブジェクト — store / config / logger を一元管理する"""
+
 import json
 import logging
+import os
 from pathlib import Path
 
 logging.basicConfig(
@@ -35,12 +37,14 @@ def _load_app_config() -> dict:
 _app_config = _load_app_config()
 
 AGENTS = _app_config.get("agents", [])
-_APP_COMMANDS_DIR = Path(__file__).parent / "commands"          # kblite/commands/（アプリ同梱・最優先）
+_APP_COMMANDS_DIR = Path(__file__).parent / "commands"  # kblite/commands/（アプリ同梱・最優先）
 _PROJECT_COMMANDS_DIR = Path(__file__).parent.parent / ".claude" / "commands"
 _HOME_COMMANDS_DIR = Path.home() / ".claude" / "commands"
 AGENT_COMMANDS_DIR = (
-    _APP_COMMANDS_DIR if _APP_COMMANDS_DIR.is_dir()
-    else _PROJECT_COMMANDS_DIR if _PROJECT_COMMANDS_DIR.is_dir()
+    _APP_COMMANDS_DIR
+    if _APP_COMMANDS_DIR.is_dir()
+    else _PROJECT_COMMANDS_DIR
+    if _PROJECT_COMMANDS_DIR.is_dir()
     else _HOME_COMMANDS_DIR
 )
 CATEGORIES = _app_config.get("categories", [])
@@ -72,6 +76,27 @@ def resolve_project_cwd(project_id: str, ai_service: str) -> str:
         return base.replace("/workspaces/", "/workspaces-cursor/", 1)
     return base
 
+
+# ── 認証設定のロード ──────────────────────────────────────────────
+_AUTH_CONFIG_PATH = Path(__file__).parent / "data" / "auth.json"
+
+
+def _load_auth_config():
+    """data/auth.json を読み込み、環境変数に設定する（既存の環境変数は上書きしない）"""
+    if not _AUTH_CONFIG_PATH.is_file():
+        return
+    try:
+        config = json.loads(_AUTH_CONFIG_PATH.read_text(encoding="utf-8"))
+        for key, value in config.items():
+            if key and isinstance(value, str) and value:
+                if key not in os.environ:
+                    os.environ[key] = value
+                    logger.info("認証設定を環境変数に設定しました: %s", key)
+    except Exception as e:
+        logger.warning("認証設定の読み込みエラー: %s", e)
+
+
+_load_auth_config()
 
 # ── 静的 HTML ─────────────────────────────────────────────────────
 _INDEX_HTML_PATH = Path(__file__).parent / "index.html"

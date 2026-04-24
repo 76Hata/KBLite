@@ -1,4 +1,5 @@
 """チャット・タスク管理エンドポイント"""
+
 import asyncio
 import base64
 import json
@@ -125,6 +126,7 @@ def _route_model_heuristic(
     display = _MODEL_DISPLAY.get(model_id, "Sonnet")
     return model_id, display
 
+
 # ── クライアント検出 ──────────────────────────────────────────────
 
 
@@ -197,6 +199,7 @@ _active_tasks: dict[str, _TaskState] = {}
 
 # ── タスク結果の永続化（SQLite）──────────────────────────────────
 
+
 def _init_task_results_table():
     """task_results テーブルを作成する（存在しなければ）"""
     try:
@@ -211,13 +214,12 @@ def _init_task_results_table():
             )
         """)
         # 古い結果を削除（7日以上前）
-        conn.execute(
-            "DELETE FROM task_results WHERE created_at < datetime('now', '-7 days')"
-        )
+        conn.execute("DELETE FROM task_results WHERE created_at < datetime('now', '-7 days')")
         conn.commit()
         conn.close()
     except Exception as e:
         logger.warning("task_results テーブル初期化エラー: %s", e)
+
 
 _init_task_results_table()
 
@@ -256,6 +258,7 @@ def _init_llm_usage_table():
         conn.close()
     except Exception as e:
         logger.warning("llm_usage_logs テーブル初期化エラー: %s", e)
+
 
 _init_llm_usage_table()
 
@@ -313,8 +316,10 @@ def _persist_llm_usage(task_id: str, state: "_TaskState", client: str = ""):
         conn.close()
         logger.info(
             "LLM使用量記録: task=%s, model=%s, in=%d, out=%d, cost=$%.4f",
-            task_id, state.llm_model,
-            usage.get("input_tokens", 0), usage.get("output_tokens", 0),
+            task_id,
+            state.llm_model,
+            usage.get("input_tokens", 0),
+            usage.get("output_tokens", 0),
             state.llm_cost_usd,
         )
     except Exception as e:
@@ -341,9 +346,7 @@ def _load_task_result(task_id: str) -> dict | None:
     try:
         conn = sqlite3.connect(_SQLITE_PATH)
         conn.row_factory = sqlite3.Row
-        row = conn.execute(
-            "SELECT * FROM task_results WHERE task_id = ?", (task_id,)
-        ).fetchone()
+        row = conn.execute("SELECT * FROM task_results WHERE task_id = ?", (task_id,)).fetchone()
         conn.close()
         if row:
             return {"status": row["status"], "text": row["text"], "error": row["error"]}
@@ -353,6 +356,7 @@ def _load_task_result(task_id: str) -> dict | None:
 
 
 # ── エンドポイント ────────────────────────────────────────────────
+
 
 async def team_chat(request: Request):
     try:
@@ -389,7 +393,10 @@ async def team_chat(request: Request):
     routed_model_name = ""
     if model == "auto":
         model, routed_model_name = _route_model_heuristic(
-            message, agents, body.get("attachments"), history,
+            message,
+            agents,
+            body.get("attachments"),
+            history,
         )
 
     if not message:
@@ -417,8 +424,12 @@ async def team_chat(request: Request):
             if att_type == "image":
                 m = re.match(r"data:(image/[a-z]+);base64,(.*)", content, re.DOTALL)
                 if m:
-                    ext_map = {"image/png": "png", "image/jpeg": "jpg",
-                               "image/gif": "gif", "image/webp": "webp"}
+                    ext_map = {
+                        "image/png": "png",
+                        "image/jpeg": "jpg",
+                        "image/gif": "gif",
+                        "image/webp": "webp",
+                    }
                     ext = ext_map.get(m.group(1), "png")
                     fname = upload_dir / f"{uuid.uuid4().hex}.{ext}"
                     try:
@@ -444,13 +455,17 @@ async def team_chat(request: Request):
             prefix_parts.append("## 添付ファイル\n" + "\n\n".join(text_parts))
         if img_paths:
             lines = ["## 添付画像"]
-            lines.append("以下の画像ファイルが添付されています。Read ツールで各ファイルを読み込んで内容を解析してください:")
+            lines.append(
+                "以下の画像ファイルが添付されています。Read ツールで各ファイルを読み込んで内容を解析してください:"
+            )
             for orig_name, fpath in img_paths:
                 lines.append(f"- {fpath}  （元ファイル名: {orig_name}）")
             prefix_parts.append("\n".join(lines))
         if pdf_paths:
             lines = ["## 添付PDF"]
-            lines.append("以下のPDFファイルが添付されています。Read ツールで各ファイルを読み込んで内容を確認してください:")
+            lines.append(
+                "以下のPDFファイルが添付されています。Read ツールで各ファイルを読み込んで内容を確認してください:"
+            )
             for orig_name, fpath in pdf_paths:
                 lines.append(f"- {fpath}  （元ファイル名: {orig_name}）")
             prefix_parts.append("\n".join(lines))
@@ -465,8 +480,9 @@ async def team_chat(request: Request):
 
     # 古いタスクをクリーンアップ
     now = time.time()
-    expired = [tid for tid, ts in _active_tasks.items()
-               if ts.status != "running" and now - ts.created_at > _TASK_TTL]
+    expired = [
+        tid for tid, ts in _active_tasks.items() if ts.status != "running" and now - ts.created_at > _TASK_TTL
+    ]
     for tid in expired:
         del _active_tasks[tid]
 
@@ -476,10 +492,17 @@ async def team_chat(request: Request):
     # プロンプト構築
     lesson_context = ""
     try:
-        prompt = build_team_prompt(message, agents, mode, history, category, search_all,
-                                   client_context=client_context,
-                                   lesson_context=lesson_context,
-                                   session_id=current_session_id)
+        prompt = build_team_prompt(
+            message,
+            agents,
+            mode,
+            history,
+            category,
+            search_all,
+            client_context=client_context,
+            lesson_context=lesson_context,
+            session_id=current_session_id,
+        )
     except FileNotFoundError as e:
         logger.error("エージェント定義エラー: %s", e)
         return JSONResponse({"error": str(e)}, status_code=500)
@@ -490,9 +513,7 @@ async def team_chat(request: Request):
     _active_tasks[task_id] = task_state
 
     # プロジェクトCWD解決（Cursor Agent は workspaces-cursor 側を参照）
-    project_cwd = (
-        resolve_project_cwd(workspace_project, ai_service) if workspace_project else ""
-    )
+    project_cwd = resolve_project_cwd(workspace_project, ai_service) if workspace_project else ""
 
     # バックグラウンドタスクを起動
     asyncio.create_task(
@@ -511,15 +532,15 @@ async def team_chat(request: Request):
     )
 
     async def event_stream():
-        first_evt = {'type': 'task_id', 'task_id': task_id, 'ai_service': ai_service}
+        first_evt = {"type": "task_id", "task_id": task_id, "ai_service": ai_service}
         # Cursor Agent は KB 側モデル ID を CLI に渡さないため、ルーティング表示は誤解を招く
         if routed_model_name and ai_service != "cursor":
-            first_evt['routed_model'] = routed_model_name
+            first_evt["routed_model"] = routed_model_name
         yield f"data: {json.dumps(first_evt)}\n\n"
         try:
             while True:
                 try:
-                    chunk = await asyncio.wait_for(task_state.queue.get(), timeout=15)
+                    chunk = await asyncio.wait_for(task_state.queue.get(), timeout=5)
                 except TimeoutError:
                     yield f"data: {json.dumps({'type': 'heartbeat'})}\n\n"
                     continue
@@ -565,18 +586,23 @@ def _build_claude_cmd(
     _cmd_prefix = ["cmd", "/c"] if (sys.platform == "win32" and ai_cli_path.lower().endswith(".cmd")) else []
     cmd = [
         *_cmd_prefix,
-        ai_cli_path, "-p",
-        "--output-format", "stream-json",
+        ai_cli_path,
+        "-p",
+        "--output-format",
+        "stream-json",
     ]
     if is_cursor_like:
         # Cursor Agent 側の無人実行向けオプション
         cmd.extend(["--force", "--trust", "--approve-mcps"])
     else:
-        cmd.extend([
-            "--verbose",
-            "--max-turns", str(max_turns),
-            "--dangerously-skip-permissions",
-        ])
+        cmd.extend(
+            [
+                "--verbose",
+                "--max-turns",
+                str(max_turns),
+                "--dangerously-skip-permissions",
+            ]
+        )
     if resume_session_id and not is_cursor_like:
         cmd.extend(["--resume", resume_session_id, "--fork-session"])
     if model and not skip_kb_model_args:
@@ -622,8 +648,12 @@ def _parse_stream_event(line: str, state: _TaskState) -> dict | None:
 
     if evt_type == "error":
         err_info = evt.get("error", {})
-        if isinstance(err_info, dict) and err_info.get("type") == "overloaded_error":
-            return {"type": "_overloaded"}
+        if isinstance(err_info, dict):
+            err_type = err_info.get("type", "")
+            if err_type == "overloaded_error":
+                return {"type": "_overloaded"}
+            if err_type == "authentication_error":
+                return {"type": "_auth_error", "message": err_info.get("message", "認証エラー")}
         return None
 
     if evt_type == "assistant":
@@ -668,10 +698,12 @@ async def _run_claude_task(
     global _concurrent_count
 
     if _concurrent_count >= _MAX_CONCURRENT_TASKS:
-        await state.queue.put({
-            "type": "waiting",
-            "message": f"他のタスクが実行中です（{_concurrent_count}/{_MAX_CONCURRENT_TASKS}件）。順番待ちしています...",
-        })
+        await state.queue.put(
+            {
+                "type": "waiting",
+                "message": f"他のタスクが実行中です（{_concurrent_count}/{_MAX_CONCURRENT_TASKS}件）。順番待ちしています...",
+            }
+        )
 
     try:
         await asyncio.wait_for(_team_semaphore.acquire(), timeout=_SEMAPHORE_WAIT_TIMEOUT)
@@ -691,8 +723,9 @@ async def _run_claude_task(
 
         effective_cwd = cwd or _DEFAULT_CWD
         eff_cli = cli_executable or _resolve_cli_executable(_default_ai_service_id())
-        cmd = _build_claude_cmd(model, max_turns, eff_cli, ai_service=ai_service,
-                                resume_session_id=resume_session_id)
+        cmd = _build_claude_cmd(
+            model, max_turns, eff_cli, ai_service=ai_service, resume_session_id=resume_session_id
+        )
 
         logger.info(
             "AI CLI実行: task=%s, ai_service=%s, cli=%s, mode=%s, model=%s, max_turns=%d, cwd=%s, fork=%s, concurrent=%d/%d",
@@ -708,7 +741,9 @@ async def _run_claude_task(
             _MAX_CONCURRENT_TASKS,
         )
         logger.info("AI CLIコマンド全体 (task=%s): %s", task_id, cmd)
-        logger.info("CWD存在確認 (task=%s): cwd=%s exists=%s", task_id, effective_cwd, Path(effective_cwd).exists())
+        logger.info(
+            "CWD存在確認 (task=%s): cwd=%s exists=%s", task_id, effective_cwd, Path(effective_cwd).exists()
+        )
 
         _API_OVERLOAD_MAX_RETRIES = 10
         _API_OVERLOAD_BASE_WAIT = 10
@@ -783,12 +818,41 @@ async def _run_claude_task(
                         logger.warning("API overloaded in stream (task=%s)", task_id)
                         break
 
+                    # not logged in チェック（JSON パース前）
+                    _line_lower = line.lower()
+                    if "not logged in" in _line_lower or "please run /login" in _line_lower:
+                        state.status = "error"
+                        state.error = "認証エラー"
+                        _persist_task_result(task_id, "error", "", state.error)
+                        await state.queue.put(
+                            {
+                                "type": "auth_error",
+                                "message": "ログインが必要です。認証設定を確認してください。",
+                            }
+                        )
+                        await state.queue.put(None)
+                        return
+
                     ui_evt = _parse_stream_event(line, state)
                     if ui_evt is None:
                         continue
                     if ui_evt.get("type") == "_overloaded":
                         _api_overloaded = True
                         break
+                    if ui_evt.get("type") == "_auth_error":
+                        state.status = "error"
+                        state.error = "認証エラー"
+                        _persist_task_result(task_id, "error", "", state.error)
+                        await state.queue.put(
+                            {
+                                "type": "auth_error",
+                                "message": ui_evt.get(
+                                    "message", "APIキーが無効です。認証設定を確認してください。"
+                                ),
+                            }
+                        )
+                        await state.queue.put(None)
+                        return
                     if ui_evt.get("type") == "_result":
                         break
                     await state.queue.put(ui_evt)
@@ -814,6 +878,27 @@ async def _run_claude_task(
             if state.status == "cancelled":
                 return
 
+            # stderr からの認証エラー検出
+            _AUTH_MARKERS = (
+                "authentication_error",
+                "invalid authentication credentials",
+                "401",
+                "not logged in",
+                "please run /login",
+            )
+            if state.status != "error" and any(m in stderr_text.lower() for m in _AUTH_MARKERS):
+                state.status = "error"
+                state.error = "認証エラー"
+                _persist_task_result(task_id, "error", "", state.error)
+                await state.queue.put(
+                    {
+                        "type": "auth_error",
+                        "message": "APIキーが無効か未設定です。認証設定を確認してください。",
+                    }
+                )
+                await state.queue.put(None)
+                return
+
             # API overloaded → リトライ（指数バックオフ + モデルダウングレード）
             if _api_overloaded:
                 api_overload_attempts += 1
@@ -828,25 +913,31 @@ async def _run_claude_task(
                 if api_overload_attempts == _API_OVERLOAD_DOWNGRADE_AFTER and model:
                     fallback = _FALLBACK_MODEL_MAP.get(model)
                     if fallback:
-                        current_cmd = _build_claude_cmd(
-                            fallback, max_turns, eff_cli, ai_service=ai_service
+                        current_cmd = _build_claude_cmd(fallback, max_turns, eff_cli, ai_service=ai_service)
+                        logger.warning("モデルダウングレード (task=%s): %s → %s", task_id, model, fallback)
+                        await state.queue.put(
+                            {
+                                "type": "waiting",
+                                "message": f"モデルを {fallback} に切り替えてリトライします...",
+                            }
                         )
-                        logger.warning("モデルダウングレード (task=%s): %s → %s",
-                                       task_id, model, fallback)
-                        await state.queue.put({
-                            "type": "waiting",
-                            "message": f"モデルを {fallback} に切り替えてリトライします...",
-                        })
                         await asyncio.sleep(5)
                         continue
 
                 wait_secs = min(_API_OVERLOAD_BASE_WAIT * (2 ** (api_overload_attempts - 1)), 120)
-                logger.info("API overloaded retry (task=%s, %d/%d), %d秒後...",
-                            task_id, api_overload_attempts, _API_OVERLOAD_MAX_RETRIES, wait_secs)
-                await state.queue.put({
-                    "type": "waiting",
-                    "message": f"APIが混雑中です。{wait_secs}秒後にリトライします... ({api_overload_attempts}/{_API_OVERLOAD_MAX_RETRIES})",
-                })
+                logger.info(
+                    "API overloaded retry (task=%s, %d/%d), %d秒後...",
+                    task_id,
+                    api_overload_attempts,
+                    _API_OVERLOAD_MAX_RETRIES,
+                    wait_secs,
+                )
+                await state.queue.put(
+                    {
+                        "type": "waiting",
+                        "message": f"APIが混雑中です。{wait_secs}秒後にリトライします... ({api_overload_attempts}/{_API_OVERLOAD_MAX_RETRIES})",
+                    }
+                )
                 await asyncio.sleep(wait_secs)
                 continue
 
@@ -863,7 +954,13 @@ async def _run_claude_task(
                 # stderr の末尾から有用な情報を抽出
                 err_detail = stderr_text[-300:].strip()
                 err_msg += f"\n{err_detail}"
-            logger.error("AI CLI異常終了 (task=%s, ai_service=%s, rc=%d): %s", task_id, ai_service, rc, stderr_text[:500])
+            logger.error(
+                "AI CLI異常終了 (task=%s, ai_service=%s, rc=%d): %s",
+                task_id,
+                ai_service,
+                rc,
+                stderr_text[:500],
+            )
             state.status = "error"
             state.error = err_msg
             _persist_task_result(task_id, "error", state.text, state.error)
@@ -874,11 +971,13 @@ async def _run_claude_task(
         state.status = "done"
         _persist_task_result(task_id, "done", state.text, "")
         _persist_llm_usage(task_id, state, client=client_context)
-        await state.queue.put({
-            "type": "done",
-            "web_search_used": state.web_search_used,
-            "claude_session_id": state.claude_session_id,
-        })
+        await state.queue.put(
+            {
+                "type": "done",
+                "web_search_used": state.web_search_used,
+                "claude_session_id": state.claude_session_id,
+            }
+        )
         await state.queue.put(None)
 
     except Exception as e:
@@ -900,11 +999,13 @@ async def get_task_result(request: Request) -> JSONResponse:
     task_id = request.path_params["task_id"]
     state = _active_tasks.get(task_id)
     if state:
-        return JSONResponse({
-            "status": state.status,
-            "text": state.text,
-            "error": state.error,
-        })
+        return JSONResponse(
+            {
+                "status": state.status,
+                "text": state.text,
+                "error": state.error,
+            }
+        )
     # インメモリにない場合はSQLiteにフォールバック（再起動後の復帰用）
     persisted = _load_task_result(task_id)
     if persisted:
@@ -950,6 +1051,7 @@ async def save_web_search(request: Request) -> JSONResponse:
             return JSONResponse({"error": "content は必須です"}, status_code=400)
 
         from sqlite_store import SQLiteStore
+
         store = SQLiteStore(_SQLITE_PATH)
         row_id = store.add_web_search_staging(
             query=query,

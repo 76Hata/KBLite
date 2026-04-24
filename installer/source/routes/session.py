@@ -1,4 +1,5 @@
 """セッション・会話CRUDエンドポイント"""
+
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
@@ -19,8 +20,9 @@ async def create_session(request: Request) -> JSONResponse:
     if not session_id or not title:
         return JSONResponse({"error": "session_id と title は必須です"}, status_code=400)
     try:
-        meta = store.create_session(session_id, title, first_message, category=category,
-                                    parent_session_id=parent_session_id)
+        meta = store.create_session(
+            session_id, title, first_message, category=category, parent_session_id=parent_session_id
+        )
         return JSONResponse({"ok": True, **meta})
     except Exception as e:
         logger.error("セッション作成エラー: %s", e)
@@ -122,7 +124,9 @@ async def save_conversation(request: Request) -> JSONResponse:
     if not session_id or not question or not answer:
         return JSONResponse({"error": "session_id, question, answer は必須です"}, status_code=400)
     try:
-        conv_id = store.save_conversation(session_id, sequence, question, answer, title=title or "", summary=summary or "")
+        conv_id = store.save_conversation(
+            session_id, sequence, question, answer, title=title or "", summary=summary or ""
+        )
         store.update_session(session_id, title=title, message_count=sequence + 1)
         return JSONResponse({"ok": True, "id": conv_id})
     except Exception as e:

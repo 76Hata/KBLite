@@ -4,7 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Knowledge Base Lite</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%232e7dd1'/><text x='50' y='68' font-size='56' text-anchor='middle' font-weight='bold' fill='%23fff'>KB</text></svg>">
+  <link id="favicon" rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%232e7dd1'/><text x='50' y='68' font-size='56' text-anchor='middle' font-weight='bold' fill='%23fff'>KB</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Oswald:wght@500;700&family=Bebas+Neue&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -58,6 +61,166 @@
     #restartServerBtn svg { width: 16px; height: 16px; }
     #restartServerBtn:hover { background: rgba(231,76,60,0.2); color: #e74c3c; border-color: rgba(231,76,60,0.4); }
     #restartServerBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── Permission Manager ──────────────────────────── */
+    #permMgrBtn {
+      width: 36px;
+      height: 36px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px;
+      color: rgba(255,255,255,0.6);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #permMgrBtn svg { width: 16px; height: 16px; }
+    #permMgrBtn:hover { background: rgba(46,205,112,0.2); color: #2ecc70; border-color: rgba(46,205,112,0.4); }
+
+    /* Permission Manager モーダル */
+    #permMgrOverlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+    }
+    #permMgrOverlay.visible { display: flex; }
+    #permMgrModal {
+      background: #1e1e2e;
+      border: 1px solid #333;
+      border-radius: 10px;
+      width: min(600px, 95vw);
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      color: #eee;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+    .perm-modal-header {
+      padding: 16px 20px 12px;
+      border-bottom: 1px solid #333;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .perm-modal-header h2 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 600;
+      flex: 1;
+    }
+    .perm-modal-close {
+      background: none;
+      border: none;
+      color: #888;
+      cursor: pointer;
+      font-size: 20px;
+      line-height: 1;
+      padding: 2px 6px;
+    }
+    .perm-modal-close:hover { color: #eee; }
+    .perm-modal-body {
+      padding: 16px 20px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .perm-section-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 0 0 8px;
+    }
+    .perm-list {
+      list-style: none;
+      margin: 0 0 16px;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .perm-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #252535;
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 13px;
+      font-family: monospace;
+      word-break: break-all;
+    }
+    .perm-item span { flex: 1; }
+    .perm-item-remove {
+      background: none;
+      border: none;
+      color: #c0392b;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 0 4px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .perm-item-remove:hover { color: #e74c3c; }
+    .perm-empty {
+      color: #555;
+      font-size: 13px;
+      font-style: italic;
+      margin: 0 0 16px;
+    }
+    .perm-add-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .perm-add-row input {
+      flex: 1;
+      background: #252535;
+      border: 1px solid #444;
+      border-radius: 6px;
+      color: #eee;
+      padding: 7px 10px;
+      font-size: 13px;
+      font-family: monospace;
+    }
+    .perm-add-row input:focus { outline: none; border-color: #2ecc70; }
+    .perm-add-row input::placeholder { color: #555; }
+    .perm-add-btn {
+      background: #2ecc70;
+      border: none;
+      border-radius: 6px;
+      color: #111;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 7px 14px;
+      flex-shrink: 0;
+    }
+    .perm-add-btn:hover { background: #27ae60; }
+    .perm-error-msg {
+      color: #e74c3c;
+      font-size: 12px;
+      margin: 4px 0 0;
+      min-height: 16px;
+    }
+    .perm-section-sep {
+      border: none;
+      border-top: 1px solid #333;
+      margin: 12px 0;
+    }
+    .perm-hint {
+      font-size: 11px;
+      color: #666;
+      margin: 0;
+    }
     .sidebar-header {
       padding: 14px 16px 10px;
       border-bottom: 1px solid rgba(255,255,255,0.08);
@@ -1109,12 +1272,46 @@
     /* ヘッダーのログボタン */
     #logToggleBtn:active { background: rgba(255,255,255,0.25); }
 
+    /* 入力エリア リサイズハンドル */
+    #inputResizer {
+      flex-shrink: 0;
+      height: 6px;
+      background: transparent;
+      cursor: ns-resize;
+      position: relative;
+      z-index: 10;
+    }
+    #inputResizer:hover,
+    #inputResizer.dragging {
+      background: rgba(46,125,209,0.3);
+    }
+    #inputResizer::after {
+      content: '';
+      display: block;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px;
+      height: 2px;
+      border-radius: 2px;
+      background: #c0c0c0;
+    }
+    #inputResizer:hover::after,
+    #inputResizer.dragging::after {
+      background: #2e7dd1;
+    }
+
     /* 入力エリア - Claude.ai スタイル */
     .input-area {
       flex-shrink: 0;
       padding: 10px 14px 12px;
       background: #f5f5f5;
       border-top: 1px solid #e5e5e5;
+      overflow: hidden;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
     }
     .input-area.disabled {
       opacity: 0.5;
@@ -1129,6 +1326,8 @@
       transition: border-color 0.15s, box-shadow 0.15s;
       display: flex;
       flex-direction: column;
+      flex: 1 1 auto;
+      min-height: 0;
     }
     .input-inner:focus-within {
       border-color: #a0b8d8;
@@ -1142,7 +1341,6 @@
       padding: 12px 16px 6px;
       resize: none;
       min-height: 44px;
-      max-height: 200px;
       overflow-y: auto;
       line-height: 1.5;
       -webkit-appearance: none;
@@ -1838,6 +2036,1352 @@
     }
     .task-btn-secondary:hover { background: rgba(255,255,255,0.1); }
 
+    /* ── 権限申請ダイアログ ───────────────────────────── */
+    #permReqBanner {
+      display: none;
+      position: fixed;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 3000;
+      background: #1e1e2e;
+      border: 1px solid #e67e22;
+      border-radius: 8px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+      padding: 14px 18px;
+      min-width: 340px;
+      max-width: min(560px, 95vw);
+      color: #eee;
+      font-size: 13px;
+      animation: permReqSlide 0.2s ease;
+    }
+    #permReqBanner.visible { display: block; }
+    @keyframes permReqSlide {
+      from { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+      to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+    .perm-req-title {
+      font-weight: 700;
+      color: #e67e22;
+      font-size: 13px;
+      margin: 0 0 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .perm-req-list {
+      list-style: none;
+      margin: 0 0 12px;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .perm-req-item {
+      background: #252535;
+      border-radius: 6px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .perm-req-pattern {
+      font-family: monospace;
+      font-size: 12px;
+      color: #7ec8e3;
+      word-break: break-all;
+    }
+    .perm-req-reason {
+      font-size: 12px;
+      color: #aaa;
+    }
+    .perm-req-actions {
+      display: flex;
+      gap: 6px;
+      justify-content: flex-end;
+      margin-top: 4px;
+    }
+    .perm-req-approve {
+      background: #2ecc70;
+      border: none;
+      border-radius: 5px;
+      color: #111;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 5px 14px;
+    }
+    .perm-req-approve:hover { background: #27ae60; }
+    .perm-req-deny {
+      background: rgba(192,57,43,0.8);
+      border: none;
+      border-radius: 5px;
+      color: #fff;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 14px;
+    }
+    .perm-req-deny:hover { background: #c0392b; }
+
+    /* =====================================================================
+       PHANTOM Theme Override
+       ---------------------------------------------------------------------
+       既存スタイルに後勝ちで被せるテーマレイヤー。
+       html[data-theme="phantom"] で絞ることでテーマ切り替えが可能。
+       ===================================================================== */
+    :root {
+      --phantom-red:        #d7000f;   /* PHANTOMテーマ アクセントレッド */
+      --phantom-red-deep:   #9c0009;   /* ダーク赤 */
+      --phantom-red-bright: #ff1a3c;   /* 明るい赤（ホバー/アクセント） */
+      --phantom-black:      #0a0a0a;   /* ジェットブラック */
+      --phantom-black-soft: #1a1a1a;   /* ソフトブラック */
+      --phantom-white:      #f4f4f4;   /* オフホワイト */
+      --phantom-white-pure: #ffffff;
+      --phantom-yellow:     #ffd200;   /* 警告/ハイライト */
+      --phantom-gray:       #2a2a2a;
+      --phantom-gray-mid:   #3a3a3a;
+      --phantom-font-body:  'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --phantom-font-disp:  'Bebas Neue', 'Oswald', 'Noto Sans JP', sans-serif;
+    }
+
+    /* PHANTOMテーマ: data-theme="phantom" のときのみ適用 */
+    html[data-theme="phantom"] {
+
+      /* ---- Typography ---- */
+      body {
+        font-family: var(--phantom-font-body);
+        background: var(--phantom-white);
+        color: var(--phantom-black);
+        /* 斜めストライプの微細テクスチャ */
+        background-image:
+          repeating-linear-gradient(
+            -15deg,
+            rgba(0,0,0,0.015) 0 2px,
+            transparent 2px 6px
+          );
+      }
+      h1, h2, h3, h4,
+      .sidebar-header h2,
+      .main-header-title,
+      .modal-header h2 {
+        font-family: var(--phantom-font-disp);
+        letter-spacing: 0.04em;
+        font-weight: 700;
+      }
+
+      /* ---- Sidebar: 黒地 + 赤アクセント ---- */
+      #sidebar {
+        background: var(--phantom-black);
+        color: var(--phantom-white);
+        border-right: 2px solid var(--phantom-red);
+        /* 赤スラッシュの装飾 */
+        background-image:
+          linear-gradient(125deg, transparent 0 calc(100% - 3px), var(--phantom-red) calc(100% - 3px) 100%);
+      }
+      .sidebar-header {
+        border-bottom: 2px solid var(--phantom-red);
+        background: linear-gradient(90deg, var(--phantom-red) 0%, var(--phantom-red) 6px, transparent 6px);
+        padding-left: 18px;
+      }
+      .sidebar-header h2 {
+        color: var(--phantom-red-bright);
+        font-weight: 900;
+        letter-spacing: 0.12em;
+      }
+      .sidebar-footer {
+        border-top: 1px solid rgba(215,0,15,0.35);
+      }
+
+      /* ---- Primary Button (青→赤) ---- */
+      #sidebarNewChatBtn,
+      .btn-primary,
+      button.primary {
+        background: var(--phantom-red) !important;
+        color: var(--phantom-white-pure) !important;
+        border: none;
+        border-radius: 2px !important;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        position: relative;
+        overflow: hidden;
+        transition: background 0.12s ease, transform 0.08s ease;
+      }
+      #sidebarNewChatBtn::before,
+      .btn-primary::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0;
+        width: 4px; height: 100%;
+        background: var(--phantom-black);
+        transform: skewX(-20deg);
+        transform-origin: top left;
+      }
+      #sidebarNewChatBtn:hover,
+      .btn-primary:hover {
+        background: var(--phantom-red-bright) !important;
+        transform: translate(-1px, -1px);
+      }
+      #sidebarNewChatBtn:active,
+      .btn-primary:active {
+        background: var(--phantom-red-deep) !important;
+        transform: translate(0, 0);
+      }
+
+      /* ---- Session list items ---- */
+      .session-item {
+        border-radius: 0 !important;
+        border-left: 3px solid transparent;
+        transition: border-color 0.1s ease, background 0.1s ease;
+      }
+      .session-item:hover {
+        background: rgba(215,0,15,0.12) !important;
+        border-left-color: var(--phantom-red);
+      }
+      .session-item.active,
+      .session-item.selected {
+        background: var(--phantom-red) !important;
+        color: var(--phantom-white-pure) !important;
+        border-left-color: var(--phantom-yellow);
+      }
+
+      /* ---- Main header ---- */
+      .main-header,
+      #mainHeader {
+        background: var(--phantom-black) !important;
+        color: var(--phantom-white) !important;
+        border-bottom: 2px solid var(--phantom-red);
+        position: relative;
+      }
+      .main-header::after,
+      #mainHeader::after {
+        content: '';
+        position: absolute;
+        left: 0; bottom: -2px;
+        width: 120px; height: 2px;
+        background: var(--phantom-yellow);
+        clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+      }
+      .main-header .main-header-title,
+      #mainHeader h1, #mainHeader h2 {
+        color: var(--phantom-white-pure) !important;
+        font-family: var(--phantom-font-disp);
+        letter-spacing: 0.06em;
+      }
+
+      /* ---- Chat bubbles ---- */
+      .message.user .bubble,
+      .msg-user .bubble,
+      .message-user .bubble {
+        background: var(--phantom-black) !important;
+        color: var(--phantom-white) !important;
+        border-radius: 2px 14px 2px 14px !important;
+        border: 1px solid var(--phantom-red);
+      }
+      .message.assistant .bubble,
+      .msg-assistant .bubble,
+      .message-assistant .bubble {
+        background: var(--phantom-white-pure) !important;
+        color: var(--phantom-black) !important;
+        border: 2px solid var(--phantom-black);
+        border-radius: 14px 2px 14px 2px !important;
+        box-shadow: 4px 4px 0 var(--phantom-red);
+      }
+
+      /* ---- Input area ---- */
+      .input-area {
+        background: var(--phantom-white-pure) !important;
+        border-top: 2px solid var(--phantom-red) !important;
+      }
+      .input-inner {
+        border: 2px solid var(--phantom-black) !important;
+        border-radius: 2px !important;
+        background: var(--phantom-white-pure);
+        transition: border-color 0.1s ease, box-shadow 0.1s ease;
+      }
+      .input-inner:focus-within {
+        border-color: var(--phantom-red) !important;
+        box-shadow: 4px 4px 0 var(--phantom-red) !important;
+      }
+      #messageInput {
+        font-family: var(--phantom-font-body);
+        color: var(--phantom-black);
+      }
+      #messageInput::placeholder {
+        color: rgba(0,0,0,0.35);
+        font-style: italic;
+      }
+
+      /* ---- Modal / dialog ---- */
+      .modal,
+      .dialog {
+        border: 2px solid var(--phantom-black) !important;
+        border-radius: 2px !important;
+        box-shadow: 6px 6px 0 var(--phantom-red) !important;
+      }
+      .modal-header {
+        background: var(--phantom-black) !important;
+        color: var(--phantom-white-pure) !important;
+        border-bottom: 2px solid var(--phantom-red) !important;
+      }
+
+      /* ---- Scrollbar ---- */
+      ::-webkit-scrollbar-thumb { background: var(--phantom-red) !important; border-radius: 0 !important; }
+      ::-webkit-scrollbar-thumb:hover { background: var(--phantom-red-bright) !important; }
+
+      /* ---- Links / accents ---- */
+      a { color: var(--phantom-red); }
+      a:hover { color: var(--phantom-red-bright); }
+
+      /* ---- Badges / labels: 鋭角に ---- */
+      .task-source-badge,
+      .task-scope-badge,
+      .badge,
+      .tag { border-radius: 2px !important; }
+
+      /* ---- Input resizer ---- */
+      #inputResizer:hover,
+      #inputResizer.dragging { background: rgba(215,0,15,0.3) !important; }
+      #inputResizer:hover::after,
+      #inputResizer.dragging::after { background: var(--phantom-red) !important; }
+
+      /* ---- Header: <header> 要素をP5に ---- */
+      header {
+        background: var(--phantom-black) !important;
+        color: var(--phantom-white) !important;
+        border-bottom: 3px solid var(--phantom-red) !important;
+        position: relative;
+      }
+      header::after {
+        content: '';
+        position: absolute;
+        left: 0; bottom: -3px;
+        width: 80px; height: 3px;
+        background: var(--phantom-yellow);
+        clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+        z-index: 1;
+      }
+      header h1 {
+        font-family: var(--phantom-font-disp) !important;
+        font-weight: 900 !important;
+        letter-spacing: 0.08em !important;
+        color: var(--phantom-white-pure) !important;
+        text-transform: uppercase;
+      }
+
+      /* ---- Header icon buttons ---- */
+      #sidebarToggle,
+      #newChatBtn,
+      #taskPanelToggleBtn,
+      #permMgrBtn,
+      #restartServerBtn {
+        background: rgba(215,0,15,0.08) !important;
+        border: 1px solid rgba(215,0,15,0.4) !important;
+        border-radius: 2px !important;
+        color: var(--phantom-white) !important;
+        transition: background 0.1s ease, border-color 0.1s ease, transform 0.08s ease !important;
+      }
+      #sidebarToggle:hover,
+      #newChatBtn:hover,
+      #taskPanelToggleBtn:hover,
+      #permMgrBtn:hover,
+      #restartServerBtn:hover {
+        background: var(--phantom-red) !important;
+        border-color: var(--phantom-red-bright) !important;
+        color: var(--phantom-white-pure) !important;
+        transform: translate(-1px, -1px);
+      }
+      #sidebarToggle:active,
+      #newChatBtn:active,
+      #taskPanelToggleBtn:active,
+      #permMgrBtn:active,
+      #restartServerBtn:active {
+        background: var(--phantom-red-deep) !important;
+        transform: translate(0, 0) !important;
+      }
+      /* タスクパネル: アクティブ時は黄色 */
+      #taskPanelToggleBtn.active {
+        background: var(--phantom-yellow) !important;
+        border-color: var(--phantom-yellow) !important;
+        color: var(--phantom-black) !important;
+      }
+
+      /* ---- Team / header select ---- */
+      #teamSelect {
+        background-color: var(--phantom-gray) !important;
+        border: 1px solid var(--phantom-red) !important;
+        border-radius: 2px !important;
+        color: var(--phantom-white) !important;
+        font-family: var(--phantom-font-body) !important;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23d7000f'/%3E%3C/svg%3E") !important;
+      }
+      .header-select-label {
+        color: var(--phantom-red-bright) !important;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+      }
+
+      /* ---- Send button: 丸→鋭角P5スタイル ---- */
+      #sendBtn {
+        background: var(--phantom-red) !important;
+        border: none !important;
+        border-radius: 2px !important;
+        color: var(--phantom-white-pure) !important;
+        width: 38px !important;
+        height: 38px !important;
+        clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+        transition: background 0.1s ease, transform 0.08s ease !important;
+      }
+      #sendBtn:hover {
+        background: var(--phantom-red-bright) !important;
+        transform: translate(-1px, -1px);
+      }
+      #sendBtn:active {
+        background: var(--phantom-red-deep) !important;
+        transform: translate(0, 0) !important;
+      }
+      #sendBtn:disabled {
+        background: var(--phantom-gray-mid) !important;
+        opacity: 0.5;
+        transform: none !important;
+      }
+      #sendBtn.cancel-mode {
+        background: var(--phantom-yellow) !important;
+        color: var(--phantom-black) !important;
+      }
+      #sendBtn.cancel-mode:hover {
+        background: #ffe033 !important;
+      }
+
+      /* ---- Attach button ---- */
+      #attachBtn {
+        background: transparent !important;
+        border: 1px solid transparent !important;
+        border-radius: 2px !important;
+        color: rgba(10,10,10,0.45) !important;
+        transition: background 0.1s ease, border-color 0.1s ease, color 0.1s ease !important;
+      }
+      #attachBtn:hover {
+        background: rgba(215,0,15,0.08) !important;
+        border-color: var(--phantom-red) !important;
+        color: var(--phantom-red) !important;
+      }
+
+      /* ---- Model select ---- */
+      #modelSelect {
+        background-color: transparent !important;
+        border: 1px solid rgba(215,0,15,0.3) !important;
+        border-radius: 2px !important;
+        color: var(--phantom-black) !important;
+        font-family: var(--phantom-font-body) !important;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23d7000f'/%3E%3C/svg%3E") !important;
+        transition: border-color 0.1s ease, background-color 0.1s ease !important;
+      }
+      #modelSelect:hover,
+      #modelSelect:focus {
+        background-color: rgba(215,0,15,0.05) !important;
+        border-color: var(--phantom-red) !important;
+        outline: none !important;
+      }
+
+      /* ---- Scroll-to-top button ---- */
+      #scrollTopBtn {
+        border-radius: 2px !important;
+        border: 2px solid var(--phantom-red) !important;
+        background: var(--phantom-black) !important;
+        color: var(--phantom-red) !important;
+        box-shadow: 3px 3px 0 var(--phantom-red) !important;
+        transition: background 0.1s ease, color 0.1s ease, transform 0.08s ease, opacity 0.2s !important;
+      }
+      #scrollTopBtn:hover {
+        background: var(--phantom-red) !important;
+        color: var(--phantom-white-pure) !important;
+        transform: translate(-2px, -2px);
+        box-shadow: 5px 5px 0 var(--phantom-red-deep) !important;
+      }
+
+      /* ---- Readonly banner ---- */
+      #readonlyBanner {
+        background: var(--phantom-yellow) !important;
+        color: var(--phantom-black) !important;
+        border-bottom: 2px solid var(--phantom-black) !important;
+        font-weight: 700;
+      }
+      #readonlyBanner button {
+        background: var(--phantom-black) !important;
+        color: var(--phantom-white-pure) !important;
+        border-radius: 2px !important;
+        font-weight: 700;
+      }
+      #readonlyBanner button:hover {
+        background: var(--phantom-red) !important;
+      }
+
+      /* ---- Task panel header ---- */
+      .task-panel-header {
+        background: var(--phantom-black) !important;
+        color: var(--phantom-white) !important;
+        border-bottom: 2px solid var(--phantom-red) !important;
+      }
+      .task-panel-header h3,
+      .task-panel-header span {
+        font-family: var(--phantom-font-disp) !important;
+        letter-spacing: 0.05em;
+        color: var(--phantom-white-pure) !important;
+      }
+      .task-add-btn {
+        background: var(--phantom-red) !important;
+        border-radius: 2px !important;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      .task-add-btn:hover { background: var(--phantom-red-bright) !important; }
+
+      /* ---- Project manage buttons ---- */
+      .project-manage-row button {
+        border-radius: 2px !important;
+        border: 1px solid rgba(215,0,15,0.4) !important;
+        color: var(--phantom-white) !important;
+        transition: background 0.1s ease, border-color 0.1s ease !important;
+      }
+      .project-manage-row button:hover {
+        background: var(--phantom-red) !important;
+        border-color: var(--phantom-red) !important;
+        color: var(--phantom-white-pure) !important;
+      }
+
+      /* ================================================================
+         P5 PHASE 2 — 斜めシェイプ装飾 / ホバーアニメ / 遷移エフェクト
+         ================================================================ */
+
+      /* ---- Message entrance: スライドイン ---- */
+      .chat-message {
+        animation: phantom-msg-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both !important;
+      }
+      @keyframes phantom-msg-in {
+        from { opacity: 0; transform: translateY(14px) skewX(-1.5deg); }
+        to   { opacity: 1; transform: translateY(0) skewX(0); }
+      }
+
+      /* ---- Chat message: diagonal corner accent ---- */
+      .chat-message.assistant-message .message-content,
+      .chat-message.user-message .message-content {
+        position: relative !important;
+      }
+      .chat-message.assistant-message .message-content::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0;
+        width: 0; height: 0;
+        border-top: 12px solid var(--phantom-red);
+        border-right: 12px solid transparent;
+        opacity: 0.75;
+      }
+      .chat-message.user-message .message-content::after {
+        content: '';
+        position: absolute;
+        bottom: 0; right: 0;
+        width: 0; height: 0;
+        border-bottom: 10px solid var(--phantom-yellow);
+        border-left: 10px solid transparent;
+        opacity: 0.7;
+      }
+
+      /* ---- Sidebar history items: P5 slash accent ---- */
+      .sidebar-history-item {
+        position: relative !important;
+        overflow: hidden !important;
+        transition: background 0.1s ease, transform 0.1s cubic-bezier(0.22, 1, 0.36, 1) !important;
+      }
+      .sidebar-history-item::before {
+        content: '';
+        position: absolute;
+        left: 0; top: 0; bottom: 0;
+        width: 3px;
+        background: var(--phantom-red);
+        transform: scaleY(0);
+        transform-origin: bottom;
+        transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+        pointer-events: none;
+      }
+      .sidebar-history-item:hover::before {
+        transform: scaleY(1);
+      }
+      .sidebar-history-item:hover {
+        transform: translateX(4px) !important;
+      }
+      .sidebar-history-item.active::before {
+        transform: scaleY(1) !important;
+        background: var(--phantom-yellow) !important;
+      }
+
+      /* ---- Sidebar section headers: red/yellow gradient underline ---- */
+      .sidebar-section-title,
+      .sidebar-section-header,
+      .project-section-header {
+        position: relative !important;
+      }
+      .sidebar-section-title::after,
+      .sidebar-section-header::after,
+      .project-section-header::after {
+        content: '';
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          var(--phantom-red)    0%,
+          var(--phantom-red)    65%,
+          var(--phantom-yellow) 65%,
+          var(--phantom-yellow) 82%,
+          transparent      82%
+        );
+      }
+
+      /* ---- Header: diagonal shimmer overlay ---- */
+      header::before {
+        content: '';
+        position: absolute;
+        right: 0; top: 0;
+        width: 80px; height: 100%;
+        background: linear-gradient(
+          135deg,
+          transparent 35%,
+          rgba(215,0,15,0.07) 35%,
+          rgba(215,0,15,0.07) 55%,
+          transparent 55%
+        );
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      /* ---- Typing / loading dots: P5 stepped blink ---- */
+      .typing-indicator span,
+      .loading-dots span,
+      .dot-typing > span {
+        background: var(--phantom-red) !important;
+        border-radius: 0 !important;
+        animation: phantom-blink 0.9s steps(1) infinite !important;
+      }
+      .typing-indicator span:nth-child(2),
+      .loading-dots span:nth-child(2),
+      .dot-typing > span:nth-child(2) { animation-delay: 0.3s !important; }
+      .typing-indicator span:nth-child(3),
+      .loading-dots span:nth-child(3),
+      .dot-typing > span:nth-child(3) { animation-delay: 0.6s !important; }
+      @keyframes phantom-blink {
+        0%, 100% { opacity: 1;   transform: scaleY(1); }
+        50%       { opacity: 0.15; transform: scaleY(0.35); }
+      }
+
+      /* ---- Input focus: inset shadow corners ---- */
+      #chatInput:focus {
+        outline: none !important;
+        box-shadow:
+          inset -3px -3px 0 var(--phantom-red),
+          inset  2px  2px 0 rgba(215,0,15,0.12) !important;
+        border-color: var(--phantom-red) !important;
+      }
+
+      /* ---- Task items: slide-left hover ---- */
+      .task-item {
+        border-left: 3px solid transparent !important;
+        transition: transform 0.1s ease, border-left-color 0.1s ease, background 0.1s ease !important;
+      }
+      .task-item:hover {
+        transform: translateX(4px) !important;
+        border-left-color: var(--phantom-red) !important;
+        background: rgba(215,0,15,0.04) !important;
+      }
+
+      /* ---- Modal / dialog: clip-path + slide-in ---- */
+      .modal,
+      .dialog-box,
+      [class*="modal"]:not(#mainModal) {
+        animation: phantom-modal-in 0.2s cubic-bezier(0.22, 1, 0.36, 1) both !important;
+      }
+      @keyframes phantom-modal-in {
+        from { opacity: 0; transform: translateY(-18px) skewY(-0.8deg); }
+        to   { opacity: 1; transform: translateY(0) skewY(0); }
+      }
+      .modal-content,
+      .modal-body,
+      .dialog-content {
+        clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%) !important;
+        border-top: 3px solid var(--phantom-red) !important;
+      }
+
+      /* ---- Code blocks: P5 terminal label ---- */
+      pre {
+        border-left: 3px solid var(--phantom-red) !important;
+        border-radius: 0 2px 2px 0 !important;
+        border-top: 1px solid rgba(215,0,15,0.3) !important;
+        position: relative !important;
+      }
+      pre::before {
+        content: '// CODE';
+        position: absolute;
+        top: 5px; right: 8px;
+        font-family: var(--phantom-font-disp) !important;
+        font-size: 9px;
+        letter-spacing: 0.12em;
+        color: var(--phantom-red);
+        opacity: 0.55;
+        pointer-events: none;
+      }
+      :not(pre) > code {
+        border-left: 2px solid var(--phantom-red) !important;
+        border-radius: 0 2px 2px 0 !important;
+        padding-left: 4px !important;
+      }
+
+      /* ---- Buttons (汎用): shadow-shift hover ---- */
+      button:not(#sendBtn):not(.sidebar-history-item button) {
+        transition: box-shadow 0.08s ease, transform 0.08s ease !important;
+      }
+      button:not(#sendBtn):not(.sidebar-history-item button):hover {
+        box-shadow: 2px 2px 0 rgba(215,0,15,0.45) !important;
+        transform: translate(-1px, -1px) !important;
+      }
+      button:not(#sendBtn):not(.sidebar-history-item button):active {
+        box-shadow: none !important;
+        transform: translate(0, 0) !important;
+      }
+
+      /* ---- Selection highlight ---- */
+      ::selection {
+        background: var(--phantom-red) !important;
+        color: var(--phantom-white-pure) !important;
+      }
+
+      /* ---- Permission / perm items: hover accent ---- */
+      .permission-item,
+      .perm-item,
+      .perm-entry {
+        border-left: 3px solid transparent !important;
+        transition: background 0.1s ease, border-left-color 0.1s ease !important;
+      }
+      .permission-item:hover,
+      .perm-item:hover,
+      .perm-entry:hover {
+        background: rgba(215,0,15,0.05) !important;
+        border-left-color: var(--phantom-red) !important;
+      }
+
+      /* ---- Notification / toast: diagonal accent ---- */
+      .toast,
+      .notification,
+      .alert-box {
+        border-left: 4px solid var(--phantom-red) !important;
+        clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%) !important;
+        animation: phantom-msg-in 0.2s cubic-bezier(0.22, 1, 0.36, 1) both !important;
+      }
+
+      /* ================================================================
+         P5 PHASE 3 — テクスチャ / チャージアニメ / UI細部磨き込み
+         ================================================================ */
+
+      /* ---- Chat area: subtle diagonal grid texture ---- */
+      #chat {
+        background-image:
+          repeating-linear-gradient(
+            -45deg,
+            rgba(215,0,15,0.022) 0px,
+            rgba(215,0,15,0.022) 1px,
+            transparent        1px,
+            transparent        28px
+          ),
+          repeating-linear-gradient(
+            45deg,
+            rgba(215,0,15,0.015) 0px,
+            rgba(215,0,15,0.015) 1px,
+            transparent        1px,
+            transparent        28px
+          ) !important;
+        background-attachment: local !important;
+      }
+
+      /* ---- Sidebar: faint dot-grid texture ---- */
+      #sidebar {
+        background-image:
+          radial-gradient(
+            circle,
+            rgba(215,0,15,0.06) 1px,
+            transparent        1px
+          ) !important;
+        background-size: 20px 20px !important;
+        background-position: 10px 10px !important;
+      }
+
+      /* ---- Send button: charge effect on :active ---- */
+      @keyframes phantom-charge {
+        0%   { box-shadow: 0 0 0   0   rgba(215,0,15,0), 4px 4px 0 var(--phantom-red); }
+        40%  { box-shadow: 0 0 0   6px rgba(215,0,15,0.35), 4px 4px 0 var(--phantom-red); }
+        70%  { box-shadow: 0 0 0  10px rgba(215,0,15,0.15), 3px 3px 0 var(--phantom-red); }
+        100% { box-shadow: 0 0 0   0   rgba(215,0,15,0), 4px 4px 0 var(--phantom-red); }
+      }
+      @keyframes phantom-shoot {
+        0%   { transform: scale(1)    skewX(0deg); }
+        30%  { transform: scale(1.08) skewX(-3deg); }
+        60%  { transform: scale(0.95) skewX(2deg); }
+        100% { transform: scale(1)    skewX(0deg); }
+      }
+      #sendBtn:active {
+        animation: phantom-shoot 0.18s cubic-bezier(0.22, 1, 0.36, 1) !important;
+        background: var(--phantom-red-bright) !important;
+      }
+      #sendBtn.sending {
+        animation: phantom-charge 0.6s ease infinite !important;
+      }
+
+      /* ---- Empty state: P5 stylized welcome ---- */
+      #emptyState {
+        position: relative !important;
+        font-family: var(--phantom-font-disp) !important;
+        font-size: 1.05rem !important;
+        letter-spacing: 0.18em !important;
+        color: rgba(10,10,10,0.38) !important;
+        text-transform: uppercase !important;
+      }
+      #emptyState::after {
+        content: '';
+        display: block;
+        width: 80px;
+        height: 4px;
+        margin: 1rem auto 0;
+        background: linear-gradient(
+          90deg,
+          var(--phantom-red)    0%,
+          var(--phantom-red)    60%,
+          var(--phantom-yellow) 60%,
+          var(--phantom-yellow) 80%,
+          transparent      80%
+        );
+      }
+
+      /* ---- Select / dropdown: P5 styling ---- */
+      select {
+        appearance: none !important;
+        -webkit-appearance: none !important;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23d7000f'/%3E%3C/svg%3E") !important;
+        background-repeat: no-repeat !important;
+        background-position: right 8px center !important;
+        padding-right: 24px !important;
+        border-color: rgba(215,0,15,0.3) !important;
+        transition: border-color 0.1s ease, box-shadow 0.1s ease !important;
+      }
+      select:focus {
+        outline: none !important;
+        border-color: var(--phantom-red) !important;
+        box-shadow: 2px 2px 0 rgba(215,0,15,0.3) !important;
+      }
+
+      /* ---- Placeholder: P5 subtle style ---- */
+      ::placeholder {
+        color: rgba(215,0,15,0.28) !important;
+        font-style: italic !important;
+        font-size: 0.88em !important;
+        letter-spacing: 0.04em !important;
+      }
+
+      /* ---- Session category / project badges: P5 pill ---- */
+      .session-category-badge,
+      .session-project-badge {
+        font-family: var(--phantom-font-disp) !important;
+        font-size: 0.7rem !important;
+        letter-spacing: 0.1em !important;
+        border-radius: 0 !important;
+        clip-path: polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%) !important;
+        padding: 1px 6px !important;
+      }
+      .session-category-badge {
+        background: var(--phantom-red) !important;
+        color: var(--phantom-white-pure) !important;
+      }
+      .session-project-badge {
+        background: var(--phantom-black-soft) !important;
+        color: var(--phantom-yellow) !important;
+        border: 1px solid rgba(255,210,0,0.35) !important;
+      }
+
+      /* ---- Bookmark star: yellow pulse ---- */
+      .session-bookmark-icon {
+        color: var(--phantom-yellow) !important;
+        filter: drop-shadow(0 0 3px rgba(255,210,0,0.6)) !important;
+        font-size: 0.9em !important;
+      }
+
+      /* ---- Scroll-to-top button: P5 style ---- */
+      #scrollTopBtn {
+        border-radius: 0 !important;
+        clip-path: polygon(0 6px, 6px 0, 100% 0, 100% 100%, 0 100%) !important;
+        background: var(--phantom-black) !important;
+        color: var(--phantom-red) !important;
+        border: 2px solid var(--phantom-red) !important;
+        font-family: var(--phantom-font-disp) !important;
+        font-size: 1.1rem !important;
+        letter-spacing: 0.08em !important;
+        box-shadow: 3px 3px 0 var(--phantom-red) !important;
+        transition: box-shadow 0.08s ease, transform 0.08s ease, background 0.08s ease !important;
+      }
+      #scrollTopBtn:hover {
+        background: var(--phantom-red) !important;
+        color: var(--phantom-white-pure) !important;
+        box-shadow: 1px 1px 0 var(--phantom-red) !important;
+        transform: translate(2px, 2px) !important;
+      }
+
+      /* ---- Sidebar header h2: P5 display font ---- */
+      .sidebar-header h2,
+      .sidebar-header .sidebar-title {
+        font-family: var(--phantom-font-disp) !important;
+        letter-spacing: 0.18em !important;
+        text-transform: uppercase !important;
+        font-size: 0.9rem !important;
+        color: var(--phantom-white) !important;
+      }
+
+      /* ---- New chat button (sidebar): P5 style ---- */
+      #sidebarNewChatBtn {
+        clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px)) !important;
+        font-family: var(--phantom-font-disp) !important;
+        letter-spacing: 0.12em !important;
+        transition: background 0.1s ease, box-shadow 0.1s ease, transform 0.08s ease !important;
+      }
+      #sidebarNewChatBtn:hover {
+        box-shadow: 2px 2px 0 rgba(255,255,255,0.2) !important;
+        transform: translate(-1px, -1px) !important;
+      }
+
+      /* ---- Task panel: P5 header band ---- */
+      .task-panel-header {
+        border-bottom: 2px solid var(--phantom-red) !important;
+        background: linear-gradient(
+          90deg,
+          var(--phantom-red) 0%,
+          var(--phantom-red) 5px,
+          transparent 5px
+        ) !important;
+        position: relative !important;
+      }
+      .task-panel-title {
+        font-family: var(--phantom-font-disp) !important;
+        letter-spacing: 0.18em !important;
+        text-transform: uppercase !important;
+      }
+
+      /* ---- Task add button: P5 style ---- */
+      .task-add-btn {
+        clip-path: polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%) !important;
+        font-family: var(--phantom-font-disp) !important;
+        letter-spacing: 0.1em !important;
+        background: var(--phantom-red) !important;
+        color: var(--phantom-white-pure) !important;
+        border: none !important;
+        transition: box-shadow 0.08s ease, transform 0.08s ease !important;
+      }
+      .task-add-btn:hover {
+        box-shadow: 2px 2px 0 rgba(215,0,15,0.5) !important;
+        transform: translate(-1px, -1px) !important;
+      }
+
+      /* ---- Permission modal header: P5 style ---- */
+      .perm-modal-header {
+        font-family: var(--phantom-font-disp) !important;
+        letter-spacing: 0.14em !important;
+        border-bottom: 2px solid var(--phantom-red) !important;
+        background: linear-gradient(
+          90deg,
+          var(--phantom-red) 0%,
+          var(--phantom-red) 6px,
+          transparent  6px
+        ) !important;
+        text-transform: uppercase !important;
+      }
+
+      /* ---- Permission request banner: P5 bold diagonal ---- */
+      #permReqBanner {
+        border-left: 5px solid var(--phantom-yellow) !important;
+        border-top: 2px solid var(--phantom-red) !important;
+        background: var(--phantom-black) !important;
+        clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%) !important;
+        animation: phantom-msg-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both !important;
+      }
+      .perm-req-title {
+        font-family: var(--phantom-font-disp) !important;
+        letter-spacing: 0.14em !important;
+        text-transform: uppercase !important;
+        color: var(--phantom-yellow) !important;
+      }
+
+      /* ---- readonly banner: P5 warning style ---- */
+      #readonlyBanner {
+        background: var(--phantom-red) !important;
+        color: var(--phantom-white-pure) !important;
+        font-family: var(--phantom-font-disp) !important;
+        letter-spacing: 0.16em !important;
+        border-bottom: 2px solid var(--phantom-yellow) !important;
+        clip-path: polygon(0 0, 100% 0, 100% calc(100% - 4px), calc(100% - 16px) 100%, 0 100%) !important;
+      }
+
+      /* ---- @keyframes: page-in for panels ---- */
+      @keyframes phantom-panel-in {
+        from { opacity: 0; transform: translateX(30px) skewX(-1deg); }
+        to   { opacity: 1; transform: translateX(0)   skewX(0deg); }
+      }
+      .task-panel[style*="flex"] {
+        animation: phantom-panel-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both !important;
+      }
+
+      /* ---- Session empty state ---- */
+      .session-empty,
+      .task-empty {
+        font-family: var(--phantom-font-disp) !important;
+        letter-spacing: 0.12em !important;
+        color: rgba(215,0,15,0.35) !important;
+        text-transform: uppercase !important;
+        font-size: 0.8rem !important;
+      }
+
+      /* ---- Input resizer handle: P5 style ---- */
+      #inputResizer {
+        background: repeating-linear-gradient(
+          90deg,
+          var(--phantom-red)       0px,
+          var(--phantom-red)       3px,
+          transparent         3px,
+          transparent         7px
+        ) !important;
+        opacity: 0.35 !important;
+        transition: opacity 0.15s ease !important;
+      }
+      #inputResizer:hover,
+      #inputResizer.dragging {
+        opacity: 0.85 !important;
+        background: repeating-linear-gradient(
+          90deg,
+          var(--phantom-red)    0px,
+          var(--phantom-red)    4px,
+          var(--phantom-yellow) 4px,
+          var(--phantom-yellow) 8px,
+          transparent      8px,
+          transparent      12px
+        ) !important;
+      }
+
+      /* =================================================================
+         P5 PHASE 4 — メッセージ / スピナー / メニュー / フォーム / ライトボックス
+         ================================================================= */
+
+      /* ---- User message bubble: P5 赤/黒スタイル ---- */
+      .msg.user {
+        background: linear-gradient(
+          135deg,
+          var(--phantom-red-deep) 0%,
+          var(--phantom-red)      60%,
+          var(--phantom-red-deep) 100%
+        ) !important;
+        color: var(--phantom-white-pure) !important;
+        border-radius: 2px !important;
+        border-bottom-right-radius: 0 !important;
+        border-left: 3px solid var(--phantom-yellow) !important;
+        box-shadow: 3px 3px 0 rgba(0,0,0,0.35) !important;
+        position: relative;
+      }
+      /* 右下の斜め切り欠き */
+      .msg.user::after {
+        content: '';
+        position: absolute;
+        bottom: 0; right: 0;
+        border-style: solid;
+        border-width: 0 0 10px 10px;
+        border-color: transparent transparent var(--phantom-yellow) transparent;
+      }
+
+      /* ---- AI message bubble: P5 クリーン + 左アクセント ---- */
+      .msg.assistant {
+        background: #fdfdfd !important;
+        color: var(--phantom-black) !important;
+        border-radius: 2px !important;
+        border-bottom-left-radius: 0 !important;
+        border-left: 4px solid var(--phantom-red) !important;
+        box-shadow: 2px 2px 0 rgba(0,0,0,0.12) !important;
+      }
+
+      /* ---- Waiting spinner: 赤に変更 ---- */
+      .waiting-indicator .spinner {
+        border: 2px solid rgba(215,0,15,0.25) !important;
+        border-top-color: var(--phantom-red) !important;
+      }
+      .waiting-indicator {
+        color: var(--phantom-red) !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.03em;
+      }
+
+      /* ---- Sidebar search: P5フォーカス ---- */
+      .sidebar-search-input {
+        border-color: rgba(215,0,15,0.4) !important;
+        background: rgba(215,0,15,0.06) !important;
+        color: var(--phantom-white) !important;
+      }
+      .sidebar-search-input:focus {
+        border-color: var(--phantom-red) !important;
+        background: rgba(215,0,15,0.14) !important;
+        box-shadow: 0 0 0 2px rgba(215,0,15,0.25) !important;
+        outline: none !important;
+      }
+      .sidebar-search-input::placeholder {
+        color: rgba(244,244,244,0.4) !important;
+      }
+
+      /* ---- Session context menu: P5ダーク ---- */
+      .session-menu {
+        background: var(--phantom-black-soft) !important;
+        border: 1px solid var(--phantom-red) !important;
+        border-radius: 0 !important;
+        box-shadow: 4px 4px 0 rgba(0,0,0,0.5) !important;
+      }
+      .session-menu-item {
+        color: var(--phantom-white) !important;
+        font-size: 12px !important;
+        letter-spacing: 0.04em;
+      }
+      .session-menu-item:hover {
+        background: rgba(215,0,15,0.25) !important;
+        color: var(--phantom-white-pure) !important;
+        padding-left: 18px !important;
+        transition: padding-left 0.1s ease !important;
+      }
+      .session-menu-item.danger { color: #ff4d6a !important; }
+      .session-menu-item.danger:hover {
+        background: rgba(215,0,15,0.4) !important;
+      }
+      .session-menu-divider {
+        border-color: rgba(215,0,15,0.3) !important;
+      }
+
+      /* ---- Response title (h2): P5赤アンダーライン ---- */
+      .msg-content h2.response-title {
+        border-bottom: 2px solid var(--phantom-red) !important;
+        color: var(--phantom-black) !important;
+        padding-bottom: 4px !important;
+      }
+      .msg-content h2.response-title .title-icon {
+        color: var(--phantom-red) !important;
+      }
+
+      /* ---- Task form inputs/buttons: P5スタイル ---- */
+      .task-form-input,
+      .task-form-textarea,
+      .task-form-row select,
+      .task-form-date {
+        background: var(--phantom-gray) !important;
+        border: 1px solid rgba(215,0,15,0.4) !important;
+        color: var(--phantom-white) !important;
+        border-radius: 0 !important;
+      }
+      .task-form-input:focus,
+      .task-form-textarea:focus,
+      .task-form-row select:focus,
+      .task-form-date:focus {
+        border-color: var(--phantom-red) !important;
+        box-shadow: 0 0 0 2px rgba(215,0,15,0.2) !important;
+        outline: none !important;
+      }
+      .task-form-input::placeholder,
+      .task-form-textarea::placeholder {
+        color: rgba(244,244,244,0.35) !important;
+      }
+      .task-btn-primary {
+        background: var(--phantom-red) !important;
+        color: var(--phantom-white-pure) !important;
+        border: none !important;
+        border-radius: 0 !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.06em !important;
+        text-transform: uppercase !important;
+        box-shadow: 2px 2px 0 rgba(0,0,0,0.4) !important;
+        transition: transform 0.08s ease, box-shadow 0.08s ease !important;
+      }
+      .task-btn-primary:hover {
+        background: var(--phantom-red-bright) !important;
+        transform: translate(-1px, -1px) !important;
+        box-shadow: 3px 3px 0 rgba(0,0,0,0.5) !important;
+      }
+      .task-btn-secondary {
+        background: transparent !important;
+        border: 1px solid rgba(215,0,15,0.5) !important;
+        color: var(--phantom-red-bright) !important;
+        border-radius: 0 !important;
+        font-weight: 600 !important;
+      }
+      .task-btn-secondary:hover {
+        background: rgba(215,0,15,0.15) !important;
+        border-color: var(--phantom-red) !important;
+      }
+
+      /* ---- Diagram lightbox: P5ダークオーバーレイ ---- */
+      .diagram-lightbox {
+        background: rgba(10,10,10,0.93) !important;
+      }
+      .diagram-lightbox-content {
+        background: var(--phantom-black-soft) !important;
+        border: 2px solid var(--phantom-red) !important;
+        border-radius: 0 !important;
+        box-shadow: 8px 8px 0 rgba(0,0,0,0.7) !important;
+      }
+      .diagram-lightbox-toolbar {
+        background: var(--phantom-black) !important;
+        border-top: 1px solid var(--phantom-red) !important;
+      }
+      .diagram-lightbox-toolbar button {
+        background: transparent !important;
+        color: var(--phantom-white) !important;
+        border: 1px solid rgba(215,0,15,0.4) !important;
+        border-radius: 0 !important;
+      }
+      .diagram-lightbox-toolbar button:hover {
+        background: rgba(215,0,15,0.2) !important;
+        border-color: var(--phantom-red) !important;
+        color: var(--phantom-white-pure) !important;
+      }
+      .diagram-lightbox-close {
+        background: var(--phantom-red) !important;
+        color: var(--phantom-white-pure) !important;
+        border-radius: 0 !important;
+        font-weight: 900 !important;
+        border: none !important;
+      }
+      .diagram-lightbox-close:hover {
+        background: var(--phantom-red-bright) !important;
+        transform: scale(1.1) !important;
+      }
+      .diagram-lightbox-zoom-info {
+        color: var(--phantom-yellow) !important;
+        font-weight: 700 !important;
+        font-family: var(--phantom-font-disp) !important;
+      }
+
+      /* =====================================================
+         P5 PHASE 5 — 検索結果 / 添付チップ / バッジ残余
+         ===================================================== */
+
+      /* ---- Sidebar search results: P5 dark ---- */
+      .search-result-item {
+        border-bottom: 1px solid rgba(215,0,15,0.15) !important;
+        transition: background 0.15s ease !important;
+      }
+      .search-result-item:hover {
+        background: rgba(215,0,15,0.12) !important;
+        border-left: 2px solid var(--phantom-red) !important;
+        padding-left: 14px !important;
+      }
+      .search-result-question {
+        color: var(--phantom-white) !important;
+        font-family: var(--phantom-font-ui) !important;
+        font-weight: 600 !important;
+      }
+      .search-result-answer {
+        color: rgba(240,235,220,0.6) !important;
+      }
+      .search-result-meta {
+        color: var(--phantom-yellow) !important;
+        font-family: var(--phantom-font-disp) !important;
+        font-size: 9px !important;
+        letter-spacing: 0.05em !important;
+      }
+      .search-no-result {
+        color: rgba(240,235,220,0.4) !important;
+        font-style: italic !important;
+      }
+
+      /* ---- Attach chips: P5 dark/red ---- */
+      .attach-chip {
+        background: rgba(215,0,15,0.08) !important;
+        border: 1px solid rgba(215,0,15,0.4) !important;
+        border-radius: 0 !important;
+        color: var(--phantom-white) !important;
+        clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 0 100%) !important;
+      }
+      .attach-chip-remove {
+        color: rgba(215,0,15,0.6) !important;
+      }
+      .attach-chip-remove:hover {
+        color: var(--phantom-red) !important;
+      }
+
+      /* ---- Session fork badge: P5 yellow ---- */
+      .session-fork-badge {
+        background: rgba(253,209,0,0.15) !important;
+        color: var(--phantom-yellow) !important;
+        border-radius: 0 !important;
+        font-family: var(--phantom-font-disp) !important;
+        font-size: 9px !important;
+        letter-spacing: 0.05em !important;
+        border: 1px solid rgba(253,209,0,0.3) !important;
+      }
+
+      /* ---- Task source badge: P5 overrides ---- */
+      .task-source-badge.todowrite {
+        background: rgba(215,0,15,0.08) !important;
+        color: var(--phantom-red) !important;
+        border-color: rgba(215,0,15,0.3) !important;
+        border-radius: 0 !important;
+      }
+      .task-source-badge.mcp {
+        background: rgba(253,209,0,0.08) !important;
+        color: var(--phantom-yellow) !important;
+        border-color: rgba(253,209,0,0.3) !important;
+        border-radius: 0 !important;
+      }
+      .task-source-badge.manual {
+        background: rgba(240,235,220,0.05) !important;
+        color: rgba(240,235,220,0.5) !important;
+        border-radius: 0 !important;
+      }
+    }
+
+  /* =====================================================
+     スキン選択ドロップダウン
+     ===================================================== */
+  #skinSelect {
+    appearance: none;
+    -webkit-appearance: none;
+    height: 36px;
+    padding: 0 24px 0 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.08) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='rgba(255,255,255,0.6)'/%3E%3C/svg%3E") no-repeat right 8px center;
+    color: rgba(255,255,255,0.85);
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    outline: none;
+  }
+  #skinSelect:hover {
+    background-color: rgba(255,255,255,0.15);
+    border-color: rgba(255,255,255,0.4);
+  }
+  #skinSelect option {
+    background: #2a2a2a;
+    color: #fff;
+  }
+  /* PHANTOMテーマON時のselect外観 */
+  html[data-theme="phantom"] #skinSelect {
+    border-color: var(--phantom-red, #e50000);
+    color: var(--phantom-yellow, #ffd700);
+    background-color: rgba(229,0,0,0.15);
+  }
+  html[data-theme="phantom"] #skinSelect:hover {
+    background-color: rgba(229,0,0,0.3);
+    box-shadow: 0 0 8px rgba(229,0,0,0.4);
+  }
+
   </style>
   <script src="https://cdn.jsdelivr.net/npm/marked@15/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mermaid@11.13.0/dist/mermaid.min.js"></script>
@@ -1890,99 +3434,6 @@
   </div>
 </aside>
 
-<!-- 再起動確認モーダル (scaffold/analyze 完了後) -->
-<div id="restartConfirmOverlay" onclick="closeRestartModal(event)" style="display:none;position:fixed;inset:0;z-index:10200;background:rgba(0,0,0,0.65);align-items:center;justify-content:center;">
-  <div id="restartConfirmModal" onclick="event.stopPropagation()" style="background:#1e1e2e;border-radius:10px;min-width:300px;max-width:420px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.55);overflow:hidden;">
-    <div style="background:#2c2c3e;padding:13px 16px;display:flex;align-items:center;gap:9px;border-bottom:1px solid rgba(255,255,255,0.08);">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" width="18" height="18">
-        <polyline points="20 6 9 17 4 12"/>
-      </svg>
-      <h2 style="margin:0;font-size:14px;font-weight:600;color:#eee;flex:1;">完了</h2>
-    </div>
-    <div style="padding:18px;">
-      <p id="restartConfirmMsg" style="font-size:13px;color:#ccc;margin:0 0 16px;line-height:1.6;white-space:pre-wrap;"></p>
-      <p style="font-size:12px;color:#888;margin:0;">設定を反映するにはサーバーの再起動が必要です。</p>
-    </div>
-    <div style="display:flex;justify-content:flex-end;gap:8px;padding:0 18px 16px;">
-      <button onclick="closeRestartModal()" style="padding:8px 16px;border-radius:6px;border:none;background:rgba(255,255,255,0.08);color:#aaa;font-size:13px;cursor:pointer;">後で</button>
-      <button onclick="doRestartNow()" style="padding:8px 18px;border-radius:6px;border:none;background:#22c55e;color:#fff;font-size:13px;font-weight:600;cursor:pointer;">今すぐ再起動</button>
-    </div>
-  </div>
-</div>
-
-<!-- 既存フォルダを開くモーダル (analyze + scaffold) -->
-<div id="analyzeModalOverlay" onclick="closeAnalyzeModal(event)" style="display:none;position:fixed;inset:0;z-index:10100;background:rgba(0,0,0,0.65);align-items:center;justify-content:center;">
-  <div id="analyzeModal" onclick="event.stopPropagation()" style="background:#1e1e2e;border-radius:10px;min-width:340px;max-width:480px;width:92%;box-shadow:0 8px 32px rgba(0,0,0,0.55);overflow:hidden;">
-    <div class="sm-header">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" width="18" height="18">
-        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-        <line x1="12" y1="11" x2="12" y2="17"/>
-        <line x1="9" y1="14" x2="15" y2="14"/>
-      </svg>
-      <h2>既存フォルダを開く</h2>
-      <button onclick="closeAnalyzeModal()" title="閉じる">&times;</button>
-    </div>
-    <div class="sm-body">
-      <label>フォルダ</label>
-      <div class="folder-row">
-        <input type="text" id="analyzeFolder" placeholder="フォルダを選択..." readonly />
-        <button onclick="pickFolderForAnalyze()">選択...</button>
-      </div>
-      <div id="analyzeResult" style="display:none;">
-        <label for="analyzeName">プロジェクト名</label>
-        <input type="text" id="analyzeName" placeholder="プロジェクト名" oninput="onAnalyzeInput()" />
-        <label for="analyzeLang">検出された言語 / フレームワーク</label>
-        <select id="analyzeLang" onchange="onAnalyzeInput()">
-          <option value="blank">なし（共通のみ）</option>
-          <option value="react">React + TypeScript</option>
-          <option value="php">PHP</option>
-          <option value="python">Python</option>
-        </select>
-        <p id="analyzeDetected" style="font-size:11px;color:#888;margin:-8px 0 12px;"></p>
-      </div>
-      <p class="sm-error" id="analyzeError"></p>
-    </div>
-    <div class="sm-footer">
-      <button class="sm-cancel" onclick="closeAnalyzeModal()">キャンセル</button>
-      <button class="sm-create" id="analyzeCreateBtn" onclick="doAnalyzeScaffold()" disabled>設定を生成</button>
-    </div>
-  </div>
-</div>
-
-<!-- 新規プロジェクト作成モーダル (scaffold) -->
-<div id="scaffoldModalOverlay" onclick="closeScaffoldModal(event)">
-  <div id="scaffoldModal" onclick="event.stopPropagation()">
-    <div class="sm-header">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" width="18" height="18">
-        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-      </svg>
-      <h2>新規プロジェクト作成</h2>
-      <button onclick="closeScaffoldModal()" title="閉じる">&times;</button>
-    </div>
-    <div class="sm-body">
-      <label for="scaffoldName">プロジェクト名</label>
-      <input type="text" id="scaffoldName" placeholder="my-project" oninput="onScaffoldInput()" />
-      <label>フォルダ</label>
-      <div class="folder-row">
-        <input type="text" id="scaffoldFolder" placeholder="フォルダを選択..." readonly oninput="onScaffoldInput()" />
-        <button onclick="pickFolderForScaffold()">選択...</button>
-      </div>
-      <label for="scaffoldLang">言語 / フレームワーク</label>
-      <select id="scaffoldLang">
-        <option value="blank">なし（共通のみ）</option>
-        <option value="react">React + TypeScript</option>
-        <option value="php">PHP</option>
-        <option value="python">Python</option>
-      </select>
-      <p class="sm-error" id="scaffoldError"></p>
-    </div>
-    <div class="sm-footer">
-      <button class="sm-cancel" onclick="closeScaffoldModal()">キャンセル</button>
-      <button class="sm-create" id="scaffoldCreateBtn" onclick="doScaffold()" disabled>作成</button>
-    </div>
-  </div>
-</div>
-
 <!-- メインコンテンツ -->
 <div id="main">
   <header>
@@ -2015,9 +3466,24 @@
     </svg>
     <span id="taskBadge" class="task-badge" style="display:none">0</span>
   </button>
+  <button id="authBtn" onclick="openAuthModal()" title="Claude Code 認証設定" aria-label="認証設定">
+    <svg id="authBtnIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+    </svg>
+  </button>
+  <button id="permMgrBtn" onclick="openPermManager()" title="Claude Code 権限管理" aria-label="権限管理">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    </svg>
+  </button>
   <button id="restartServerBtn" onclick="restartServer()" title="サーバーを再起動して最新コードを適用します">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></svg>
   </button>
+  <select id="skinSelect" onchange="onSkinChange(this.value)" title="スキン選択" aria-label="スキン選択">
+    <option value="default">デフォルト</option>
+    <option value="phantom">PHANTOM</option>
+  </select>
   </header>
 
   <div id="readonlyBanner">
@@ -2082,6 +3548,62 @@
 
 <!-- タスク管理パネル（右スライドドロワー） -->
 <div id="taskPanelOverlay" class="task-panel-overlay" onclick="closeTaskPanel()"></div>
+
+<!-- Permission Manager モーダル -->
+<div id="permMgrOverlay" onclick="closePermManager(event)">
+  <div id="permMgrModal" onclick="event.stopPropagation()">
+    <div class="perm-modal-header">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#2ecc70" stroke-width="2" width="18" height="18">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+      <h2>Claude Code 権限管理</h2>
+      <button class="perm-modal-close" onclick="closePermManager()" title="閉じる">×</button>
+    </div>
+    <div class="perm-modal-body">
+
+      <p class="perm-section-title">許可 (allow)</p>
+      <ul id="permAllowList" class="perm-list"></ul>
+
+      <div class="perm-add-row">
+        <input id="permAllowInput" type="text"
+          placeholder="例: Write(C:/Users/you/.claude/skills/**)"
+          onkeydown="if(event.key==='Enter')addPermission('allow')" />
+        <button class="perm-add-btn" onclick="addPermission('allow')">追加</button>
+      </div>
+      <p id="permAllowError" class="perm-error-msg"></p>
+
+      <hr class="perm-section-sep">
+
+      <p class="perm-section-title">拒否 (deny)</p>
+      <ul id="permDenyList" class="perm-list"></ul>
+
+      <div class="perm-add-row">
+        <input id="permDenyInput" type="text"
+          placeholder="例: Write(C:/sensitive/**)"
+          onkeydown="if(event.key==='Enter')addPermission('deny')" />
+        <button class="perm-add-btn" style="background:#c0392b;color:#fff" onclick="addPermission('deny')">追加</button>
+      </div>
+      <p id="permDenyError" class="perm-error-msg"></p>
+
+      <hr class="perm-section-sep">
+      <p class="perm-hint">
+        設定は <code>~/.claude/settings.json</code> の <code>permissions</code> に保存されます。<br>
+        フォーマット例: <code>Write(C:/path/**)</code> / <code>Read(C:/path/file.txt)</code> / <code>Bash(git *)</code>
+      </p>
+    </div>
+  </div>
+</div>
+<!-- 権限申請バナー（AI がブロックされたときに表示） -->
+<div id="permReqBanner">
+  <p class="perm-req-title">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e67e22" stroke-width="2.5">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    </svg>
+    Claude が権限を要求しています
+  </p>
+  <ul id="permReqList" class="perm-req-list"></ul>
+</div>
+
 <aside id="taskPanel" class="task-panel">
   <div class="task-panel-header">
     <span class="task-panel-title">タスク管理</span>
@@ -2137,6 +3659,173 @@
     </div>
   </div>
 </aside>
+
+<!-- 再起動確認モーダル (scaffold/analyze 完了後) -->
+<div id="restartConfirmOverlay" onclick="closeRestartModal(event)" style="display:none;position:fixed;inset:0;z-index:10200;background:rgba(0,0,0,0.65);align-items:center;justify-content:center;">
+  <div id="restartConfirmModal" onclick="event.stopPropagation()" style="background:#1e1e2e;border-radius:10px;min-width:300px;max-width:420px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.55);overflow:hidden;">
+    <div style="background:#2c2c3e;padding:13px 16px;display:flex;align-items:center;gap:9px;border-bottom:1px solid rgba(255,255,255,0.08);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" width="18" height="18">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+      <h2 style="margin:0;font-size:14px;font-weight:600;color:#eee;flex:1;">完了</h2>
+    </div>
+    <div style="padding:18px;">
+      <p id="restartConfirmMsg" style="font-size:13px;color:#ccc;margin:0 0 16px;line-height:1.6;white-space:pre-wrap;"></p>
+      <p style="font-size:12px;color:#888;margin:0;">設定を反映するにはサーバーの再起動が必要です。</p>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;padding:0 18px 16px;">
+      <button onclick="closeRestartModal()" style="padding:8px 16px;border-radius:6px;border:none;background:rgba(255,255,255,0.08);color:#aaa;font-size:13px;cursor:pointer;">後で</button>
+      <button onclick="doRestartNow()" style="padding:8px 18px;border-radius:6px;border:none;background:#22c55e;color:#fff;font-size:13px;font-weight:600;cursor:pointer;">今すぐ再起動</button>
+    </div>
+  </div>
+</div>
+
+<!-- 既存フォルダを開くモーダル (analyze + scaffold) -->
+<div id="analyzeModalOverlay" onclick="closeAnalyzeModal(event)" style="display:none;position:fixed;inset:0;z-index:10100;background:rgba(0,0,0,0.65);align-items:center;justify-content:center;">
+  <div id="analyzeModal" onclick="event.stopPropagation()" style="background:#1e1e2e;border-radius:10px;min-width:340px;max-width:480px;width:92%;box-shadow:0 8px 32px rgba(0,0,0,0.55);overflow:hidden;">
+    <div class="sm-header">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" width="18" height="18">
+        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+        <line x1="12" y1="11" x2="12" y2="17"/>
+        <line x1="9" y1="14" x2="15" y2="14"/>
+      </svg>
+      <h2>既存フォルダを開く</h2>
+      <button onclick="closeAnalyzeModal()" title="閉じる">&times;</button>
+    </div>
+    <div class="sm-body">
+      <label>フォルダ</label>
+      <div class="folder-row">
+        <input type="text" id="analyzeFolder" placeholder="フォルダを選択..." readonly />
+        <button onclick="pickFolderForAnalyze()">選択...</button>
+      </div>
+
+      <div id="analyzeResult" style="display:none;">
+        <label for="analyzeName">プロジェクト名</label>
+        <input type="text" id="analyzeName" placeholder="プロジェクト名" oninput="onAnalyzeInput()" />
+
+        <label for="analyzeLang">検出された言語 / フレームワーク</label>
+        <select id="analyzeLang" onchange="onAnalyzeInput()">
+          <option value="blank">なし（共通のみ）</option>
+          <option value="react">React + TypeScript</option>
+          <option value="php">PHP</option>
+          <option value="python">Python</option>
+        </select>
+        <p id="analyzeDetected" style="font-size:11px;color:#888;margin:-8px 0 12px;"></p>
+      </div>
+
+      <p class="sm-error" id="analyzeError"></p>
+    </div>
+    <div class="sm-footer">
+      <button class="sm-cancel" onclick="closeAnalyzeModal()">キャンセル</button>
+      <button class="sm-create" id="analyzeCreateBtn" onclick="doAnalyzeScaffold()" disabled>設定を生成</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新規プロジェクト作成モーダル (scaffold) -->
+<div id="scaffoldModalOverlay" onclick="closeScaffoldModal(event)">
+  <div id="scaffoldModal" onclick="event.stopPropagation()">
+    <div class="sm-header">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" width="18" height="18">
+        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+      </svg>
+      <h2>新規プロジェクト作成</h2>
+      <button onclick="closeScaffoldModal()" title="閉じる">&times;</button>
+    </div>
+    <div class="sm-body">
+      <label for="scaffoldName">プロジェクト名</label>
+      <input type="text" id="scaffoldName" placeholder="my-project" oninput="onScaffoldInput()" />
+
+      <label>フォルダ</label>
+      <div class="folder-row">
+        <input type="text" id="scaffoldFolder" placeholder="フォルダを選択..." readonly oninput="onScaffoldInput()" />
+        <button onclick="pickFolderForScaffold()">選択...</button>
+      </div>
+
+      <label for="scaffoldLang">言語 / フレームワーク</label>
+      <select id="scaffoldLang">
+        <option value="blank">なし（共通のみ）</option>
+        <option value="react">React + TypeScript</option>
+        <option value="php">PHP</option>
+        <option value="python">Python</option>
+      </select>
+
+      <p class="sm-error" id="scaffoldError"></p>
+    </div>
+    <div class="sm-footer">
+      <button class="sm-cancel" onclick="closeScaffoldModal()">キャンセル</button>
+      <button class="sm-create" id="scaffoldCreateBtn" onclick="doScaffold()" disabled>作成</button>
+    </div>
+  </div>
+</div>
+
+<!-- 認証設定モーダル -->
+<div id="authModalOverlay" onclick="closeAuthModal(event)" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;">
+  <div id="authModal" onclick="event.stopPropagation()" style="background:#1e1e2e;border-radius:10px;padding:0;min-width:340px;max-width:480px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.5);overflow:hidden;">
+    <div style="background:#2c2c3e;padding:14px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,0.08);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#f1c40f" stroke-width="2" width="18" height="18">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+      <h2 style="margin:0;font-size:15px;font-weight:600;color:#eee;">Claude Code 認証設定</h2>
+      <button onclick="closeAuthModal()" style="margin-left:auto;background:none;border:none;color:#aaa;font-size:20px;cursor:pointer;line-height:1;padding:0;">&times;</button>
+    </div>
+    <!-- タブ切り替え -->
+    <div style="display:flex;border-bottom:1px solid rgba(255,255,255,0.08);">
+      <button id="authTabApiKey" onclick="switchAuthTab('apikey')"
+        style="flex:1;padding:10px;background:#2c2c3e;color:#f1c40f;border:none;border-bottom:2px solid #f1c40f;font-size:13px;cursor:pointer;font-weight:600;">
+        APIキー
+      </button>
+      <button id="authTabLogin" onclick="switchAuthTab('login')"
+        style="flex:1;padding:10px;background:transparent;color:#888;border:none;border-bottom:2px solid transparent;font-size:13px;cursor:pointer;">
+        claude login
+      </button>
+    </div>
+    <!-- APIキー タブ -->
+    <div id="authPanelApiKey" style="padding:18px;">
+      <div id="authStatus" style="font-size:13px;margin-bottom:14px;padding:8px 10px;border-radius:6px;"></div>
+      <label style="display:block;font-size:13px;color:#ccc;margin-bottom:6px;">Anthropic APIキー</label>
+      <input id="authApiKeyInput" type="password"
+        placeholder="sk-ant-..."
+        style="width:100%;box-sizing:border-box;padding:9px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.15);background:#2a2a3e;color:#eee;font-size:14px;font-family:monospace;outline:none;"
+        onkeydown="if(event.key==='Enter')saveAuthKey()">
+      <div style="font-size:11px;color:#888;margin-top:6px;">
+        Anthropic Console でAPIキーを取得してください。キーは <code style="background:#333;padding:1px 4px;border-radius:3px;">sk-ant-</code> で始まります。
+      </div>
+      <div id="authError" style="color:#e74c3c;font-size:12px;margin-top:8px;display:none;"></div>
+      <div style="display:flex;gap:8px;margin-top:16px;">
+        <button onclick="saveAuthKey()" style="flex:1;padding:9px;background:#2ecc71;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;">保存</button>
+        <button id="authClearBtn" onclick="clearAuthKey()" style="padding:9px 14px;background:#444;color:#ccc;border:none;border-radius:6px;font-size:13px;cursor:pointer;">削除</button>
+        <button onclick="closeAuthModal()" style="padding:9px 14px;background:#333;color:#aaa;border:none;border-radius:6px;font-size:13px;cursor:pointer;">閉じる</button>
+      </div>
+    </div>
+    <!-- claude login タブ -->
+    <div id="authPanelLogin" style="padding:18px;display:none;">
+      <div style="font-size:13px;color:#ccc;margin-bottom:14px;line-height:1.6;">
+        Anthropic アカウントでログインします。<br>
+        ボタンを押すと認証URLが表示されるので、ブラウザで開いて認証を完了してください。
+      </div>
+      <div id="loginStatus" style="font-size:13px;margin-bottom:12px;padding:8px 10px;border-radius:6px;display:none;"></div>
+      <div id="loginUrlBox" style="display:none;margin-bottom:14px;background:#2a2a3e;border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:10px;">
+        <div style="font-size:11px;color:#888;margin-bottom:6px;">以下のURLをブラウザで開いて認証してください:</div>
+        <a id="loginUrl" href="#" target="_blank" rel="noopener"
+          style="font-size:12px;color:#3498db;word-break:break-all;text-decoration:underline;cursor:pointer;"></a>
+        <button onclick="copyLoginUrl()" style="display:block;margin-top:8px;padding:4px 10px;background:#444;color:#ccc;border:none;border-radius:4px;font-size:11px;cursor:pointer;">URLをコピー</button>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button id="loginStartBtn" onclick="startClaudeLogin()"
+          style="flex:1;padding:9px;background:#3498db;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;min-width:120px;">
+          ログイン開始
+        </button>
+        <button id="loginCancelBtn" onclick="cancelClaudeLogin()"
+          style="padding:9px 14px;background:#444;color:#ccc;border:none;border-radius:6px;font-size:13px;cursor:pointer;display:none;">
+          キャンセル
+        </button>
+        <button onclick="closeAuthModal()" style="padding:9px 14px;background:#333;color:#aaa;border:none;border-radius:6px;font-size:13px;cursor:pointer;">閉じる</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
   // ── 設定のAPI読み込みとセレクトボックス動的構築 ────
@@ -2238,6 +3927,35 @@
 
   // marked.js の設定
   marked.setOptions({ breaks: true, gfm: true });
+
+  // =====================================================
+  // テーマ管理（PHANTOM / デフォルト切り替え）
+  // =====================================================
+  const FAVICONS = {
+    default: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%232e7dd1'/><text x='50' y='68' font-size='56' text-anchor='middle' font-weight='bold' fill='%23fff'>KB</text></svg>",
+    phantom: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230a0a0a'/><polygon points='60,0 100,0 100,40' fill='%23d7000f'/><text x='50' y='68' font-size='56' text-anchor='middle' font-weight='bold' fill='%23fff'>KB</text></svg>",
+  };
+
+  function updateFavicon(theme) {
+    const link = document.getElementById('favicon');
+    if (link) link.href = FAVICONS[theme] || FAVICONS.default;
+  }
+
+  (function initTheme() {
+    let saved = localStorage.getItem('kblite-theme') || 'default';
+    // "p5" → "phantom" へのマイグレーション
+    if (saved === 'p5') { saved = 'phantom'; localStorage.setItem('kblite-theme', saved); }
+    document.documentElement.setAttribute('data-theme', saved);
+    const sel = document.getElementById('skinSelect');
+    if (sel) sel.value = saved;
+    updateFavicon(saved);
+  })();
+
+  function onSkinChange(value) {
+    document.documentElement.setAttribute('data-theme', value);
+    localStorage.setItem('kblite-theme', value);
+    updateFavicon(value);
+  }
 
   // Mermaid.js の初期化（自動起動は無効化、エラー表示を抑制）
   mermaid.initialize({ startOnLoad: false, theme: 'default', suppressErrorRendering: true });
@@ -3199,6 +4917,12 @@
             if (onFirstChunk) { onFirstChunk(); onFirstChunk = null; }
             aiDiv.classList.remove('typing');
             aiContent.innerHTML = '<p style="color:#c0392b">' + esc(evt.message) + '</p>';
+          } else if (evt.type === 'auth_error') {
+            _activeTaskId = null;
+            if (onFirstChunk) { onFirstChunk(); onFirstChunk = null; }
+            aiDiv.classList.remove('typing');
+            aiContent.innerHTML = '<p style="color:#c0392b">認証エラー: APIキーが無効か未設定です。<button onclick="openAuthModal()" style="margin-left:8px;padding:3px 10px;background:#f1c40f;color:#111;border:none;border-radius:4px;cursor:pointer;font-size:12px;">認証設定を開く</button></p>';
+            openAuthModal();
           }
         } catch (_) {}
       }
@@ -3206,6 +4930,275 @@
     _activeTaskId = null;
     return fullText;
   }
+
+  // ── 認証モーダル ──────────────────────────────────────
+  async function openAuthModal() {
+    const overlay = document.getElementById('authModalOverlay');
+    overlay.style.display = 'flex';
+    const statusEl = document.getElementById('authStatus');
+    const clearBtn = document.getElementById('authClearBtn');
+    const input = document.getElementById('authApiKeyInput');
+    statusEl.textContent = '確認中...';
+    statusEl.style.background = 'rgba(255,255,255,0.05)';
+    statusEl.style.color = '#aaa';
+    try {
+      const res = await fetch('/api/auth/status');
+      const data = await res.json();
+      if (data.has_api_key) {
+        statusEl.textContent = '認証済み: ' + data.key_prefix;
+        statusEl.style.background = 'rgba(46,204,113,0.12)';
+        statusEl.style.color = '#2ecc71';
+        clearBtn.style.display = '';
+        input.value = '';
+        input.placeholder = '新しいキーを入力（空のままにすると変更しません）';
+      } else {
+        statusEl.textContent = '未認証: APIキーが設定されていません';
+        statusEl.style.background = 'rgba(231,76,60,0.12)';
+        statusEl.style.color = '#e74c3c';
+        clearBtn.style.display = 'none';
+        input.placeholder = 'sk-ant-...';
+      }
+    } catch (e) {
+      statusEl.textContent = '状態取得に失敗しました';
+      statusEl.style.color = '#e74c3c';
+    }
+    document.getElementById('authError').style.display = 'none';
+    setTimeout(() => input.focus(), 50);
+  }
+
+  function closeAuthModal(e) {
+    if (e && e.target !== document.getElementById('authModalOverlay')) return;
+    document.getElementById('authModalOverlay').style.display = 'none';
+  }
+
+  async function saveAuthKey() {
+    const input = document.getElementById('authApiKeyInput');
+    const errEl = document.getElementById('authError');
+    const key = input.value.trim();
+    if (!key) {
+      closeAuthModal();
+      return;
+    }
+    errEl.style.display = 'none';
+    try {
+      const res = await fetch('/api/auth/set-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ api_key: key }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        errEl.textContent = data.detail || data.error || '保存に失敗しました';
+        errEl.style.display = '';
+        return;
+      }
+      document.getElementById('authModalOverlay').style.display = 'none';
+      showToast('APIキーを保存しました (' + data.key_prefix + ')');
+      // ヘッダーボタンを認証済みスタイルに
+      _updateAuthBtnStyle(true);
+    } catch (e) {
+      errEl.textContent = 'エラー: ' + e.message;
+      errEl.style.display = '';
+    }
+  }
+
+  async function clearAuthKey() {
+    if (!confirm('APIキーを削除しますか？')) return;
+    try {
+      await fetch('/api/auth/clear', { method: 'DELETE' });
+      document.getElementById('authModalOverlay').style.display = 'none';
+      showToast('APIキーを削除しました');
+      _updateAuthBtnStyle(false);
+    } catch (e) {
+      alert('削除に失敗しました: ' + e.message);
+    }
+  }
+
+  function _updateAuthBtnStyle(authenticated) {
+    const btn = document.getElementById('authBtn');
+    if (!btn) return;
+    if (authenticated) {
+      btn.title = 'Claude Code 認証設定（認証済み）';
+      btn.querySelector('svg').setAttribute('stroke', '#2ecc71');
+    } else {
+      btn.title = 'Claude Code 認証設定（未認証）';
+      btn.querySelector('svg').setAttribute('stroke', '#e74c3c');
+    }
+  }
+
+  // ── 認証モーダル タブ切り替え ──────────────────────────
+  function switchAuthTab(tab) {
+    const apiKeyPanel = document.getElementById('authPanelApiKey');
+    const loginPanel  = document.getElementById('authPanelLogin');
+    const tabApiKey   = document.getElementById('authTabApiKey');
+    const tabLogin    = document.getElementById('authTabLogin');
+    if (tab === 'apikey') {
+      apiKeyPanel.style.display = '';
+      loginPanel.style.display  = 'none';
+      tabApiKey.style.color        = '#f1c40f';
+      tabApiKey.style.borderBottom = '2px solid #f1c40f';
+      tabApiKey.style.background   = '#2c2c3e';
+      tabLogin.style.color         = '#888';
+      tabLogin.style.borderBottom  = '2px solid transparent';
+      tabLogin.style.background    = 'transparent';
+    } else {
+      apiKeyPanel.style.display = 'none';
+      loginPanel.style.display  = '';
+      tabLogin.style.color        = '#f1c40f';
+      tabLogin.style.borderBottom = '2px solid #f1c40f';
+      tabLogin.style.background   = '#2c2c3e';
+      tabApiKey.style.color        = '#888';
+      tabApiKey.style.borderBottom = '2px solid transparent';
+      tabApiKey.style.background   = 'transparent';
+      // ログイン状態を確認して表示
+      _loadClaudeAuthInfo();
+    }
+  }
+
+  async function _loadClaudeAuthInfo() {
+    try {
+      const res  = await fetch('/api/auth/claude-auth-info');
+      const data = await res.json();
+      if (data.loggedIn) {
+        _setLoginStatus(
+          'ログイン済み: ' + (data.email || '') + (data.subscriptionType ? ' [' + data.subscriptionType + ']' : ''),
+          'ok'
+        );
+        document.getElementById('loginStartBtn').textContent = '再ログイン';
+        _updateAuthBtnStyle(true);
+      } else {
+        _setLoginStatus('未ログインです。ログインボタンを押して認証してください。', 'info');
+        document.getElementById('loginStartBtn').textContent = 'ログイン開始';
+      }
+    } catch (_) {}
+  }
+
+  // ── claude login OAuth フロー ──────────────────────────
+  let _loginPollTimer = null;
+
+  function _setLoginStatus(msg, color) {
+    const el = document.getElementById('loginStatus');
+    el.style.display  = msg ? '' : 'none';
+    el.textContent    = msg;
+    el.style.background = color === 'ok'  ? 'rgba(46,204,113,0.12)'
+                        : color === 'err' ? 'rgba(231,76,60,0.12)'
+                        : 'rgba(255,255,255,0.05)';
+    el.style.color    = color === 'ok'  ? '#2ecc71'
+                      : color === 'err' ? '#e74c3c'
+                      : '#aaa';
+  }
+
+  async function startClaudeLogin() {
+    const startBtn  = document.getElementById('loginStartBtn');
+    const cancelBtn = document.getElementById('loginCancelBtn');
+    const urlBox    = document.getElementById('loginUrlBox');
+    const urlEl     = document.getElementById('loginUrl');
+
+    startBtn.disabled    = true;
+    startBtn.textContent = '接続中...';
+    cancelBtn.style.display = '';
+    urlBox.style.display    = 'none';
+    _setLoginStatus('claude login を起動しています...', 'info');
+
+    try {
+      const res  = await fetch('/api/auth/claude-login/start', { method: 'POST' });
+      const data = await res.json();
+
+      if (!res.ok) {
+        _setLoginStatus('エラー: ' + (data.detail || data.error), 'err');
+        startBtn.disabled    = false;
+        startBtn.textContent = 'ログイン開始';
+        cancelBtn.style.display = 'none';
+        return;
+      }
+
+      if (data.url) {
+        urlEl.href        = data.url;
+        urlEl.textContent = data.url;
+        urlBox.style.display = '';
+        _setLoginStatus('URLをブラウザで開いて認証を完了してください。', 'info');
+      } else {
+        _setLoginStatus('URL取得中... しばらくお待ちください。', 'info');
+      }
+
+      startBtn.textContent = '認証待機中';
+      _startLoginPoll();
+    } catch (e) {
+      _setLoginStatus('通信エラー: ' + e.message, 'err');
+      startBtn.disabled    = false;
+      startBtn.textContent = 'ログイン開始';
+      cancelBtn.style.display = 'none';
+    }
+  }
+
+  function _startLoginPoll() {
+    if (_loginPollTimer) clearInterval(_loginPollTimer);
+    _loginPollTimer = setInterval(async () => {
+      try {
+        const res  = await fetch('/api/auth/claude-login/status');
+        const data = await res.json();
+        const urlEl  = document.getElementById('loginUrl');
+        const urlBox = document.getElementById('loginUrlBox');
+
+        // URLが後から届いた場合に反映
+        if (data.url && !urlEl.href.startsWith('http')) {
+          urlEl.href        = data.url;
+          urlEl.textContent = data.url;
+          urlBox.style.display = '';
+          _setLoginStatus('URLをブラウザで開いて認証を完了してください。', 'info');
+        }
+
+        if (data.status === 'done') {
+          _stopLoginPoll();
+          _setLoginStatus('認証が完了しました！', 'ok');
+          document.getElementById('loginStartBtn').textContent = 'ログイン開始';
+          document.getElementById('loginStartBtn').disabled    = false;
+          document.getElementById('loginCancelBtn').style.display = 'none';
+          _updateAuthBtnStyle(true);
+          showToast('Claude アカウントで認証完了');
+        } else if (data.status === 'failed' || data.status === 'idle') {
+          _stopLoginPoll();
+          if (data.status === 'failed') _setLoginStatus('認証に失敗しました。再試行してください。', 'err');
+          document.getElementById('loginStartBtn').textContent = 'ログイン開始';
+          document.getElementById('loginStartBtn').disabled    = false;
+          document.getElementById('loginCancelBtn').style.display = 'none';
+        }
+      } catch (_) {}
+    }, 2000);
+  }
+
+  function _stopLoginPoll() {
+    if (_loginPollTimer) { clearInterval(_loginPollTimer); _loginPollTimer = null; }
+  }
+
+  async function cancelClaudeLogin() {
+    _stopLoginPoll();
+    await fetch('/api/auth/claude-login/cancel', { method: 'DELETE' }).catch(() => {});
+    const startBtn  = document.getElementById('loginStartBtn');
+    const cancelBtn = document.getElementById('loginCancelBtn');
+    startBtn.disabled    = false;
+    startBtn.textContent = 'ログイン開始';
+    cancelBtn.style.display = 'none';
+    document.getElementById('loginUrlBox').style.display = 'none';
+    _setLoginStatus('キャンセルしました。', 'info');
+  }
+
+  function copyLoginUrl() {
+    const url = document.getElementById('loginUrl').href;
+    navigator.clipboard.writeText(url).then(() => showToast('URLをコピーしました')).catch(() => {});
+  }
+
+  // ページ読み込み時に認証状態をチェックしてボタンに反映
+  (async function _checkAuthOnLoad() {
+    try {
+      const res = await fetch('/api/auth/status');
+      const data = await res.json();
+      _updateAuthBtnStyle(data.has_api_key);
+      if (!data.has_api_key) {
+        console.info('[auth] APIキー未設定 — 認証ボタンが赤色で表示されます');
+      }
+    } catch (_) {}
+  })();
 
   // ── 待機インジケーター ──────────────────────────────
   let _elapsedTimer = null;
@@ -3244,7 +5237,7 @@
     btn.innerHTML = _sendIcon;
     btn.title = '送信';
     btn.onclick = sendMessage;
-    btn.classList.remove('cancel-mode');
+    btn.classList.remove('cancel-mode', 'sending');
     btn.disabled = false;
   }
 
@@ -3254,7 +5247,7 @@
     btn.innerHTML = _cancelIcon;
     btn.title = '中止';
     btn.onclick = cancelMessage;
-    btn.classList.add('cancel-mode');
+    btn.classList.add('cancel-mode', 'sending');
     btn.disabled = false;
   }
 
@@ -3704,10 +5697,90 @@
 
   // textarea 自動リサイズ
   const msgInput = document.getElementById('messageInput');
-  msgInput.addEventListener('input', () => {
+  function resizeMsgInput() {
+    const inputArea = document.getElementById('inputArea');
+    // ユーザーが手動で高さを設定している場合は textarea の高さ指定を外し
+    // flex:1 によるコンテナ追従に任せる
+    if (inputArea && inputArea.style.height) {
+      msgInput.style.height = '';
+      return;
+    }
     msgInput.style.height = 'auto';
-    msgInput.style.height = Math.min(msgInput.scrollHeight, 120) + 'px';
-  });
+    msgInput.style.height = Math.min(msgInput.scrollHeight, 200) + 'px';
+  }
+  msgInput.addEventListener('input', resizeMsgInput);
+
+  // inputResizer ドラッグによる入力エリア高さ変更
+  (() => {
+    const resizer  = document.getElementById('inputResizer');
+    const inputArea = document.getElementById('inputArea');
+    const chatView = document.getElementById('chatView');
+    if (!resizer || !inputArea || !chatView) return;
+
+    const MIN_INPUT_H = 80;   // 入力エリアの最小高さ(px)
+    const MAX_INPUT_H = 600;  // 入力エリアの最大高さ(px)
+    const STORAGE_KEY = 'kblite_inputAreaHeight';
+
+    // 保存済みの高さを復元
+    const savedH = parseInt(localStorage.getItem(STORAGE_KEY), 10);
+    if (savedH && savedH >= MIN_INPUT_H && savedH <= MAX_INPUT_H) {
+      inputArea.style.height = savedH + 'px';
+    }
+
+    let startY = 0;
+    let startH = 0;
+
+    function onMouseMove(e) {
+      const dy = startY - e.clientY; // 上にドラッグ → 正
+      const newH = Math.min(MAX_INPUT_H, Math.max(MIN_INPUT_H, startH + dy));
+      inputArea.style.height = newH + 'px';
+      resizeMsgInput();
+    }
+
+    function onMouseUp() {
+      resizer.classList.remove('dragging');
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
+      // 高さを保存
+      localStorage.setItem(STORAGE_KEY, inputArea.offsetHeight);
+    }
+
+    resizer.addEventListener('mousedown', e => {
+      e.preventDefault();
+      startY = e.clientY;
+      startH = inputArea.offsetHeight;
+      resizer.classList.add('dragging');
+      document.body.style.userSelect = 'none';
+      document.body.style.cursor = 'ns-resize';
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    });
+
+    // タッチ対応
+    resizer.addEventListener('touchstart', e => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      startY = touch.clientY;
+      startH = inputArea.offsetHeight;
+      resizer.classList.add('dragging');
+    }, { passive: false });
+
+    resizer.addEventListener('touchmove', e => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      const dy = startY - touch.clientY;
+      const newH = Math.min(MAX_INPUT_H, Math.max(MIN_INPUT_H, startH + dy));
+      inputArea.style.height = newH + 'px';
+      resizeMsgInput();
+    }, { passive: false });
+
+    resizer.addEventListener('touchend', () => {
+      resizer.classList.remove('dragging');
+      localStorage.setItem(STORAGE_KEY, inputArea.offsetHeight);
+    });
+  })();
 
   // Ctrl+Enter で送信（Enter は改行、モバイルではEnter=改行のみ）
   const _isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -4093,6 +6166,165 @@
   loadProjects();
   initSidebar();
 
+  // ── サーバー再起動 ──────────────────────────────────
+  // ── Permission Manager ──────────────────────────────────────────
+  async function openPermManager() {
+    document.getElementById('permMgrOverlay').classList.add('visible');
+    await loadPermissions();
+  }
+
+  function closePermManager(e) {
+    if (e && e.target !== document.getElementById('permMgrOverlay')) return;
+    document.getElementById('permMgrOverlay').classList.remove('visible');
+  }
+
+  async function loadPermissions() {
+    try {
+      const res = await fetch('/api/permissions');
+      const data = await res.json();
+      renderPermList('allow', data.allow || []);
+      renderPermList('deny', data.deny || []);
+    } catch (err) {
+      console.error('権限リスト取得失敗:', err);
+    }
+  }
+
+  function renderPermList(listType, items) {
+    const ul = document.getElementById('perm' + (listType === 'allow' ? 'Allow' : 'Deny') + 'List');
+    ul.innerHTML = '';
+    if (items.length === 0) {
+      ul.innerHTML = '<p class="perm-empty">（なし）</p>';
+      return;
+    }
+    items.forEach(pattern => {
+      const li = document.createElement('li');
+      li.className = 'perm-item';
+      const span = document.createElement('span');
+      span.textContent = pattern;
+      const btn = document.createElement('button');
+      btn.className = 'perm-item-remove';
+      btn.title = '削除';
+      btn.textContent = '×';
+      btn.onclick = () => removePermission(listType, pattern);
+      li.appendChild(span);
+      li.appendChild(btn);
+      ul.appendChild(li);
+    });
+  }
+
+  async function addPermission(listType) {
+    const inputId = 'perm' + (listType === 'allow' ? 'Allow' : 'Deny') + 'Input';
+    const errorId = 'perm' + (listType === 'allow' ? 'Allow' : 'Deny') + 'Error';
+    const input = document.getElementById(inputId);
+    const errorEl = document.getElementById(errorId);
+    const pattern = input.value.trim();
+    errorEl.textContent = '';
+
+    if (!pattern) {
+      errorEl.textContent = 'パターンを入力してください。';
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/permissions/allow', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ list: listType, pattern }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        errorEl.textContent = data.error || '追加に失敗しました。';
+        return;
+      }
+      input.value = '';
+      renderPermList('allow', data.allow || []);
+      renderPermList('deny', data.deny || []);
+    } catch (err) {
+      errorEl.textContent = 'ネットワークエラーが発生しました。';
+    }
+  }
+
+  async function removePermission(listType, pattern) {
+    const errorId = 'perm' + (listType === 'allow' ? 'Allow' : 'Deny') + 'Error';
+    const errorEl = document.getElementById(errorId);
+    errorEl.textContent = '';
+
+    try {
+      const res = await fetch('/api/permissions/allow', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ list: listType, pattern }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        errorEl.textContent = data.error || '削除に失敗しました。';
+        return;
+      }
+      renderPermList('allow', data.allow || []);
+      renderPermList('deny', data.deny || []);
+    } catch (err) {
+      errorEl.textContent = 'ネットワークエラーが発生しました。';
+    }
+  }
+  // ── 権限申請ダイアログ ──────────────────────────────────────────
+  let _permReqPollTimer = null;
+
+  function startPermReqPolling() {
+    if (_permReqPollTimer) return;
+    _permReqPollTimer = setInterval(pollPermRequests, 5000);
+    pollPermRequests(); // 即時1回実行
+  }
+
+  async function pollPermRequests() {
+    try {
+      const res = await fetch('/api/permissions/requests');
+      if (!res.ok) return;
+      const data = await res.json();
+      renderPermRequests(data.requests || []);
+    } catch (_) { /* サーバーが落ちている場合は無視 */ }
+  }
+
+  function renderPermRequests(requests) {
+    const banner = document.getElementById('permReqBanner');
+    const list = document.getElementById('permReqList');
+    if (requests.length === 0) {
+      banner.classList.remove('visible');
+      list.innerHTML = '';
+      return;
+    }
+    banner.classList.add('visible');
+    list.innerHTML = '';
+    requests.forEach(req => {
+      const li = document.createElement('li');
+      li.className = 'perm-req-item';
+      li.innerHTML = `
+        <div class="perm-req-pattern">${escapeHtml(req.pattern)}</div>
+        ${req.reason ? `<div class="perm-req-reason">${escapeHtml(req.reason)}</div>` : ''}
+        <div class="perm-req-actions">
+          <button class="perm-req-deny" onclick="handlePermReq('${escapeHtml(req.id)}','deny')">拒否</button>
+          <button class="perm-req-approve" onclick="handlePermReq('${escapeHtml(req.id)}','approve')">許可</button>
+        </div>`;
+      list.appendChild(li);
+    });
+  }
+
+  async function handlePermReq(reqId, action) {
+    try {
+      await fetch(`/api/permissions/requests/${reqId}/${action}`, { method: 'POST' });
+      await pollPermRequests();
+    } catch (err) {
+      console.error('権限申請処理エラー:', err);
+    }
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ページ読み込み時にポーリング開始
+  startPermReqPolling();
+  // ─────────────────────────────────────────────────────────────────
+
   // ── 再起動確認モーダル ────────────────────────────────────────
   function openRestartModal(msg) {
     document.getElementById('restartConfirmMsg').textContent = msg || '';
@@ -4113,6 +6345,7 @@
     showToast('再起動中... 5秒後に自動リロードします');
     setTimeout(() => location.reload(), 5000);
   }
+  // ─────────────────────────────────────────────────────────────────
 
   // ── analyze (既存フォルダを開く) ─────────────────────────────
   function openAnalyzeModal() {
@@ -4154,8 +6387,11 @@
       }
       const folder = data.folder;
       document.getElementById('analyzeFolder').value = folder;
+      // フォルダ名をプロジェクト名の初期値に
       const folderName = folder.replace(/\\/g, '/').split('/').filter(Boolean).pop() || '';
       document.getElementById('analyzeName').value = folderName;
+
+      // analyze API で言語推定
       btn.textContent = '解析中...';
       const aRes = await fetch('/api/workspace-projects/analyze', {
         method: 'POST',
@@ -4191,9 +6427,11 @@
     const language = document.getElementById('analyzeLang').value;
     const errEl = document.getElementById('analyzeError');
     const btn = document.getElementById('analyzeCreateBtn');
+
     errEl.style.display = 'none';
     btn.disabled = true;
     btn.textContent = '生成中...';
+
     try {
       const res = await fetch('/api/workspace-projects/scaffold', {
         method: 'POST',
@@ -4217,6 +6455,7 @@
       onAnalyzeInput();
     }
   }
+  // ─────────────────────────────────────────────────────────────────
 
   // ── scaffold (新規プロジェクト作成) ──────────────────────────
   function openScaffoldModal() {
@@ -4266,9 +6505,11 @@
     const language = document.getElementById('scaffoldLang').value;
     const errEl = document.getElementById('scaffoldError');
     const btn = document.getElementById('scaffoldCreateBtn');
+
     errEl.style.display = 'none';
     btn.disabled = true;
     btn.textContent = '作成中...';
+
     try {
       const res = await fetch('/api/workspace-projects/scaffold', {
         method: 'POST',
@@ -4292,8 +6533,8 @@
       onScaffoldInput();
     }
   }
+  // ─────────────────────────────────────────────────────────────────
 
-  // ── サーバー再起動 ──────────────────────────────────
   async function restartServer() {
     const btn = document.getElementById('restartServerBtn');
     if (!confirm('サーバーを再起動します。\n数秒後にページが自動でリロードされます。')) return;
