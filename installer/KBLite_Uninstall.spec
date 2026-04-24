@@ -2,10 +2,10 @@
 
 
 a = Analysis(
-    ['kblite_installer.py'],
+    ['kblite_uninstaller.py'],
     pathex=[],
     binaries=[],
-    datas=[('source', 'source'), ('dist/KBLite_Uninstall.exe', '.')],
+    datas=[],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -22,7 +22,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='KBLite_Setup',
+    name='KBLite_Uninstall',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

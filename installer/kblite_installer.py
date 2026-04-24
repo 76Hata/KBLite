@@ -559,12 +559,12 @@ class KBLiteInstaller(tk.Tk):
 
             # ---- Step 1: ディレクトリ作成 ----
             self._set_progress(5, "インストール先フォルダーを作成しています...")
-            self._log(f"[1/6] フォルダー作成: {install_path}")
+            self._log(f"[1/7] フォルダー作成: {install_path}")
             install_path.mkdir(parents=True, exist_ok=True)
 
             # ---- Step 2: ファイルコピー ----
             self._set_progress(15, "KBLite ファイルをコピーしています...")
-            self._log("[2/6] ファイルをコピーしています...")
+            self._log("[2/7] ファイルをコピーしています...")
 
             items = [
                 "app.py", "app-config.json", "prompt.py",
@@ -597,13 +597,13 @@ class KBLiteInstaller(tk.Tk):
 
             # ---- Step 3: データフォルダー ----
             self._set_progress(40, "データフォルダーを作成しています...")
-            self._log("[3/6] データフォルダー作成...")
+            self._log("[3/7] データフォルダー作成...")
             (install_path / "data" / "sqlite").mkdir(parents=True, exist_ok=True)
             self._log("  data/sqlite/ 作成完了")
 
             # ---- Step 4: Python パッケージ ----
             self._set_progress(50, "Python パッケージをインストールしています...")
-            self._log("[4/6] Python パッケージインストール...")
+            self._log("[4/7] Python パッケージインストール...")
             req_file = install_path / "requirements.txt"
             if req_file.exists():
                 python_exe = self._find_python()
@@ -621,14 +621,20 @@ class KBLiteInstaller(tk.Tk):
 
             # ---- Step 5: 起動スクリプト ----
             self._set_progress(72, "起動スクリプトを作成しています...")
-            self._log("[5/6] 起動スクリプト作成...")
+            self._log("[5/7] 起動スクリプト作成...")
             python_exe = self._find_python()
             self._create_startup_bat(install_path, python_exe)
             self._log("  start_kblite.bat 作成完了")
 
-            # ---- Step 6: ショートカット / スタートアップ ----
-            self._set_progress(85, "ショートカットを作成しています...")
-            self._log("[6/6] ショートカット処理...")
+            # ---- Step 6: アンインストーラーコピー + アプリ一覧登録 ----
+            self._set_progress(80, "アンインストーラーをコピーしています...")
+            self._log("[6/7] アンインストーラーをコピーしています...")
+            uninstaller_dst = self._copy_uninstaller(install_path, source_path)
+            self._register_uninstall_entry(install_path, uninstaller_dst)
+
+            # ---- Step 7: ショートカット / スタートアップ ----
+            self._set_progress(88, "ショートカットを作成しています...")
+            self._log("[7/7] ショートカット処理...")
             if self.create_shortcut.get():
                 self._create_desktop_shortcut(install_path)
             if self.create_startup.get():
@@ -748,6 +754,54 @@ class KBLiteInstaller(tk.Tk):
             self._log("  スタートアップ登録完了")
         except Exception as e:
             self._log(f"  スタートアップ登録失敗（続行）: {e}")
+
+    def _copy_uninstaller(self, install_path: Path, source_path: Path) -> Path | None:
+        """アンインストーラー EXE をインストールフォルダーにコピーする"""
+        if getattr(sys, "frozen", False):
+            # インストーラーEXEに同梱されている場合（_MEIPASS）を優先
+            meipass = getattr(sys, "_MEIPASS", None)
+            if meipass:
+                uninstaller_src = Path(meipass) / "KBLite_Uninstall.exe"
+            else:
+                uninstaller_src = Path(sys.executable).parent / "KBLite_Uninstall.exe"
+        else:
+            uninstaller_src = Path(__file__).parent / "dist" / "KBLite_Uninstall.exe"
+
+        if uninstaller_src.exists():
+            dst = install_path / "KBLite_Uninstall.exe"
+            shutil.copy2(str(uninstaller_src), str(dst))
+            self._log("  KBLite_Uninstall.exe をコピーしました")
+            return dst
+        else:
+            self._log("  アンインストーラーが見つかりません（スキップ）")
+            self._log(f"  ※ {uninstaller_src}")
+            return None
+
+    def _register_uninstall_entry(self, install_path: Path, uninstaller_path: Path | None):
+        """プログラムの追加と削除にアンインストール情報を登録する"""
+        try:
+            import winreg
+            key = winreg.CreateKey(
+                winreg.HKEY_CURRENT_USER,
+                r"Software\Microsoft\Windows\CurrentVersion\Uninstall\KBLite"
+            )
+            uninstall_str = (
+                str(uninstaller_path)
+                if uninstaller_path and uninstaller_path.exists()
+                else str(install_path / "KBLite_Uninstall.exe")
+            )
+            winreg.SetValueEx(key, "DisplayName", 0, winreg.REG_SZ, APP_NAME)
+            winreg.SetValueEx(key, "DisplayVersion", 0, winreg.REG_SZ, APP_VERSION)
+            winreg.SetValueEx(key, "Publisher", 0, winreg.REG_SZ, "KBLite Project")
+            winreg.SetValueEx(key, "InstallLocation", 0, winreg.REG_SZ, str(install_path))
+            winreg.SetValueEx(key, "UninstallString", 0, winreg.REG_SZ, uninstall_str)
+            winreg.SetValueEx(key, "DisplayIcon", 0, winreg.REG_SZ, uninstall_str)
+            winreg.SetValueEx(key, "NoModify", 0, winreg.REG_DWORD, 1)
+            winreg.SetValueEx(key, "NoRepair", 0, winreg.REG_DWORD, 1)
+            winreg.CloseKey(key)
+            self._log("  プログラムの追加と削除に登録しました")
+        except Exception as e:
+            self._log(f"  アプリ一覧登録失敗（続行）: {e}")
 
     def _launch_kblite(self):
         try:
