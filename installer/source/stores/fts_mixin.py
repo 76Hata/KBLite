@@ -1,11 +1,14 @@
 """FTS5 全文検索 Mixin — SQLite FTS5 による RAG 的検索機能"""
+
 import logging
 from typing import Any
+
+from stores._base import StoreMixinBase
 
 logger = logging.getLogger(__name__)
 
 
-class FtsMixin:
+class FtsMixin(StoreMixinBase):
     """conversations テーブルに対する FTS5 全文検索"""
 
     def _init_fts(self):
@@ -45,9 +48,7 @@ class FtsMixin:
 
     def rebuild_fts_index(self) -> int:
         """既存の conversations データから FTS5 インデックスを再構築する"""
-        self._conn.execute(
-            "INSERT INTO conversations_fts(conversations_fts) VALUES ('rebuild')"
-        )
+        self._conn.execute("INSERT INTO conversations_fts(conversations_fts) VALUES ('rebuild')")
         self._conn.commit()
         count = self._conn.execute("SELECT COUNT(*) FROM conversations_fts").fetchone()[0]
         logger.info("FTS5 インデックス再構築完了: %d 件", count)
@@ -103,17 +104,19 @@ class FtsMixin:
         for row in cursor.fetchall():
             snippet_q = (row["question"] or "")[:200]
             snippet_a = (row["answer"] or "")[:500]
-            results.append({
-                "id": row["id"],
-                "session_id": row["session_id"],
-                "sequence": row["sequence"],
-                "question": snippet_q,
-                "answer": snippet_a,
-                "title": row["title"] or "",
-                "summary": row["summary"] or "",
-                "created_at": row["created_at"],
-                "score": abs(row["rank"]),
-            })
+            results.append(
+                {
+                    "id": row["id"],
+                    "session_id": row["session_id"],
+                    "sequence": row["sequence"],
+                    "question": snippet_q,
+                    "answer": snippet_a,
+                    "title": row["title"] or "",
+                    "summary": row["summary"] or "",
+                    "created_at": row["created_at"],
+                    "score": abs(row["rank"]),
+                }
+            )
         return results
 
     def fts_search_for_rag(
@@ -169,15 +172,17 @@ class FtsMixin:
 
         results = []
         for row in cursor.fetchall():
-            results.append({
-                "session_title": row["session_title"] or "",
-                "question": (row["question"] or "")[:200],
-                "answer": (row["answer"] or "")[:800],
-                "title": row["title"] or "",
-                "summary": row["summary"] or "",
-                "created_at": row["created_at"],
-                "score": abs(row["rank"]),
-            })
+            results.append(
+                {
+                    "session_title": row["session_title"] or "",
+                    "question": (row["question"] or "")[:200],
+                    "answer": (row["answer"] or "")[:800],
+                    "title": row["title"] or "",
+                    "summary": row["summary"] or "",
+                    "created_at": row["created_at"],
+                    "score": abs(row["rank"]),
+                }
+            )
         return results
 
     @staticmethod
@@ -200,12 +205,8 @@ class FtsMixin:
     def fts_stats(self) -> dict:
         """FTS5 インデックスの統計情報を返す"""
         try:
-            count = self._conn.execute(
-                "SELECT COUNT(*) FROM conversations_fts"
-            ).fetchone()[0]
-            conv_count = self._conn.execute(
-                "SELECT COUNT(*) FROM conversations"
-            ).fetchone()[0]
+            count = self._conn.execute("SELECT COUNT(*) FROM conversations_fts").fetchone()[0]
+            conv_count = self._conn.execute("SELECT COUNT(*) FROM conversations").fetchone()[0]
             return {
                 "fts_indexed": count,
                 "conversations_total": conv_count,

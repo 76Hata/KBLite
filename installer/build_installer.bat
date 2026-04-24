@@ -62,7 +62,7 @@ for %%i in (%ITEMS%) do (
 )
 
 :: ディレクトリのコピー
-for %%d in (routes stores static commands) do (
+for %%d in (routes stores static commands services models) do (
     if exist "%PROJECT_DIR%%%d" (
         xcopy /E /I /Y /Q "%PROJECT_DIR%%%d" "%SOURCE_COPY_DIR%\%%d" >nul
         echo   コピー: %%d\

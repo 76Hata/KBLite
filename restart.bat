@@ -1,24 +1,27 @@
 @echo off
-chcp 65001 >nul
-:: API detach restart - wait before killing
-timeout /t 3 /nobreak >nul
+:: API detach restart
+:: NOTE: timeout コマンドはコンソールが必要なため DETACHED_PROCESS では使用不可。
+::       代わりに ping でウェイトする。CREATE_NO_WINDOW で起動すること。
+
+:: 3 秒待機（4 回の応答 ≒ 3 秒）
+ping -n 4 127.0.0.1 > nul
 
 cd /d C:\01_Develop\project\kblite
 
-:: Kill process using port 8080 (try multiple times for reliability)
-for /f "tokens=5" %%a in ('netstat -ano 2^>nul ^| findstr /R ":8080[ \t]"') do (
-    taskkill /PID %%a /F >nul 2>&1
-)
+:: Kill LISTENING process on port 8080 (PowerShell で確実に LISTEN 行だけを対象にする)
+powershell -NoProfile -Command "Get-NetTCPConnection -LocalPort 8080 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }"
 
-:: Wait for process to terminate
-timeout /t 2 /nobreak >nul
+:: 2 秒待機
+ping -n 3 127.0.0.1 > nul
 
 :: Kill again if still running
-for /f "tokens=5" %%a in ('netstat -ano 2^>nul ^| findstr /R ":8080[ \t]"') do (
-    taskkill /PID %%a /F >nul 2>&1
-)
+powershell -NoProfile -Command "Get-NetTCPConnection -LocalPort 8080 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }"
 
-timeout /t 1 /nobreak >nul
+:: 1 秒待機
+ping -n 2 127.0.0.1 > nul
 
 :: Restart server
-start "KBLite Server" /B "C:\Users\76Hata\AppData\Local\Programs\Python\Python313\python.exe" -m uvicorn app:app --host 0.0.0.0 --port 8080
+:: Prefer project venv; fall back to PATH `python`
+set "PYTHON_EXE=%~dp0.venv\Scripts\python.exe"
+if not exist "%PYTHON_EXE%" set "PYTHON_EXE=python"
+start "KBLite Server" /B "%PYTHON_EXE%" -m uvicorn app:app --host 0.0.0.0 --port 8080

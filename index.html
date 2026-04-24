@@ -5609,10 +5609,20 @@
   // ── バックグラウンドタスク復帰 ─────────────────────
   async function recoverTask(taskId, aiContent, aiDiv, question) {
     const maxAttempts = 150;
+    let notFoundCount = 0;
     for (let i = 0; i < maxAttempts; i++) {
       try {
         const res = await fetch('/api/task/' + taskId);
-        if (!res.ok) return false;
+        if (!res.ok) {
+          // 404はサーバー再起動直後の競合状態で起きる。最初の15回(30秒)はリトライ
+          if (res.status === 404 && notFoundCount < 15) {
+            notFoundCount++;
+            await new Promise(r => setTimeout(r, 2000));
+            continue;
+          }
+          return false;
+        }
+        notFoundCount = 0;
         const data = await res.json();
         if (data.status === 'done') {
           hideWaitingIndicator();

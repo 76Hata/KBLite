@@ -506,7 +506,7 @@ class KBLiteInstaller(tk.Tk):
                 creationflags=subprocess.CREATE_NO_WINDOW,
                 shell=True
             )
-        except Exception:
+        except Exception as e:
             self.after(0, lambda: messagebox.showerror(
                 "エラー", f"認証の開始に失敗しました:\n{e}"))
         self.after(0, lambda: self._btn_auth.configure(
@@ -571,9 +571,10 @@ class KBLiteInstaller(tk.Tk):
                 "sqlite_store.py", "deps.py", "statusline.py",
                 "requirements.txt", "index.html",
                 "routes", "stores", "static", "commands",
+                "models", "services", "templates",
             ]
-            # オプションファイル
-            optional = ["mcp_tasks.py", "statusline.py"]
+            # オプションファイル（存在する場合のみコピー）
+            optional = ["mcp_tasks.py"]
 
             for item in items + optional:
                 src = source_path / item
@@ -644,7 +645,7 @@ class KBLiteInstaller(tk.Tk):
             self._install_done = True
             self.after(1200, lambda: self._show_page(4))
 
-        except Exception:
+        except Exception as e:
             import traceback
             self._log(f"\nエラーが発生しました:\n{traceback.format_exc()}")
             self.after(0, lambda: messagebox.showerror(

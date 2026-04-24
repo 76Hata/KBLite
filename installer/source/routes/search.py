@@ -1,4 +1,5 @@
 """FTS5 全文検索エンドポイント"""
+
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
@@ -14,11 +15,13 @@ async def search_conversations(request: Request) -> JSONResponse:
     limit = min(int(request.query_params.get("limit", "10")), 50)
 
     results = store.fts_search(query, limit=limit)
-    return JSONResponse({
-        "results": results,
-        "query": query,
-        "total": len(results),
-    })
+    return JSONResponse(
+        {
+            "results": results,
+            "query": query,
+            "total": len(results),
+        }
+    )
 
 
 async def search_stats(request: Request) -> JSONResponse:

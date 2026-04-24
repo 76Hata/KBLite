@@ -540,7 +540,7 @@ async def team_chat(request: Request):
         try:
             while True:
                 try:
-                    chunk = await asyncio.wait_for(task_state.queue.get(), timeout=15)
+                    chunk = await asyncio.wait_for(task_state.queue.get(), timeout=5)
                 except TimeoutError:
                     yield f"data: {json.dumps({'type': 'heartbeat'})}\n\n"
                     continue

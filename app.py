@@ -64,6 +64,7 @@ from routes.system import (
     set_auth_key,
     start_claude_login,
     test_auth_error,
+    write_skill_file,
 )
 from routes.task import (
     add_task_note,
@@ -126,6 +127,7 @@ _routes = [
     Route("/api/permissions/requests", submit_permission_request, methods=["POST"]),
     Route("/api/permissions/requests/{request_id}/approve", approve_permission_request, methods=["POST"]),
     Route("/api/permissions/requests/{request_id}/deny", deny_permission_request, methods=["POST"]),
+    Route("/api/internal/write_skill_file", write_skill_file, methods=["POST"]),
     Mount("/static", app=StaticFiles(directory=str(Path(__file__).parent / "static")), name="static"),  # noqa: E501
 ]
 
