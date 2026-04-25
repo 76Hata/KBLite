@@ -62,7 +62,7 @@ for %%i in (%ITEMS%) do (
 )
 
 :: ディレクトリのコピー
-for %%d in (routes stores static commands) do (
+for %%d in (routes stores static commands models services templates) do (
     if exist "%PROJECT_DIR%%%d" (
         xcopy /E /I /Y /Q "%PROJECT_DIR%%%d" "%SOURCE_COPY_DIR%\%%d" >nul
         echo   コピー: %%d\
@@ -83,7 +83,7 @@ python -m PyInstaller ^
     --onefile ^
     --windowed ^
     --name "KBLite_Setup" ^
-    --add-data "source;source" ^
+    --add-data "%SOURCE_COPY_DIR%;source" ^
     --distpath "%DIST_DIR%" ^
     --workpath "%BUILD_DIR%" ^
     --specpath "%BUILD_DIR%" ^
