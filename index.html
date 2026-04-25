@@ -3955,16 +3955,50 @@
     document.documentElement.setAttribute('data-theme', value);
     localStorage.setItem('kblite-theme', value);
     updateFavicon(value);
+    reRenderAllMermaid(value);
+  }
+
+  async function reRenderAllMermaid(theme) {
+    const wrappers = document.querySelectorAll('.mermaid[data-graph]');
+    if (wrappers.length === 0) return;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: theme === 'phantom' ? 'dark' : 'default',
+      suppressErrorRendering: true
+    });
+    for (const wrapper of wrappers) {
+      const graphDef = wrapper.dataset.graph;
+      try {
+        const id = 'mermaid-' + Date.now() + '-' + (++_mermaidCounter);
+        const { svg } = await mermaid.render(id, graphDef);
+        wrapper.innerHTML = svg;
+        wrapper.dataset.graph = graphDef;
+      } catch (e) {
+        console.warn('Mermaid: 再レンダリング失敗', e);
+      }
+    }
   }
 
   // Mermaid.js の初期化（自動起動は無効化、エラー表示を抑制）
-  mermaid.initialize({ startOnLoad: false, theme: 'default', suppressErrorRendering: true });
+  // ページロード時のテーマを反映（PHANTOMはdark、それ以外はdefault）
+  (function initMermaid() {
+    const t = document.documentElement.getAttribute('data-theme');
+    mermaid.initialize({ startOnLoad: false, theme: t === 'phantom' ? 'dark' : 'default', suppressErrorRendering: true });
+  })();
 
   // コンテナ内の mermaid コードブロックを図に変換
   let _mermaidCounter = 0;
   async function renderMermaidBlocks(container) {
     const codeBlocks = container.querySelectorAll('pre > code.language-mermaid');
     if (codeBlocks.length === 0) return;
+
+    // PHANTOMテーマ時はdarkテーマを使用（透明背景SVGが黒背景に溶けて見えなくなる問題を防ぐ）
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: currentTheme === 'phantom' ? 'dark' : 'default',
+      suppressErrorRendering: true
+    });
 
     for (const code of codeBlocks) {
       const pre = code.parentElement;
@@ -3978,6 +4012,7 @@
         const { svg } = await mermaid.render(id, graphDef);
         const wrapper = document.createElement('div');
         wrapper.className = 'mermaid';
+        wrapper.dataset.graph = graphDef;
         wrapper.innerHTML = svg;
         wrapper.style.cursor = 'pointer';
         wrapper.addEventListener('click', () => {
