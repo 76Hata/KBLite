@@ -1315,7 +1315,7 @@ class KBLiteUninstaller(tk.Tk):
         if inside_install:
             if self.keep_data.get():
                 self._log("  ※ EXEから実行しているためデータ保持は無効です（全削除します）")
-            self._log(f"  プロセス終了後にバッチで削除をスケジュールします: {install_path}")
+            self._log(f"  プロセス終了後にフォルダーを削除します: {install_path}")
             self._schedule_folder_deletion(install_path)
             return
 
@@ -1329,8 +1329,12 @@ class KBLiteUninstaller(tk.Tk):
                 self._log(f"  会話履歴データを一時保存: {tmp_dir}")
                 shutil.copytree(str(data_dir), str(tmp_dir / "data"))
 
-                shutil.rmtree(str(install_path), ignore_errors=False)
-                self._log(f"  フォルダー削除完了: {install_path}")
+                try:
+                    shutil.rmtree(str(install_path))
+                    self._log(f"  フォルダー削除完了: {install_path}")
+                except Exception as e:
+                    self._log(f"  フォルダー削除失敗: {e}")
+                    raise
 
                 # データを元の場所に復元
                 install_path.mkdir(parents=True, exist_ok=True)
@@ -1339,15 +1343,45 @@ class KBLiteUninstaller(tk.Tk):
             finally:
                 shutil.rmtree(str(tmp_dir), ignore_errors=True)
         else:
-            shutil.rmtree(str(install_path), ignore_errors=False)
-            self._log(f"  フォルダー削除完了（データ含む）: {install_path}")
+            try:
+                shutil.rmtree(str(install_path))
+                self._log(f"  フォルダー削除完了（データ含む）: {install_path}")
+            except Exception as e:
+                self._log(f"  フォルダー削除失敗: {e}")
+                raise
 
     def _schedule_folder_deletion(self, folder: Path):
-        """プロセス終了後にフォルダーを削除する一時バッチを起動する"""
+        """プロセス終了後にフォルダーをPowerShellで強制削除する"""
+        folder_str = str(folder).replace("'", "''")
+        ps_cmd = (
+            f"Start-Sleep -Seconds 5; "
+            f"Remove-Item -LiteralPath '{folder_str}' -Recurse -Force -ErrorAction SilentlyContinue; "
+            f"if (Test-Path -LiteralPath '{folder_str}') {{"
+            f" Start-Sleep -Seconds 3;"
+            f" Remove-Item -LiteralPath '{folder_str}' -Recurse -Force -ErrorAction SilentlyContinue"
+            f"}}"
+        )
+        try:
+            subprocess.Popen(
+                ["powershell", "-NoProfile", "-WindowStyle", "Hidden", "-Command", ps_cmd],
+                creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NO_WINDOW,
+                close_fds=True,
+            )
+            self._log("  フォルダー削除をスケジュールしました")
+        except Exception as e:
+            self._log(f"  PowerShell 起動失敗、バッチで代替: {e}")
+            self._schedule_folder_deletion_bat(folder)
+
+    def _schedule_folder_deletion_bat(self, folder: Path):
+        """PowerShell 失敗時のバッチファイルによるフォールバック削除"""
         bat_content = (
             "@echo off\n"
-            "timeout /t 3 /nobreak >nul\n"
+            "timeout /t 5 /nobreak >nul\n"
             f'rd /s /q "{folder}"\n'
+            f'if exist "{folder}" (\n'
+            "  timeout /t 3 /nobreak >nul\n"
+            f'  rd /s /q "{folder}"\n'
+            ")\n"
             f'if exist "{folder}" (\n'
             "  timeout /t 3 /nobreak >nul\n"
             f'  rd /s /q "{folder}"\n'
@@ -1365,9 +1399,9 @@ class KBLiteUninstaller(tk.Tk):
                 creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NO_WINDOW,
                 close_fds=True,
             )
-            self._log("  フォルダー削除をスケジュールしました")
+            self._log("  フォルダー削除をスケジュールしました (バッチ)")
         except Exception as e:
-            self._log(f"  バッチ起動失敗（手動削除が必要）: {e}")
+            self._log(f"  削除スケジュール失敗（手動削除が必要）: {e}")
 
 
 # ============================================================
