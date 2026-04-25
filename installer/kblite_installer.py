@@ -358,7 +358,8 @@ class KBLiteInstaller(tk.Tk):
         elif index == 4:
             self._lbl_install_result.configure(
                 text=f"インストール先: {self.install_path.get()}")
-            self._btn_next.configure(text="完了(F)", command=self._on_finish)
+            # stateを明示的に"normal"に戻す（page 3で"disabled"になったまま引き継がれるため）
+            self._btn_next.configure(text="完了(F)", command=self._on_finish, state="normal")
             self._btn_back.configure(state="disabled")
             self._btn_cancel.configure(state="disabled")
 
@@ -745,10 +746,9 @@ class KBLiteInstaller(tk.Tk):
         bat = (
             "@echo off\n"
             "chcp 65001 >nul\n"
-            f'cd /d "{install_path}"\n'
-            # /MIN で uvicorn を独立した最小化ウィンドウとして起動
-            # /B では bat 終了時にコンソールが閉じて uvicorn も終了してしまう
-            f'start "KBLite" /MIN "{python_exe}" -m uvicorn app:app '
+            # /D でuvicorn新ウィンドウの作業ディレクトリを明示指定
+            # start の新ウィンドウは親のcd /dを引き継がないため /D が必須
+            f'start "KBLite" /D "{install_path}" /MIN "{python_exe}" -m uvicorn app:app '
             "--host 127.0.0.1 --port 8080\n"
             "timeout /t 3 /nobreak >nul\n"
             "start http://localhost:8080\n"
