@@ -86,7 +86,6 @@ python -m PyInstaller ^
     --add-data "%SOURCE_COPY_DIR%;source" ^
     --distpath "%DIST_DIR%" ^
     --workpath "%BUILD_DIR%" ^
-    --specpath "%BUILD_DIR%" ^
     --clean ^
     --noconfirm ^
     kblite_installer.py
