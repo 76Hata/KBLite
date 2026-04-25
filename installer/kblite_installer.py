@@ -786,7 +786,7 @@ class KBLiteInstaller(tk.Tk):
                 'Set ws = WScript.CreateObject("WScript.Shell")\n'
                 f'Set lnk = ws.CreateShortcut("{shortcut}")\n'
                 'lnk.TargetPath = "wscript.exe"\n'
-                f'lnk.Arguments = """"{startup_vbs}""""\n'
+                f'lnk.Arguments = """" & "{startup_vbs}" & """"\n'
                 f'lnk.WorkingDirectory = "{install_path}"\n'
                 'lnk.Description = "KBLite Knowledge Base Browser"\n'
                 'lnk.Save\n'
