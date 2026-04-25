@@ -386,11 +386,9 @@ async function renderMermaidBlocks(container) {
   const codeBlocks = container.querySelectorAll('pre > code.language-mermaid');
   if (codeBlocks.length === 0) return;
 
-  // PHANTOMテーマ時はdarkテーマを使用（透明背景SVGが黒背景に溶けて見えなくなる問題を防ぐ）
-  const currentTheme = document.documentElement.getAttribute('data-theme');
   mermaid.initialize({
     startOnLoad: false,
-    theme: currentTheme === 'phantom' ? 'dark' : 'default',
+    theme: 'default',
     suppressErrorRendering: true,
     flowchart: { useMaxWidth: true, htmlLabels: true, padding: 15 }
   });
