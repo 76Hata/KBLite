@@ -62,7 +62,7 @@ for %%i in (%ITEMS%) do (
 )
 
 :: ディレクトリのコピー
-for %%d in (routes stores static commands services models) do (
+for %%d in (routes stores static commands models services templates) do (
     if exist "%PROJECT_DIR%%%d" (
         xcopy /E /I /Y /Q "%PROJECT_DIR%%%d" "%SOURCE_COPY_DIR%\%%d" >nul
         echo   コピー: %%d\
@@ -71,9 +71,9 @@ for %%d in (routes stores static commands services models) do (
 
 echo [INFO] ソースコピー完了
 
-:: ---- Step1: アンインストーラーを先にビルド ----
+:: ---- PyInstaller でビルド ----
 echo.
-echo [INFO] アンインストーラーをビルドしています...
+echo [INFO] インストーラーをビルドしています...
 echo       （しばらくお待ちください）
 echo.
 
@@ -82,40 +82,8 @@ cd /d "%INSTALLER_DIR%"
 python -m PyInstaller ^
     --onefile ^
     --windowed ^
-    --name "KBLite_Uninstall" ^
-    --distpath "%DIST_DIR%" ^
-    --workpath "%BUILD_DIR%" ^
-    --clean ^
-    --noconfirm ^
-    kblite_uninstaller.py
-
-if errorlevel 1 (
-    echo.
-    echo [ERROR] アンインストーラーのビルドに失敗しました。
-    pause
-    exit /b 1
-)
-
-if exist "%DIST_DIR%\KBLite_Uninstall.exe" (
-    echo [INFO] KBLite_Uninstall.exe ビルド成功
-) else (
-    echo [ERROR] KBLite_Uninstall.exe が生成されませんでした。
-    pause
-    exit /b 1
-)
-
-:: ---- Step2: インストーラーをビルド（アンインストーラーを同梱）----
-echo.
-echo [INFO] インストーラーをビルドしています...
-echo       （アンインストーラーを同梱します。しばらくお待ちください）
-echo.
-
-python -m PyInstaller ^
-    --onefile ^
-    --windowed ^
     --name "KBLite_Setup" ^
-    --add-data "source;source" ^
-    --add-data "%DIST_DIR%\KBLite_Uninstall.exe;." ^
+    --add-data "%SOURCE_COPY_DIR%;source" ^
     --distpath "%DIST_DIR%" ^
     --workpath "%BUILD_DIR%" ^
     --specpath "%BUILD_DIR%" ^
@@ -130,24 +98,22 @@ if errorlevel 1 (
     exit /b 1
 )
 
+:: ---- ビルド後の確認 ----
 if exist "%DIST_DIR%\KBLite_Setup.exe" (
-    echo [INFO] KBLite_Setup.exe ビルド成功
+    echo.
+    echo ============================================================
+    echo  ビルド成功！
+    echo  出力: %DIST_DIR%\KBLite_Setup.exe
+    echo ============================================================
+    echo.
+    echo KBLite_Setup.exe を配布してください。
+    echo （PyInstaller の環境がない PC でも実行できます）
+    echo.
 ) else (
     echo [ERROR] KBLite_Setup.exe が生成されませんでした。
     pause
     exit /b 1
 )
-
-echo.
-echo ============================================================
-echo  ビルド成功！
-echo  インストーラー : %DIST_DIR%\KBLite_Setup.exe
-echo  アンインストーラー: %DIST_DIR%\KBLite_Uninstall.exe
-echo.
-echo  KBLite_Setup.exe のみ配布すれば OK です。
-echo  （アンインストーラーが同梱されています）
-echo ============================================================
-echo.
 
 pause
 endlocal
