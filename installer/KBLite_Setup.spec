@@ -5,7 +5,7 @@ a = Analysis(
     ['kblite_installer.py'],
     pathex=[],
     binaries=[],
-    datas=[('source', 'source'), ('dist/KBLite_Uninstall.exe', '.')],
+    datas=[('source', 'source')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
