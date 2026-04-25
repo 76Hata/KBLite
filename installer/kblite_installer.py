@@ -727,14 +727,18 @@ class KBLiteInstaller(tk.Tk):
         """現在の Python 実行ファイルのパスを返す"""
         if getattr(sys, "frozen", False):
             # PyInstaller の場合は sys.executable はインストーラー自身なので
-            # システムの python を探す
+            # where コマンドでシステムの python のフルパスを取得する
             for candidate in ["python", "python3", "py"]:
                 try:
-                    r = subprocess.run([candidate, "--version"],
-                                       capture_output=True, timeout=5,
-                                       creationflags=subprocess.CREATE_NO_WINDOW)
-                    if r.returncode == 0:
-                        return candidate
+                    r = subprocess.run(
+                        ["where", candidate],
+                        capture_output=True, text=True, timeout=5,
+                        creationflags=subprocess.CREATE_NO_WINDOW
+                    )
+                    if r.returncode == 0 and r.stdout.strip():
+                        first_path = r.stdout.strip().splitlines()[0].strip()
+                        if first_path:
+                            return first_path
                 except Exception:
                     continue
             return "python"
@@ -1372,26 +1376,8 @@ class KBLiteUninstaller(tk.Tk):
                 raise
 
     def _schedule_folder_deletion(self, folder: Path):
-        """プロセス終了後にフォルダーをPowerShellで強制削除する"""
-        folder_str = str(folder).replace("'", "''")
-        ps_cmd = (
-            f"Start-Sleep -Seconds 5; "
-            f"Remove-Item -LiteralPath '{folder_str}' -Recurse -Force -ErrorAction SilentlyContinue; "
-            f"if (Test-Path -LiteralPath '{folder_str}') {{"
-            f" Start-Sleep -Seconds 3;"
-            f" Remove-Item -LiteralPath '{folder_str}' -Recurse -Force -ErrorAction SilentlyContinue"
-            f"}}"
-        )
-        try:
-            subprocess.Popen(
-                ["powershell", "-NoProfile", "-WindowStyle", "Hidden", "-Command", ps_cmd],
-                creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NO_WINDOW,
-                close_fds=True,
-            )
-            self._log("  フォルダー削除をスケジュールしました")
-        except Exception as e:
-            self._log(f"  PowerShell 起動失敗、バッチで代替: {e}")
-            self._schedule_folder_deletion_bat(folder)
+        """プロセス終了後にバッチファイルでフォルダーを強制削除する"""
+        self._schedule_folder_deletion_bat(folder)
 
     def _schedule_folder_deletion_bat(self, folder: Path):
         """PowerShell 失敗時のバッチファイルによるフォールバック削除"""
@@ -1418,7 +1404,6 @@ class KBLiteUninstaller(tk.Tk):
             subprocess.Popen(
                 ["cmd", "/c", bat_path],
                 creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NO_WINDOW,
-                close_fds=True,
             )
             self._log("  フォルダー削除をスケジュールしました (バッチ)")
         except Exception as e:
