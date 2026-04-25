@@ -705,8 +705,14 @@ class KBLiteInstaller(tk.Tk):
     def _resolve_source_path(self) -> Path:
         """KBLite ソースファイルのパスを解決する"""
         if getattr(sys, "frozen", False):
-            # PyInstaller でビルドされた .exe の場合
-            # exe と同じディレクトリに source/ フォルダーがあることを想定
+            # PyInstaller --onefile モードでは _MEIPASS に展開される
+            meipass = getattr(sys, "_MEIPASS", None)
+            if meipass:
+                src = Path(meipass) / "source"
+                if src.exists():
+                    return src
+                return Path(meipass)
+            # onedir モードの場合は exe 隣の source/ を参照
             base = Path(sys.executable).parent
             src = base / "source"
             if src.exists():
@@ -740,9 +746,11 @@ class KBLiteInstaller(tk.Tk):
             "@echo off\n"
             "chcp 65001 >nul\n"
             f'cd /d "{install_path}"\n'
-            f'start "KBLite" /B "{python_exe}" -m uvicorn app:app '
+            # /MIN で uvicorn を独立した最小化ウィンドウとして起動
+            # /B では bat 終了時にコンソールが閉じて uvicorn も終了してしまう
+            f'start "KBLite" /MIN "{python_exe}" -m uvicorn app:app '
             "--host 127.0.0.1 --port 8080\n"
-            "timeout /t 2 /nobreak >nul\n"
+            "timeout /t 3 /nobreak >nul\n"
             "start http://localhost:8080\n"
         )
         (install_path / "start_kblite.bat").write_text(bat, encoding="utf-8")
