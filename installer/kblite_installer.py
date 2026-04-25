@@ -753,8 +753,9 @@ class KBLiteInstaller(tk.Tk):
         (install_path / "start_kblite.bat").write_text(bat, encoding="utf-8")
 
         # start_kblite.vbs: 通常起動用（ウィンドウなし、ログをファイルに記録）
-        py_exe = python_exe.replace("\\", "\\\\")
-        inst_dir = str(install_path).replace("\\", "\\\\")
+        # VBScriptはバックスラッシュをエスケープしないため、Windowsパスはそのまま埋め込む
+        py_exe = str(python_exe)
+        inst_dir = str(install_path)
         vbs_lines = [
             'Set shell = CreateObject("WScript.Shell")',
             'Set fso = CreateObject("Scripting.FileSystemObject")',
