@@ -630,7 +630,7 @@ class KBLiteInstaller(tk.Tk):
             self._log("[5/7] 起動スクリプト作成...")
             python_exe = self._find_python()
             self._create_startup_bat(install_path, python_exe)
-            self._log("  start_kblite.bat 作成完了")
+            self._log("  start_kblite.bat / start_kblite.vbs 作成完了")
 
             # ---- Step 6: アンインストーラーをコピー + レジストリ登録 ----
             self._set_progress(75, "アンインストーラーを登録しています...")
@@ -742,18 +742,31 @@ class KBLiteInstaller(tk.Tk):
             return sys.executable
 
     def _create_startup_bat(self, install_path: Path, python_exe: str):
-        """起動 .bat スクリプトを生成"""
+        """起動スクリプト（bat: デバッグ用、vbs: 通常起動用・ウィンドウなし）を生成"""
+        # start_kblite.bat: 手動起動・デバッグ用（コンソールウィンドウあり）
         bat = (
             "@echo off\n"
             "chcp 65001 >nul\n"
-            # /D でuvicorn新ウィンドウの作業ディレクトリを明示指定
-            # start の新ウィンドウは親のcd /dを引き継がないため /D が必須
-            f'start "KBLite" /D "{install_path}" /MIN "{python_exe}" -m uvicorn app:app '
-            "--host 127.0.0.1 --port 8080\n"
-            "timeout /t 3 /nobreak >nul\n"
-            "start http://localhost:8080\n"
+            f'cd /d "{install_path}"\n'
+            f'"{python_exe}" -m uvicorn app:app --host 127.0.0.1 --port 8080\n'
         )
         (install_path / "start_kblite.bat").write_text(bat, encoding="utf-8")
+
+        # start_kblite.vbs: 通常起動用（ウィンドウなし、ログをファイルに記録）
+        py_exe = python_exe.replace("\\", "\\\\")
+        inst_dir = str(install_path).replace("\\", "\\\\")
+        vbs_lines = [
+            'Set shell = CreateObject("WScript.Shell")',
+            'Set fso = CreateObject("Scripting.FileSystemObject")',
+            f'installDir = "{inst_dir}"',
+            'logDir = installDir & "\\logs"',
+            'If Not fso.FolderExists(logDir) Then fso.CreateFolder(logDir)',
+            f'shell.Run "cmd /c cd /d """ & installDir & """ && ""{py_exe}"" -m uvicorn app:app --host 127.0.0.1 --port 8080 >> """ & logDir & """\\uvicorn.log"" 2>&1", 0, False',
+            'WScript.Sleep 3000',
+            'shell.Run "http://localhost:8080", 1, False',
+        ]
+        vbs = "\r\n".join(vbs_lines) + "\r\n"
+        (install_path / "start_kblite.vbs").write_text(vbs, encoding="utf-8")
 
     def _create_desktop_shortcut(self, install_path: Path):
         try:
@@ -767,12 +780,13 @@ class KBLiteInstaller(tk.Tk):
                 desktop = Path(winreg.QueryValueEx(key, "Desktop")[0])
 
             shortcut = desktop / "KBLite.lnk"
-            bat_path = install_path / "start_kblite.bat"
+            startup_vbs = install_path / "start_kblite.vbs"
 
             vbs = (
                 'Set ws = WScript.CreateObject("WScript.Shell")\n'
                 f'Set lnk = ws.CreateShortcut("{shortcut}")\n'
-                f'lnk.TargetPath = "{bat_path}"\n'
+                'lnk.TargetPath = "wscript.exe"\n'
+                f'lnk.Arguments = """"{startup_vbs}""""\n'
                 f'lnk.WorkingDirectory = "{install_path}"\n'
                 'lnk.Description = "KBLite Knowledge Base Browser"\n'
                 'lnk.Save\n'
@@ -797,8 +811,8 @@ class KBLiteInstaller(tk.Tk):
                 r"Software\Microsoft\Windows\CurrentVersion\Run",
                 0, winreg.KEY_SET_VALUE
             )
-            bat_path = str(install_path / "start_kblite.bat")
-            winreg.SetValueEx(key, "KBLite", 0, winreg.REG_SZ, bat_path)
+            vbs_path = str(install_path / "start_kblite.vbs")
+            winreg.SetValueEx(key, "KBLite", 0, winreg.REG_SZ, f'wscript.exe "{vbs_path}"')
             winreg.CloseKey(key)
             self._log("  スタートアップ登録完了")
         except Exception as e:
@@ -854,10 +868,16 @@ class KBLiteInstaller(tk.Tk):
 
     def _launch_kblite(self):
         try:
-            bat_path = Path(self.install_path.get()) / "start_kblite.bat"
-            if bat_path.exists():
-                subprocess.Popen(["cmd", "/c", str(bat_path)],
-                                 creationflags=subprocess.CREATE_NEW_CONSOLE)
+            install_dir = Path(self.install_path.get())
+            vbs_path = install_dir / "start_kblite.vbs"
+            if vbs_path.exists():
+                subprocess.Popen(["wscript", str(vbs_path)],
+                                 creationflags=subprocess.CREATE_NO_WINDOW)
+            else:
+                bat_path = install_dir / "start_kblite.bat"
+                if bat_path.exists():
+                    subprocess.Popen(["cmd", "/c", str(bat_path)],
+                                     creationflags=subprocess.CREATE_NEW_CONSOLE)
         except Exception as e:
             messagebox.showerror("起動エラー", f"KBLite の起動に失敗しました:\n{e}")
 
