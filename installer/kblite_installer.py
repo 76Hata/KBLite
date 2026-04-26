@@ -405,7 +405,7 @@ class KBLiteInstaller(tk.Tk):
     # Claude Code 自動インストール
     # ----------------------------------------------------------
     def _install_claude_code(self):
-        """Git for Windows + Node.js + Claude Code を自動インストールする"""
+        """Git for Windows + Claude Code（PowerShell ネイティブ）を自動インストールする"""
         self._btn_get_claude.configure(state="disabled", text="インストール中...")
         self._lbl_install_status.configure(
             text="インストールを準備しています...", fg="#e67e22")
@@ -430,8 +430,8 @@ class KBLiteInstaller(tk.Tk):
             has_winget = (r.returncode == 0)
 
             if has_winget:
-                # Step 1: Git for Windows
-                update_status("[1/3] Git for Windows をインストール中...")
+                # Step 1: Git for Windows（Claude Code の Bash 実行に必要）
+                update_status("[1/2] Git for Windows をインストール中...")
                 subprocess.run([
                     "winget", "install", "--id", "Git.Git",
                     "--silent",
@@ -440,30 +440,14 @@ class KBLiteInstaller(tk.Tk):
                 ], capture_output=True, timeout=300,
                    creationflags=subprocess.CREATE_NO_WINDOW)
 
-                # Step 2: Node.js LTS
-                update_status("[2/3] Node.js をインストール中...")
-                subprocess.run([
-                    "winget", "install", "--id", "OpenJS.NodeJS.LTS",
-                    "--silent",
-                    "--accept-package-agreements",
-                    "--accept-source-agreements",
-                ], capture_output=True, timeout=300,
-                   creationflags=subprocess.CREATE_NO_WINDOW)
-
-            # Node.js の PATH を環境変数に追加（winget 新規インストール後の対応）
-            for d in [r"C:\Program Files\nodejs",
-                      r"C:\Program Files (x86)\nodejs"]:
-                if os.path.isdir(d) and d not in os.environ.get("PATH", ""):
-                    os.environ["PATH"] = d + os.pathsep + os.environ["PATH"]
-
-            # Step 3: Claude Code (npm)
-            step_label = "[3/3]" if has_winget else "[1/1]"
-            update_status(f"{step_label} Claude Code をインストール中...")
+            # Step 2: Claude Code（PowerShell ネイティブインストーラー）
+            step_label = "[2/2]" if has_winget else "[1/1]"
+            update_status(f"{step_label} Claude Code をインストール中（PowerShell）...")
             result = subprocess.run(
-                ["npm", "install", "-g", "@anthropic-ai/claude-code"],
-                capture_output=True, text=True, timeout=180,
-                creationflags=subprocess.CREATE_NO_WINDOW,
-                shell=True
+                ["powershell", "-NoProfile", "-NonInteractive", "-Command",
+                 "irm https://claude.ai/install.ps1 | iex"],
+                capture_output=True, text=True, timeout=300,
+                creationflags=subprocess.CREATE_NO_WINDOW
             )
 
             if result.returncode == 0:
@@ -471,7 +455,7 @@ class KBLiteInstaller(tk.Tk):
                 self.after(800, self._check_claude_installed)
             else:
                 err = (result.stderr or result.stdout)[:300]
-                update_status(f"npm インストール失敗: {err}", "#e74c3c")
+                update_status(f"インストール失敗: {err}", "#e74c3c")
                 restore_button()
 
         except subprocess.TimeoutExpired:
