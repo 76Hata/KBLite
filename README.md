@@ -1,3 +1,7 @@
+※ 利用にはClaude Pro以上の加入が必要です。
+※ こちらはWindows専用です。
+※ 利用は自己責任でお願いします。本アプリを利用して生じたいかなる損害も当方は一切関知致しません。
+
 # KBLite — Claude Codeを、ブラウザで。
 
 > All conversations stay on your machine. No external transmission.
@@ -451,3 +455,9 @@ MIT License
 ---
 
 *KBLite は個人開発のオープンソースツールです。*
+
+---
+
+※ 利用にはClaude Pro以上の加入が必要です。
+※ こちらはWindows専用です。
+※ 利用は自己責任でお願いします。本アプリを利用して生じたいかなる損害も当方は一切関知致しません。

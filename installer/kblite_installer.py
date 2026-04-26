@@ -204,8 +204,8 @@ class KBLiteInstaller(tk.Tk):
         r1 = tk.Frame(box1, bg="#f5f5f5")
         r1.pack(fill="x", pady=(6, 0))
         self._btn_get_claude = tk.Button(
-            r1, text="Claude Code をダウンロードする",
-            command=lambda: webbrowser.open(CLAUDE_CODE_INSTALL_URL),
+            r1, text="Claude Code をインストールする",
+            command=self._install_claude_code,
             font=("Meiryo UI", 9), state="disabled")
         self._btn_get_claude.pack(side="left")
         tk.Button(r1, text="再確認", font=("Meiryo UI", 9),
@@ -402,6 +402,70 @@ class KBLiteInstaller(tk.Tk):
         self.destroy()
 
     # ----------------------------------------------------------
+    # Claude Code 自動インストール
+    # ----------------------------------------------------------
+    def _install_claude_code(self):
+        """Git for Windows + Claude Code（PowerShell ネイティブ）を自動インストールする"""
+        self._btn_get_claude.configure(state="disabled", text="インストール中...")
+        self._lbl_install_status.configure(
+            text="インストールを準備しています...", fg="#e67e22")
+        threading.Thread(target=self._do_install_claude, daemon=True).start()
+
+    def _do_install_claude(self):
+        def update_status(text, color="#e67e22"):
+            self.after(0, lambda t=text, c=color: self._lbl_install_status.configure(
+                text=t, fg=c))
+
+        def restore_button():
+            self.after(0, lambda: self._btn_get_claude.configure(
+                state="normal", text="Claude Code をインストールする"))
+
+        try:
+            # winget の存在確認
+            r = subprocess.run(
+                ["winget", "--version"],
+                capture_output=True, text=True, timeout=10,
+                creationflags=subprocess.CREATE_NO_WINDOW
+            )
+            has_winget = (r.returncode == 0)
+
+            if has_winget:
+                # Step 1: Git for Windows（Claude Code の Bash 実行に必要）
+                update_status("[1/2] Git for Windows をインストール中...")
+                subprocess.run([
+                    "winget", "install", "--id", "Git.Git",
+                    "--silent",
+                    "--accept-package-agreements",
+                    "--accept-source-agreements",
+                ], capture_output=True, timeout=300,
+                   creationflags=subprocess.CREATE_NO_WINDOW)
+
+            # Step 2: Claude Code（PowerShell ネイティブインストーラー）
+            step_label = "[2/2]" if has_winget else "[1/1]"
+            update_status(f"{step_label} Claude Code をインストール中（PowerShell）...")
+            result = subprocess.run(
+                ["powershell", "-NoProfile", "-NonInteractive", "-Command",
+                 "irm https://claude.ai/install.ps1 | iex"],
+                capture_output=True, text=True, timeout=300,
+                creationflags=subprocess.CREATE_NO_WINDOW
+            )
+
+            if result.returncode == 0:
+                update_status("インストール完了。確認中...", "#27ae60")
+                self.after(800, self._check_claude_installed)
+            else:
+                err = (result.stderr or result.stdout)[:300]
+                update_status(f"インストール失敗: {err}", "#e74c3c")
+                restore_button()
+
+        except subprocess.TimeoutExpired:
+            update_status("インストールがタイムアウトしました。再試行してください。", "#e74c3c")
+            restore_button()
+        except Exception as e:
+            update_status(f"インストール失敗: {e}", "#e74c3c")
+            restore_button()
+
+    # ----------------------------------------------------------
     # Claude Code チェック
     # ----------------------------------------------------------
     def _check_claude_installed(self):
@@ -440,7 +504,8 @@ class KBLiteInstaller(tk.Tk):
         else:
             self.after(0, lambda: self._lbl_install_status.configure(
                 text="✗ Claude Code が見つかりません", fg="#e74c3c"))
-            self.after(0, lambda: self._btn_get_claude.configure(state="normal"))
+            self.after(0, lambda: self._btn_get_claude.configure(
+                state="normal", text="Claude Code をインストールする"))
             self.after(0, lambda: self._lbl_auth_status.configure(
                 text="Claude Code をインストール後に認証してください", fg="#aaa"))
             self.after(0, self._refresh_nav)
@@ -575,7 +640,7 @@ class KBLiteInstaller(tk.Tk):
             items = [
                 "app.py", "app-config.json", "prompt.py",
                 "sqlite_store.py", "deps.py", "statusline.py",
-                "requirements.txt", "index.html",
+                "requirements.txt", "index.html", "kblite.ico",
                 "routes", "stores", "static", "commands",
                 "models", "services", "templates",
             ]
@@ -696,6 +761,8 @@ class KBLiteInstaller(tk.Tk):
             winreg.SetValueEx(key, "InstallLocation",   0, winreg.REG_SZ, str(install_path))
             winreg.SetValueEx(key, "UninstallString",   0, winreg.REG_SZ, uninstall_cmd)
             winreg.SetValueEx(key, "QuietUninstallString", 0, winreg.REG_SZ, uninstall_cmd)
+            icon_path = str(install_path / "kblite.ico")
+            winreg.SetValueEx(key, "DisplayIcon",       0, winreg.REG_SZ, icon_path)
             winreg.SetValueEx(key, "NoModify",          0, winreg.REG_DWORD, 1)
             winreg.SetValueEx(key, "NoRepair",          0, winreg.REG_DWORD, 1)
             winreg.CloseKey(key)
@@ -872,7 +939,8 @@ class KBLiteInstaller(tk.Tk):
             winreg.SetValueEx(key, "Publisher", 0, winreg.REG_SZ, "KBLite Project")
             winreg.SetValueEx(key, "InstallLocation", 0, winreg.REG_SZ, str(install_path))
             winreg.SetValueEx(key, "UninstallString", 0, winreg.REG_SZ, uninstall_str)
-            winreg.SetValueEx(key, "DisplayIcon", 0, winreg.REG_SZ, uninstall_str)
+            icon_path = str(install_path / "kblite.ico")
+            winreg.SetValueEx(key, "DisplayIcon", 0, winreg.REG_SZ, icon_path)
             winreg.SetValueEx(key, "NoModify", 0, winreg.REG_DWORD, 1)
             winreg.SetValueEx(key, "NoRepair", 0, winreg.REG_DWORD, 1)
             winreg.CloseKey(key)
