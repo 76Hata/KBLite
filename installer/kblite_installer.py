@@ -630,7 +630,7 @@ class KBLiteInstaller(tk.Tk):
             self._log("[5/7] 起動スクリプト作成...")
             python_exe = self._find_python()
             self._create_startup_bat(install_path, python_exe)
-            self._log("  start_kblite.bat / start_kblite.vbs 作成完了")
+            self._log("  start_kblite.bat / start_kblite_silent.bat / start_kblite.vbs 作成完了")
 
             # ---- Step 6: アンインストーラーをコピー + レジストリ登録 ----
             self._set_progress(75, "アンインストーラーを登録しています...")
@@ -746,7 +746,7 @@ class KBLiteInstaller(tk.Tk):
             return sys.executable
 
     def _create_startup_bat(self, install_path: Path, python_exe: str):
-        """起動スクリプト（bat: デバッグ用、vbs: 通常起動用・ウィンドウなし）を生成"""
+        """起動スクリプト（bat×2 + vbs）を生成"""
         # start_kblite.bat: 手動起動・デバッグ用（コンソールウィンドウあり）
         bat = (
             "@echo off\n"
@@ -756,18 +756,26 @@ class KBLiteInstaller(tk.Tk):
         )
         (install_path / "start_kblite.bat").write_text(bat, encoding="utf-8")
 
-        # start_kblite.vbs: 通常起動用（ウィンドウなし、ログをファイルに記録）
-        # VBScriptはバックスラッシュをエスケープしないため、Windowsパスはそのまま埋め込む
-        py_exe = str(python_exe)
-        inst_dir = str(install_path)
+        # start_kblite_silent.bat: VBSから呼ばれるサイレント起動用
+        silent_bat = (
+            "@echo off\n"
+            "chcp 65001 >nul\n"
+            f'cd /d "{install_path}"\n'
+            f'if not exist "{install_path}\\logs" mkdir "{install_path}\\logs"\n'
+            f'"{python_exe}" -m uvicorn app:app --host 127.0.0.1 --port 8080 '
+            f'>> "{install_path}\\logs\\uvicorn.log" 2>&1\n'
+        )
+        (install_path / "start_kblite_silent.bat").write_text(
+            silent_bat, encoding="utf-8"
+        )
+
+        # start_kblite.vbs: chr(34)でクォート — shell.Runの三重引用符問題を回避
+        silent_bat_path = str(install_path / "start_kblite_silent.bat")
         vbs_lines = [
             'Set shell = CreateObject("WScript.Shell")',
-            'Set fso = CreateObject("Scripting.FileSystemObject")',
-            f'installDir = "{inst_dir}"',
-            'logDir = installDir & "\\logs"',
-            'If Not fso.FolderExists(logDir) Then fso.CreateFolder(logDir)',
-            f'shell.Run "cmd /c cd /d """ & installDir & """ && ""{py_exe}"" -m uvicorn app:app --host 127.0.0.1 --port 8080 >> """ & logDir & """\\uvicorn.log"" 2>&1", 0, False',
-            'WScript.Sleep 3000',
+            "q = chr(34)",
+            f'shell.Run q & "{silent_bat_path}" & q, 0, False',
+            "WScript.Sleep 3000",
             'shell.Run "http://localhost:8080", 1, False',
         ]
         vbs = "\r\n".join(vbs_lines) + "\r\n"
@@ -789,9 +797,10 @@ class KBLiteInstaller(tk.Tk):
 
             vbs = (
                 'Set ws = WScript.CreateObject("WScript.Shell")\n'
+                "q = chr(34)\n"
                 f'Set lnk = ws.CreateShortcut("{shortcut}")\n'
                 'lnk.TargetPath = "wscript.exe"\n'
-                f'lnk.Arguments = """" & "{startup_vbs}" & """"\n'
+                f'lnk.Arguments = q & "{startup_vbs}" & q\n'
                 f'lnk.WorkingDirectory = "{install_path}"\n'
                 'lnk.Description = "KBLite Knowledge Base Browser"\n'
                 'lnk.Save\n'
@@ -1380,19 +1389,33 @@ class KBLiteUninstaller(tk.Tk):
         self._schedule_folder_deletion_bat(folder)
 
     def _schedule_folder_deletion_bat(self, folder: Path):
-        """PowerShell 失敗時のバッチファイルによるフォールバック削除"""
+        """アンインストーラーEXEのPID終了を待ってからフォルダーを削除する"""
+        my_pid = os.getpid()
         bat_content = (
             "@echo off\n"
-            "timeout /t 5 /nobreak >nul\n"
-            f'rd /s /q "{folder}"\n'
-            f'if exist "{folder}" (\n'
-            "  timeout /t 3 /nobreak >nul\n"
-            f'  rd /s /q "{folder}"\n'
+            f"set UNINST_PID={my_pid}\n"
+            f'set "TARGET={folder}"\n'
+            "\n"
+            ":waitpid\n"
+            'tasklist /FI "PID eq %UNINST_PID%" 2>nul | find "%UNINST_PID%" >nul\n'
+            "if not errorlevel 1 (\n"
+            "    timeout /t 2 /nobreak >nul\n"
+            "    goto waitpid\n"
             ")\n"
-            f'if exist "{folder}" (\n'
-            "  timeout /t 3 /nobreak >nul\n"
-            f'  rd /s /q "{folder}"\n'
-            ")\n"
+            "\n"
+            "timeout /t 3 /nobreak >nul\n"
+            "\n"
+            "set RETRY=0\n"
+            ":retry\n"
+            'rd /s /q "%TARGET%" 2>nul\n'
+            'if not exist "%TARGET%" goto cleanup\n'
+            "set /a RETRY+=1\n"
+            "if %RETRY% GEQ 10 goto cleanup\n"
+            "timeout /t 3 /nobreak >nul\n"
+            "goto retry\n"
+            "\n"
+            ":cleanup\n"
+            'del "%~f0"\n'
         )
         import tempfile as _tmpmod
         try:
@@ -1405,7 +1428,7 @@ class KBLiteUninstaller(tk.Tk):
                 ["cmd", "/c", bat_path],
                 creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NO_WINDOW,
             )
-            self._log("  フォルダー削除をスケジュールしました (バッチ)")
+            self._log(f"  フォルダー削除をスケジュールしました (PID={my_pid} 終了待ち)")
         except Exception as e:
             self._log(f"  削除スケジュール失敗（手動削除が必要）: {e}")
 
