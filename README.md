@@ -81,7 +81,10 @@ KBLiteの画面は **3つのエリア** で構成されています。
 
 ![KBLiteメイン画面](doc/images/kblite-main-screen.png)
 
-
+<iframe width="560" height="315"
+  src="https://www.youtube.com/embed/LdM5UYxeBDs"
+  frameborder="0" allowfullscreen>
+</iframe>
 
 ### ① ヘッダー（画面上部）
 
