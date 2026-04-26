@@ -52,5 +52,27 @@
     }
   ],
   "agents": [],
-  "workspace_projects": []
+  "workspace_projects": [
+    {
+      "id": "kblite",
+      "label": "KBLite",
+      "cwd": "C:/01_Develop/project/kblite",
+      "default_team": "general",
+      "default_category": "general"
+    },
+    {
+      "id": "test-project",
+      "label": "test-project",
+      "cwd": "C:\\01_Develop\\project\\test-project",
+      "default_team": "general",
+      "default_category": "general"
+    },
+    {
+      "id": "markdown-viewer-with-mermaid-chrome-plugin",
+      "label": "markdown-viewer-with-mermaid_chrome-plugin",
+      "cwd": "C:\\01_Develop\\tmp\\markdown-viewer-with-mermaid_chrome-plugin",
+      "default_team": "general",
+      "default_category": "general"
+    }
+  ]
 }
