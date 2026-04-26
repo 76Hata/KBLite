@@ -2147,6 +2147,22 @@
       --phantom-gray-mid:   #3a3a3a;
       --phantom-font-body:  'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       --phantom-font-disp:  'Bebas Neue', 'Oswald', 'Noto Sans JP', sans-serif;
+
+      /* Neko Garden テーマ */
+      --neko-green:         #6b9e6b;
+      --neko-green-light:   #8fc28f;
+      --neko-green-deep:    #4a7a4a;
+      --neko-green-bright:  #7ab87a;
+      --neko-sidebar-bg:    #2a3a2d;
+      --neko-sidebar-light: #354839;
+      --neko-bg:            #f4f8f4;
+      --neko-white:         #f8fcf5;
+      --neko-white-pure:    #ffffff;
+      --neko-cream:         #e8f0e5;
+      --neko-text:          #2d3d2d;
+      --neko-text-soft:     #5a6b5a;
+      --neko-accent:        #8ab88a;
+      --neko-font:          'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
 
     /* PHANTOMテーマ: data-theme="phantom" のときのみ適用 */
@@ -3347,6 +3363,885 @@
       }
     }
 
+    /* =====================================================================
+       Neko Garden Theme Override
+       ---------------------------------------------------------------------
+       やわらかな薄緑ベース。さりげない猫モチーフを随所に配置。
+       html[data-theme="neko"] で切り替え。
+       ===================================================================== */
+    html[data-theme="neko"] {
+
+      /* ---- Typography ---- */
+      body {
+        font-family: var(--neko-font);
+        background: var(--neko-bg);
+        color: var(--neko-text);
+      }
+
+      /* ---- Sidebar: 深いフォレストグリーン ---- */
+      #sidebar {
+        background: var(--neko-sidebar-bg);
+        color: #d4e6d4;
+        border-right: 2px solid var(--neko-green);
+      }
+      .sidebar-header {
+        border-bottom: 1px solid rgba(107,158,107,0.35);
+        background: linear-gradient(90deg, rgba(107,158,107,0.15) 0%, transparent 100%);
+      }
+      .sidebar-header h2,
+      .sidebar-header .sidebar-title {
+        color: var(--neko-green-light) !important;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      .sidebar-footer {
+        border-top: 1px solid rgba(107,158,107,0.25);
+      }
+
+      /* ---- Primary Button (green) ---- */
+      #sidebarNewChatBtn,
+      .btn-primary,
+      button.primary {
+        background: var(--neko-green) !important;
+        color: var(--neko-white-pure) !important;
+        border: none;
+        border-radius: 8px !important;
+        font-weight: 600;
+        transition: background 0.2s ease, box-shadow 0.2s ease;
+      }
+      #sidebarNewChatBtn:hover,
+      .btn-primary:hover {
+        background: var(--neko-green-bright) !important;
+        box-shadow: 0 2px 8px rgba(107,158,107,0.35) !important;
+      }
+      #sidebarNewChatBtn:active,
+      .btn-primary:active {
+        background: var(--neko-green-deep) !important;
+      }
+
+      /* ---- Session list items ---- */
+      .session-item {
+        border-radius: 8px !important;
+        border-left: 3px solid transparent;
+        transition: border-color 0.15s ease, background 0.15s ease;
+      }
+      .session-item:hover {
+        background: rgba(107,158,107,0.15) !important;
+        border-left-color: var(--neko-green-light);
+      }
+      .session-item.active,
+      .session-item.selected {
+        background: rgba(107,158,107,0.25) !important;
+        color: var(--neko-white-pure) !important;
+        border-left-color: var(--neko-green-bright);
+      }
+
+      /* ---- Header ---- */
+      header {
+        background: var(--neko-sidebar-bg) !important;
+        color: #d4e6d4 !important;
+        border-bottom: 2px solid var(--neko-green) !important;
+        position: relative;
+      }
+      header::after {
+        content: '🐱';
+        position: absolute;
+        right: 12px; top: 50%;
+        transform: translateY(-50%);
+        font-size: 14px;
+        opacity: 0.4;
+        pointer-events: none;
+        z-index: 1;
+      }
+      header h1 {
+        color: var(--neko-green-light) !important;
+        font-weight: 700 !important;
+      }
+
+      /* ---- Header icon buttons ---- */
+      #sidebarToggle,
+      #newChatBtn,
+      #taskPanelToggleBtn,
+      #permMgrBtn,
+      #restartServerBtn {
+        background: rgba(107,158,107,0.1) !important;
+        border: 1px solid rgba(107,158,107,0.35) !important;
+        border-radius: 8px !important;
+        color: #d4e6d4 !important;
+        transition: background 0.2s ease, border-color 0.2s ease !important;
+      }
+      #sidebarToggle:hover,
+      #newChatBtn:hover,
+      #taskPanelToggleBtn:hover,
+      #permMgrBtn:hover,
+      #restartServerBtn:hover {
+        background: var(--neko-green) !important;
+        border-color: var(--neko-green-bright) !important;
+        color: var(--neko-white-pure) !important;
+      }
+      #sidebarToggle:active,
+      #newChatBtn:active,
+      #taskPanelToggleBtn:active,
+      #permMgrBtn:active,
+      #restartServerBtn:active {
+        background: var(--neko-green-deep) !important;
+      }
+      #taskPanelToggleBtn.active {
+        background: var(--neko-green-bright) !important;
+        border-color: var(--neko-green-bright) !important;
+        color: var(--neko-white-pure) !important;
+      }
+
+      /* ---- Team / header select ---- */
+      #teamSelect {
+        background-color: var(--neko-sidebar-light) !important;
+        border: 1px solid var(--neko-green) !important;
+        border-radius: 8px !important;
+        color: #d4e6d4 !important;
+        font-family: var(--neko-font) !important;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b9e6b'/%3E%3C/svg%3E") !important;
+      }
+      .header-select-label {
+        color: var(--neko-green-light) !important;
+        font-weight: 600;
+      }
+
+      /* ---- Chat area: subtle paw print pattern ---- */
+      #chat {
+        background-color: var(--neko-bg) !important;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cellipse cx='90' cy='95' rx='14' ry='12' fill='%234a7a4a' opacity='0.025'/%3E%3Ccircle cx='75' cy='75' r='7' fill='%234a7a4a' opacity='0.025'/%3E%3Ccircle cx='105' cy='75' r='7' fill='%234a7a4a' opacity='0.025'/%3E%3Ccircle cx='68' cy='86' r='6' fill='%234a7a4a' opacity='0.025'/%3E%3Ccircle cx='112' cy='86' r='6' fill='%234a7a4a' opacity='0.025'/%3E%3C/svg%3E") !important;
+        background-attachment: local !important;
+      }
+
+      /* ---- User message bubble ---- */
+      .msg.user {
+        background: linear-gradient(135deg, var(--neko-green) 0%, var(--neko-green-deep) 100%) !important;
+        color: var(--neko-white-pure) !important;
+        border-radius: 16px 16px 4px 16px !important;
+        box-shadow: 0 2px 8px rgba(74,122,74,0.2) !important;
+      }
+
+      /* ---- AI message bubble ---- */
+      .msg.assistant {
+        background: var(--neko-white-pure) !important;
+        color: var(--neko-text) !important;
+        border-radius: 16px 16px 16px 4px !important;
+        border-left: 3px solid var(--neko-green-light) !important;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.06) !important;
+      }
+
+      /* ---- Chat message animation ---- */
+      .chat-message {
+        animation: neko-msg-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;
+      }
+      @keyframes neko-msg-in {
+        from { opacity: 0; transform: translateY(10px) scale(0.98); }
+        to   { opacity: 1; transform: translateY(0) scale(1); }
+      }
+
+      /* ---- Chat message content ---- */
+      .chat-message.assistant-message .message-content,
+      .chat-message.user-message .message-content {
+        position: relative !important;
+      }
+
+      /* ---- Input area ---- */
+      .input-area {
+        background: var(--neko-white) !important;
+        border-top: 1px solid rgba(107,158,107,0.2) !important;
+      }
+      .input-inner {
+        border: 2px solid rgba(107,158,107,0.3) !important;
+        border-radius: 16px !important;
+        background: var(--neko-white-pure);
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+      .input-inner:focus-within {
+        border-color: var(--neko-green) !important;
+        box-shadow: 0 0 0 3px rgba(107,158,107,0.15) !important;
+      }
+      #messageInput {
+        font-family: var(--neko-font);
+        color: var(--neko-text);
+      }
+      #messageInput::placeholder {
+        color: rgba(90,107,90,0.45);
+      }
+
+      /* ---- Send button: circular green ---- */
+      #sendBtn {
+        background: var(--neko-green) !important;
+        border: none !important;
+        border-radius: 50% !important;
+        color: var(--neko-white-pure) !important;
+        width: 38px !important;
+        height: 38px !important;
+        transition: background 0.2s ease, transform 0.15s ease !important;
+      }
+      #sendBtn:hover {
+        background: var(--neko-green-bright) !important;
+        transform: scale(1.08);
+      }
+      #sendBtn:active {
+        background: var(--neko-green-deep) !important;
+        transform: scale(0.95);
+      }
+      #sendBtn:disabled {
+        background: #c0d4c0 !important;
+        opacity: 0.5;
+        transform: none !important;
+      }
+      #sendBtn.cancel-mode {
+        background: #e8a040 !important;
+        color: var(--neko-white-pure) !important;
+      }
+      #sendBtn.cancel-mode:hover {
+        background: #d4923a !important;
+      }
+
+      /* ---- Attach button ---- */
+      #attachBtn {
+        background: transparent !important;
+        border: 1px solid transparent !important;
+        border-radius: 8px !important;
+        color: var(--neko-text-soft) !important;
+        transition: background 0.15s ease, color 0.15s ease !important;
+      }
+      #attachBtn:hover {
+        background: rgba(107,158,107,0.1) !important;
+        color: var(--neko-green) !important;
+      }
+
+      /* ---- Model select ---- */
+      #modelSelect {
+        background-color: transparent !important;
+        border: 1px solid rgba(107,158,107,0.3) !important;
+        border-radius: 8px !important;
+        color: var(--neko-text) !important;
+        font-family: var(--neko-font) !important;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b9e6b'/%3E%3C/svg%3E") !important;
+        transition: border-color 0.15s ease !important;
+      }
+      #modelSelect:hover,
+      #modelSelect:focus {
+        border-color: var(--neko-green) !important;
+        outline: none !important;
+      }
+
+      /* ---- Modal / dialog ---- */
+      .modal,
+      .dialog {
+        border: 1px solid rgba(107,158,107,0.3) !important;
+        border-radius: 12px !important;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.12) !important;
+      }
+      .modal-header {
+        background: var(--neko-sidebar-bg) !important;
+        color: #d4e6d4 !important;
+        border-bottom: 1px solid rgba(107,158,107,0.3) !important;
+        border-radius: 12px 12px 0 0 !important;
+      }
+      .modal-content,
+      .modal-body,
+      .dialog-content {
+        border-top: 2px solid var(--neko-green) !important;
+        border-radius: 12px !important;
+      }
+      .modal,
+      .dialog-box,
+      [class*="modal"]:not(#mainModal) {
+        animation: neko-modal-in 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;
+      }
+      @keyframes neko-modal-in {
+        from { opacity: 0; transform: translateY(-12px) scale(0.96); }
+        to   { opacity: 1; transform: translateY(0) scale(1); }
+      }
+
+      /* ---- Scrollbar ---- */
+      ::-webkit-scrollbar-thumb { background: var(--neko-accent) !important; border-radius: 8px !important; }
+      ::-webkit-scrollbar-thumb:hover { background: var(--neko-green) !important; }
+
+      /* ---- Links / accents ---- */
+      a { color: var(--neko-green-deep); }
+      a:hover { color: var(--neko-green); }
+
+      /* ---- Badges / labels: rounded ---- */
+      .task-source-badge,
+      .task-scope-badge,
+      .badge,
+      .tag { border-radius: 12px !important; }
+
+      /* ---- Input resizer ---- */
+      #inputResizer {
+        background: rgba(107,158,107,0.2) !important;
+        border-radius: 2px !important;
+        opacity: 0.5 !important;
+        transition: opacity 0.15s ease !important;
+      }
+      #inputResizer:hover,
+      #inputResizer.dragging {
+        background: var(--neko-green) !important;
+        opacity: 0.8 !important;
+      }
+
+      /* ---- Scroll-to-top button ---- */
+      #scrollTopBtn {
+        border-radius: 50% !important;
+        border: 2px solid var(--neko-green) !important;
+        background: var(--neko-white-pure) !important;
+        color: var(--neko-green) !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+        transition: background 0.2s ease, color 0.2s ease, opacity 0.2s !important;
+      }
+      #scrollTopBtn:hover {
+        background: var(--neko-green) !important;
+        color: var(--neko-white-pure) !important;
+        box-shadow: 0 4px 12px rgba(107,158,107,0.3) !important;
+      }
+
+      /* ---- Readonly banner ---- */
+      #readonlyBanner {
+        background: var(--neko-cream) !important;
+        color: var(--neko-text) !important;
+        border-bottom: 1px solid rgba(107,158,107,0.3) !important;
+        font-weight: 600;
+      }
+      #readonlyBanner button {
+        background: var(--neko-green) !important;
+        color: var(--neko-white-pure) !important;
+        border-radius: 8px !important;
+        font-weight: 600;
+      }
+      #readonlyBanner button:hover {
+        background: var(--neko-green-bright) !important;
+      }
+
+      /* ---- Task panel header ---- */
+      .task-panel-header {
+        background: var(--neko-sidebar-bg) !important;
+        color: #d4e6d4 !important;
+        border-bottom: 2px solid var(--neko-green) !important;
+      }
+      .task-panel-header h3,
+      .task-panel-header span,
+      .task-panel-title {
+        color: var(--neko-green-light) !important;
+      }
+      .task-add-btn {
+        background: var(--neko-green) !important;
+        border-radius: 8px !important;
+        color: var(--neko-white-pure) !important;
+        border: none !important;
+        font-weight: 600;
+        transition: background 0.15s ease, box-shadow 0.15s ease !important;
+      }
+      .task-add-btn:hover {
+        background: var(--neko-green-bright) !important;
+        box-shadow: 0 2px 6px rgba(107,158,107,0.3) !important;
+      }
+
+      /* ---- Project manage buttons ---- */
+      .project-manage-row button {
+        border-radius: 8px !important;
+        border: 1px solid rgba(107,158,107,0.35) !important;
+        color: #d4e6d4 !important;
+        transition: background 0.15s ease, border-color 0.15s ease !important;
+      }
+      .project-manage-row button:hover {
+        background: var(--neko-green) !important;
+        border-color: var(--neko-green) !important;
+        color: var(--neko-white-pure) !important;
+      }
+
+      /* ---- Sidebar history items ---- */
+      .sidebar-history-item {
+        position: relative !important;
+        overflow: hidden !important;
+        border-radius: 8px !important;
+        transition: background 0.15s ease !important;
+      }
+      .sidebar-history-item::before {
+        content: '';
+        position: absolute;
+        left: 0; top: 0; bottom: 0;
+        width: 3px;
+        background: var(--neko-green-light);
+        transform: scaleY(0);
+        transform-origin: bottom;
+        transition: transform 0.2s ease;
+        pointer-events: none;
+        border-radius: 0 2px 2px 0;
+      }
+      .sidebar-history-item:hover::before {
+        transform: scaleY(1);
+      }
+      .sidebar-history-item:hover {
+        background: rgba(107,158,107,0.12) !important;
+      }
+      .sidebar-history-item.active::before {
+        transform: scaleY(1) !important;
+        background: var(--neko-green-bright) !important;
+      }
+
+      /* ---- Sidebar section headers ---- */
+      .sidebar-section-title::after,
+      .sidebar-section-header::after,
+      .project-section-header::after {
+        content: '';
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          var(--neko-green) 0%,
+          var(--neko-green-light) 50%,
+          transparent 100%
+        );
+      }
+      .sidebar-section-title,
+      .sidebar-section-header,
+      .project-section-header {
+        position: relative !important;
+      }
+
+      /* ---- Typing / loading dots ---- */
+      .typing-indicator span,
+      .loading-dots span,
+      .dot-typing > span {
+        background: var(--neko-green) !important;
+        border-radius: 50% !important;
+        animation: neko-bounce 1.2s ease-in-out infinite !important;
+      }
+      .typing-indicator span:nth-child(2),
+      .loading-dots span:nth-child(2),
+      .dot-typing > span:nth-child(2) { animation-delay: 0.2s !important; }
+      .typing-indicator span:nth-child(3),
+      .loading-dots span:nth-child(3),
+      .dot-typing > span:nth-child(3) { animation-delay: 0.4s !important; }
+      @keyframes neko-bounce {
+        0%, 80%, 100% { transform: translateY(0); }
+        40% { transform: translateY(-6px); }
+      }
+
+      /* ---- Input focus ---- */
+      #chatInput:focus {
+        outline: none !important;
+        border-color: var(--neko-green) !important;
+        box-shadow: 0 0 0 3px rgba(107,158,107,0.15) !important;
+      }
+
+      /* ---- Task items ---- */
+      .task-item {
+        border-left: 3px solid transparent !important;
+        border-radius: 8px !important;
+        transition: background 0.15s ease, border-left-color 0.15s ease !important;
+      }
+      .task-item:hover {
+        border-left-color: var(--neko-green) !important;
+        background: rgba(107,158,107,0.06) !important;
+      }
+
+      /* ---- Code blocks ---- */
+      pre {
+        border-left: 3px solid var(--neko-green) !important;
+        border-radius: 8px !important;
+        background: #f0f5f0 !important;
+        position: relative !important;
+      }
+      :not(pre) > code {
+        background: rgba(107,158,107,0.08) !important;
+        border-radius: 4px !important;
+        padding: 1px 5px !important;
+        color: var(--neko-green-deep) !important;
+      }
+
+      /* ---- Buttons (generic): soft shadow hover ---- */
+      button:not(#sendBtn):not(.sidebar-history-item button) {
+        transition: box-shadow 0.15s ease, transform 0.1s ease !important;
+      }
+      button:not(#sendBtn):not(.sidebar-history-item button):hover {
+        box-shadow: 0 2px 6px rgba(107,158,107,0.25) !important;
+      }
+
+      /* ---- Selection highlight ---- */
+      ::selection {
+        background: rgba(107,158,107,0.3) !important;
+        color: var(--neko-text) !important;
+      }
+
+      /* ---- Permission / perm items ---- */
+      .permission-item,
+      .perm-item,
+      .perm-entry {
+        border-left: 3px solid transparent !important;
+        border-radius: 6px !important;
+        transition: background 0.15s ease, border-left-color 0.15s ease !important;
+      }
+      .permission-item:hover,
+      .perm-item:hover,
+      .perm-entry:hover {
+        background: rgba(107,158,107,0.06) !important;
+        border-left-color: var(--neko-green) !important;
+      }
+
+      /* ---- Notification / toast ---- */
+      .toast,
+      .notification,
+      .alert-box {
+        border-left: 3px solid var(--neko-green) !important;
+        border-radius: 10px !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
+        animation: neko-msg-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;
+      }
+
+      /* ---- Sidebar texture: soft dot pattern ---- */
+      #sidebar {
+        background-image:
+          radial-gradient(
+            circle,
+            rgba(107,158,107,0.06) 1px,
+            transparent 1px
+          ) !important;
+        background-size: 24px 24px !important;
+      }
+
+      /* ---- Waiting spinner ---- */
+      .waiting-indicator .spinner {
+        border: 2px solid rgba(107,158,107,0.2) !important;
+        border-top-color: var(--neko-green) !important;
+      }
+      .waiting-indicator {
+        color: var(--neko-green) !important;
+        font-weight: 500 !important;
+      }
+
+      /* ---- Placeholder style ---- */
+      ::placeholder {
+        color: rgba(90,107,90,0.35) !important;
+        font-size: 0.9em !important;
+      }
+
+      /* ---- Session category / project badges ---- */
+      .session-category-badge {
+        background: var(--neko-green) !important;
+        color: var(--neko-white-pure) !important;
+        border-radius: 10px !important;
+        padding: 1px 8px !important;
+      }
+      .session-project-badge {
+        background: rgba(107,158,107,0.12) !important;
+        color: var(--neko-green-deep) !important;
+        border: 1px solid rgba(107,158,107,0.3) !important;
+        border-radius: 10px !important;
+        padding: 1px 8px !important;
+      }
+
+      /* ---- Bookmark star ---- */
+      .session-bookmark-icon {
+        color: #e8a040 !important;
+        filter: drop-shadow(0 0 2px rgba(232,160,64,0.4)) !important;
+      }
+
+      /* ---- Empty state: sleeping cat ---- */
+      #emptyState {
+        position: relative !important;
+        color: var(--neko-text-soft) !important;
+      }
+      #emptyState::after {
+        content: '😺';
+        display: block;
+        margin: 1rem auto 0;
+        font-size: 2rem;
+        opacity: 0.3;
+        animation: neko-sleep 3s ease-in-out infinite;
+      }
+      @keyframes neko-sleep {
+        0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.3; }
+        50% { transform: translateY(-4px) rotate(-3deg); opacity: 0.5; }
+      }
+
+      /* ---- Select / dropdown: Neko style ---- */
+      select {
+        appearance: none !important;
+        -webkit-appearance: none !important;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b9e6b'/%3E%3C/svg%3E") !important;
+        background-repeat: no-repeat !important;
+        background-position: right 8px center !important;
+        padding-right: 24px !important;
+        border-color: rgba(107,158,107,0.3) !important;
+        border-radius: 8px !important;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+      }
+      select:focus {
+        outline: none !important;
+        border-color: var(--neko-green) !important;
+        box-shadow: 0 0 0 3px rgba(107,158,107,0.15) !important;
+      }
+
+      /* ---- Sidebar search ---- */
+      .sidebar-search-input {
+        border-color: rgba(107,158,107,0.3) !important;
+        background: rgba(107,158,107,0.08) !important;
+        color: #d4e6d4 !important;
+        border-radius: 8px !important;
+      }
+      .sidebar-search-input:focus {
+        border-color: var(--neko-green-light) !important;
+        background: rgba(107,158,107,0.15) !important;
+        box-shadow: 0 0 0 2px rgba(107,158,107,0.2) !important;
+        outline: none !important;
+      }
+      .sidebar-search-input::placeholder {
+        color: rgba(212,230,212,0.45) !important;
+      }
+
+      /* ---- Session context menu ---- */
+      .session-menu {
+        background: var(--neko-sidebar-bg) !important;
+        border: 1px solid var(--neko-green) !important;
+        border-radius: 10px !important;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15) !important;
+      }
+      .session-menu-item {
+        color: #d4e6d4 !important;
+        border-radius: 6px !important;
+      }
+      .session-menu-item:hover {
+        background: rgba(107,158,107,0.2) !important;
+        color: var(--neko-white-pure) !important;
+      }
+      .session-menu-item.danger { color: #e86060 !important; }
+      .session-menu-item.danger:hover {
+        background: rgba(232,96,96,0.2) !important;
+      }
+      .session-menu-divider {
+        border-color: rgba(107,158,107,0.2) !important;
+      }
+
+      /* ---- Response title ---- */
+      .msg-content h2.response-title {
+        border-bottom: 2px solid var(--neko-green-light) !important;
+        color: var(--neko-text) !important;
+        padding-bottom: 4px !important;
+      }
+      .msg-content h2.response-title .title-icon {
+        color: var(--neko-green) !important;
+      }
+
+      /* ---- Task form inputs/buttons ---- */
+      .task-form-input,
+      .task-form-textarea,
+      .task-form-row select,
+      .task-form-date {
+        background: var(--neko-sidebar-light) !important;
+        border: 1px solid rgba(107,158,107,0.35) !important;
+        color: #d4e6d4 !important;
+        border-radius: 8px !important;
+      }
+      .task-form-input:focus,
+      .task-form-textarea:focus,
+      .task-form-row select:focus,
+      .task-form-date:focus {
+        border-color: var(--neko-green-light) !important;
+        box-shadow: 0 0 0 2px rgba(107,158,107,0.2) !important;
+        outline: none !important;
+      }
+      .task-form-input::placeholder,
+      .task-form-textarea::placeholder {
+        color: rgba(212,230,212,0.4) !important;
+      }
+      .task-btn-primary {
+        background: var(--neko-green) !important;
+        color: var(--neko-white-pure) !important;
+        border: none !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        box-shadow: 0 2px 6px rgba(107,158,107,0.25) !important;
+        transition: background 0.15s ease, box-shadow 0.15s ease !important;
+      }
+      .task-btn-primary:hover {
+        background: var(--neko-green-bright) !important;
+        box-shadow: 0 3px 10px rgba(107,158,107,0.35) !important;
+      }
+      .task-btn-secondary {
+        background: transparent !important;
+        border: 1px solid rgba(107,158,107,0.4) !important;
+        color: var(--neko-green) !important;
+        border-radius: 8px !important;
+        font-weight: 500 !important;
+      }
+      .task-btn-secondary:hover {
+        background: rgba(107,158,107,0.08) !important;
+        border-color: var(--neko-green) !important;
+      }
+
+      /* ---- Diagram lightbox ---- */
+      .diagram-lightbox {
+        background: rgba(42,58,45,0.9) !important;
+      }
+      .diagram-lightbox-content {
+        background: var(--neko-white-pure) !important;
+        border: 1px solid var(--neko-green) !important;
+        border-radius: 12px !important;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.2) !important;
+      }
+      .diagram-lightbox-toolbar {
+        background: var(--neko-sidebar-bg) !important;
+        border-top: 1px solid rgba(107,158,107,0.3) !important;
+        border-radius: 0 0 12px 12px !important;
+      }
+      .diagram-lightbox-toolbar button {
+        background: transparent !important;
+        color: #d4e6d4 !important;
+        border: 1px solid rgba(107,158,107,0.35) !important;
+        border-radius: 8px !important;
+      }
+      .diagram-lightbox-toolbar button:hover {
+        background: rgba(107,158,107,0.2) !important;
+        border-color: var(--neko-green) !important;
+        color: var(--neko-white-pure) !important;
+      }
+      .diagram-lightbox-close {
+        background: var(--neko-green) !important;
+        color: var(--neko-white-pure) !important;
+        border-radius: 50% !important;
+        border: none !important;
+      }
+      .diagram-lightbox-close:hover {
+        background: var(--neko-green-bright) !important;
+        transform: scale(1.1) !important;
+      }
+      .diagram-lightbox-zoom-info {
+        color: var(--neko-green-light) !important;
+        font-weight: 600 !important;
+      }
+
+      /* ---- Sidebar search results ---- */
+      .search-result-item {
+        border-bottom: 1px solid rgba(107,158,107,0.1) !important;
+        border-radius: 6px !important;
+        transition: background 0.15s ease !important;
+      }
+      .search-result-item:hover {
+        background: rgba(107,158,107,0.1) !important;
+      }
+      .search-result-question {
+        color: #d4e6d4 !important;
+        font-weight: 600 !important;
+      }
+      .search-result-answer {
+        color: rgba(212,230,212,0.6) !important;
+      }
+      .search-result-meta {
+        color: var(--neko-green-light) !important;
+        font-size: 10px !important;
+      }
+      .search-no-result {
+        color: rgba(212,230,212,0.4) !important;
+        font-style: italic !important;
+      }
+
+      /* ---- Attach chips ---- */
+      .attach-chip {
+        background: rgba(107,158,107,0.1) !important;
+        border: 1px solid rgba(107,158,107,0.3) !important;
+        border-radius: 16px !important;
+        color: var(--neko-text) !important;
+      }
+      .attach-chip-remove {
+        color: rgba(107,158,107,0.5) !important;
+      }
+      .attach-chip-remove:hover {
+        color: #e86060 !important;
+      }
+
+      /* ---- Session fork badge ---- */
+      .session-fork-badge {
+        background: rgba(107,158,107,0.12) !important;
+        color: var(--neko-green) !important;
+        border-radius: 10px !important;
+        border: 1px solid rgba(107,158,107,0.25) !important;
+      }
+
+      /* ---- Task source badges ---- */
+      .task-source-badge.todowrite {
+        background: rgba(107,158,107,0.1) !important;
+        color: var(--neko-green-deep) !important;
+        border-color: rgba(107,158,107,0.3) !important;
+        border-radius: 10px !important;
+      }
+      .task-source-badge.mcp {
+        background: rgba(232,160,64,0.1) !important;
+        color: #c88830 !important;
+        border-color: rgba(232,160,64,0.3) !important;
+        border-radius: 10px !important;
+      }
+      .task-source-badge.manual {
+        background: rgba(107,158,107,0.06) !important;
+        color: var(--neko-text-soft) !important;
+        border-radius: 10px !important;
+      }
+
+      /* ---- Permission modal header ---- */
+      .perm-modal-header {
+        border-bottom: 2px solid var(--neko-green) !important;
+        background: var(--neko-sidebar-bg) !important;
+        color: var(--neko-green-light) !important;
+      }
+      #permReqBanner {
+        border-left: 3px solid var(--neko-green-bright) !important;
+        border-top: 1px solid var(--neko-green) !important;
+        background: var(--neko-cream) !important;
+        border-radius: 8px !important;
+        animation: neko-msg-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;
+      }
+      .perm-req-title {
+        color: var(--neko-green-deep) !important;
+      }
+
+      /* ---- Session empty state ---- */
+      .session-empty,
+      .task-empty {
+        color: rgba(107,158,107,0.4) !important;
+        font-style: italic !important;
+        font-size: 0.85rem !important;
+      }
+
+      /* ---- Sidebar cat decoration: sitting cat at bottom ---- */
+      #sidebar::after {
+        content: '';
+        position: absolute;
+        bottom: 8px; right: 8px;
+        width: 60px; height: 70px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 70'%3E%3Cpath d='M30 65 C15 65 10 50 10 42 C10 30 18 22 22 18 L18 4 L26 14 L30 10 L34 14 L42 4 L38 18 C42 22 50 30 50 42 C50 50 45 65 30 65Z' fill='%23d4e6d4' opacity='0.07'/%3E%3Ccircle cx='24' cy='32' r='2.5' fill='%23d4e6d4' opacity='0.06'/%3E%3Ccircle cx='36' cy='32' r='2.5' fill='%23d4e6d4' opacity='0.06'/%3E%3Cpath d='M27 38 Q30 41 33 38' stroke='%23d4e6d4' fill='none' stroke-width='1' opacity='0.05'/%3E%3Cpath d='M30 65 Q32 60 30 55' stroke='%23d4e6d4' fill='none' stroke-width='1.5' opacity='0.05'/%3E%3C/svg%3E");
+        background-size: contain;
+        background-repeat: no-repeat;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      /* ---- Task panel slide-in ---- */
+      .task-panel[style*="flex"] {
+        animation: neko-panel-in 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;
+      }
+      @keyframes neko-panel-in {
+        from { opacity: 0; transform: translateX(20px); }
+        to   { opacity: 1; transform: translateX(0); }
+      }
+
+      /* ---- Auth button ---- */
+      #authBtn {
+        background: rgba(107,158,107,0.1) !important;
+        border: 1px solid rgba(107,158,107,0.35) !important;
+        border-radius: 8px !important;
+        color: #d4e6d4 !important;
+      }
+      #authBtn:hover {
+        background: var(--neko-green) !important;
+        color: var(--neko-white-pure) !important;
+      }
+    }
+
   /* =====================================================
      スキン選択ドロップダウン
      ===================================================== */
@@ -3384,6 +4279,16 @@
   html[data-theme="phantom"] #skinSelect:hover {
     background-color: rgba(229,0,0,0.3);
     box-shadow: 0 0 8px rgba(229,0,0,0.4);
+  }
+  /* Neko GardenテーマON時のselect外観 */
+  html[data-theme="neko"] #skinSelect {
+    border-color: var(--neko-green, #6b9e6b);
+    color: var(--neko-green-light, #8fc28f);
+    background-color: rgba(107,158,107,0.15);
+  }
+  html[data-theme="neko"] #skinSelect:hover {
+    background-color: rgba(107,158,107,0.25);
+    box-shadow: 0 0 8px rgba(107,158,107,0.3);
   }
 
   </style>
@@ -3487,6 +4392,7 @@
   <select id="skinSelect" onchange="onSkinChange(this.value)" title="スキン選択" aria-label="スキン選択">
     <option value="default">デフォルト</option>
     <option value="phantom">PHANTOM</option>
+    <option value="neko">Neko Garden</option>
   </select>
   </header>
 
@@ -3938,6 +4844,7 @@
   const FAVICONS = {
     default: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%232e7dd1'/><text x='50' y='68' font-size='56' text-anchor='middle' font-weight='bold' fill='%23fff'>KB</text></svg>",
     phantom: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230a0a0a'/><polygon points='60,0 100,0 100,40' fill='%23d7000f'/><text x='50' y='68' font-size='56' text-anchor='middle' font-weight='bold' fill='%23fff'>KB</text></svg>",
+    neko: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%236b9e6b'/><text x='50' y='62' font-size='40' text-anchor='middle' font-weight='bold' fill='%23fff'>KB</text><text x='50' y='88' font-size='22' text-anchor='middle'>🐱</text></svg>",
   };
 
   function updateFavicon(theme) {
