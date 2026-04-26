@@ -440,21 +440,60 @@ class KBLiteInstaller(tk.Tk):
                 ], capture_output=True, timeout=300,
                    creationflags=subprocess.CREATE_NO_WINDOW)
 
-            # Step 2: Claude Code（PowerShell ネイティブインストーラー）
+            # Step 2: Claude Code インストール（3段フォールバック）
             step_label = "[2/2]" if has_winget else "[1/1]"
-            update_status(f"{step_label} Claude Code をインストール中（PowerShell）...")
-            result = subprocess.run(
-                ["powershell", "-NoProfile", "-NonInteractive", "-Command",
-                 "irm https://claude.ai/install.ps1 | iex"],
-                capture_output=True, text=True, timeout=300,
-                creationflags=subprocess.CREATE_NO_WINDOW
-            )
+            installed_claude = False
 
-            if result.returncode == 0:
+            # 方式A: winget（利用可能な場合）
+            if has_winget:
+                update_status(f"{step_label} Claude Code をインストール中（winget）...")
+                wr = subprocess.run([
+                    "winget", "install", "--id", "Anthropic.ClaudeCode",
+                    "--silent",
+                    "--accept-package-agreements",
+                    "--accept-source-agreements",
+                ], capture_output=True, text=True, timeout=300,
+                   creationflags=subprocess.CREATE_NO_WINDOW)
+                if wr.returncode == 0:
+                    installed_claude = True
+
+            # 方式B: PowerShell ネイティブインストーラー
+            if not installed_claude:
+                update_status(f"{step_label} Claude Code をインストール中（ネイティブ）...")
+                result = subprocess.run(
+                    ["powershell", "-NoProfile", "-NonInteractive",
+                     "-ExecutionPolicy", "Bypass", "-Command",
+                     "irm https://claude.ai/install.ps1 | iex"],
+                    capture_output=True, text=True, timeout=300,
+                    creationflags=subprocess.CREATE_NO_WINDOW
+                )
+                if result.returncode == 0:
+                    installed_claude = True
+
+            # 方式C: npm グローバルインストール（フォールバック）
+            if not installed_claude:
+                npm_check = subprocess.run(
+                    ["npm", "--version"],
+                    capture_output=True, text=True, timeout=10,
+                    creationflags=subprocess.CREATE_NO_WINDOW,
+                    shell=True
+                )
+                if npm_check.returncode == 0:
+                    update_status(f"{step_label} Claude Code をインストール中（npm）...")
+                    result = subprocess.run(
+                        ["npm", "install", "-g", "@anthropic-ai/claude-code"],
+                        capture_output=True, text=True, timeout=300,
+                        creationflags=subprocess.CREATE_NO_WINDOW,
+                        shell=True
+                    )
+                    if result.returncode == 0:
+                        installed_claude = True
+
+            if installed_claude:
                 update_status("インストール完了。確認中...", "#27ae60")
                 self.after(800, self._check_claude_installed)
             else:
-                err = (result.stderr or result.stdout)[:300]
+                err = (result.stderr or result.stdout or "")[:300]
                 update_status(f"インストール失敗: {err}", "#e74c3c")
                 restore_button()
 
