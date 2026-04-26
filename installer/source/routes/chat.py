@@ -818,9 +818,10 @@ async def _run_claude_task(
                         logger.warning("API overloaded in stream (task=%s)", task_id)
                         break
 
-                    # not logged in チェック（JSON パース前）
+                    # not logged in チェック（JSON パース前 — JSONイベント行は除外して誤検知防止）
                     _line_lower = line.lower()
-                    if "not logged in" in _line_lower or "please run /login" in _line_lower:
+                    _is_json_line = line.startswith("{") or line.startswith("[")
+                    if not _is_json_line and ("not logged in" in _line_lower or "please run /login" in _line_lower):
                         state.status = "error"
                         state.error = "認証エラー"
                         _persist_task_result(task_id, "error", "", state.error)
@@ -882,7 +883,8 @@ async def _run_claude_task(
             _AUTH_MARKERS = (
                 "authentication_error",
                 "invalid authentication credentials",
-                "401",
+                "invalid api key",
+                "invalid x-api-key",
                 "not logged in",
                 "please run /login",
             )
