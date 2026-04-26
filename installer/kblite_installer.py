@@ -426,22 +426,28 @@ class KBLiteInstaller(tk.Tk):
         try:
             native_ok = False
 
-            # Step 1: ネイティブインストール（PowerShell irm）
-            update_status("[1/2] Claude Code をインストール中（ネイティブ）...")
-            ps_cmd = (
-                "Set-ExecutionPolicy Bypass -Scope Process -Force; "
-                "irm https://claude.ai/install.ps1 | iex"
-            )
-            result = subprocess.run(
-                ["powershell", "-NoProfile", "-NonInteractive", "-Command", ps_cmd],
-                capture_output=True, text=True, timeout=300,
+            # Step 1: winget でネイティブインストール（最優先）
+            update_status("[1/2] Claude Code をインストール中（winget）...")
+            winget_check = subprocess.run(
+                ["winget", "--version"],
+                capture_output=True, text=True, timeout=10,
                 creationflags=subprocess.CREATE_NO_WINDOW
             )
-
-            if result.returncode == 0:
+            if winget_check.returncode == 0:
+                subprocess.run(
+                    [
+                        "winget", "install", "--id", "Anthropic.ClaudeCode",
+                        "--silent",
+                        "--accept-package-agreements",
+                        "--accept-source-agreements",
+                        "--scope", "user",
+                    ],
+                    capture_output=True, text=True, timeout=300,
+                    creationflags=subprocess.CREATE_NO_WINDOW
+                )
                 self._refresh_env_path()
-                # インストーラーが非同期で完了する場合があるため少し待つ
-                time.sleep(3)
+                # インストーラーが完了するまで待つ
+                time.sleep(5)
                 if self._locate_claude():
                     native_ok = True
 
@@ -460,20 +466,18 @@ class KBLiteInstaller(tk.Tk):
                 if npm_check.returncode != 0:
                     # Node.js がない → winget でインストール
                     update_status("[2/2] Node.js をインストール中...")
-                    winget_check = subprocess.run(
-                        ["winget", "--version"],
-                        capture_output=True, text=True, timeout=10,
-                        creationflags=subprocess.CREATE_NO_WINDOW
-                    )
                     if winget_check.returncode == 0:
-                        subprocess.run([
+                        node_result = subprocess.run([
                             "winget", "install", "--id", "OpenJS.NodeJS.LTS",
                             "--silent",
                             "--accept-package-agreements",
                             "--accept-source-agreements",
                         ], capture_output=True, timeout=300,
                            creationflags=subprocess.CREATE_NO_WINDOW)
-                        self._refresh_env_path()
+                        if node_result.returncode == 0:
+                            self._refresh_env_path()
+                            # Node.js インストール後の PATH 反映を待つ
+                            time.sleep(5)
 
                 update_status("[2/2] npm install -g @anthropic-ai/claude-code 実行中...")
                 npm_result = subprocess.run(
@@ -568,12 +572,14 @@ class KBLiteInstaller(tk.Tk):
         if app_data:
             candidates += [
                 Path(app_data) / "npm" / "claude.cmd",
+                Path(app_data) / "npm" / "claude",
             ]
         if local_app_data:
             candidates += [
                 Path(local_app_data) / "AnthropicClaude" / "claude.exe",
                 Path(local_app_data) / "Programs" / "AnthropicClaude" / "claude.exe",
                 Path(local_app_data) / "Programs" / "claude" / "claude.exe",
+                Path(local_app_data) / "Microsoft" / "WinGet" / "Packages" / "Anthropic.ClaudeCode_Microsoft.Winget.Source_8wekyb3d8bbwe" / "claude.cmd",
             ]
         for p in candidates:
             if p.exists():
