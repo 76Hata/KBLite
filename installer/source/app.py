@@ -1,4 +1,4 @@
-"""KBLite — KBブラウザの軽量版（ChromaDB/RAG機能なし）"""
+"""KBLite — KBブラウザの軽量版（ChromaDBの代わりにSQLite+FTS5でRAGを実装）"""
 
 import sys
 
