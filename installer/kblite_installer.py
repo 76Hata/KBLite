@@ -575,7 +575,7 @@ class KBLiteInstaller(tk.Tk):
             items = [
                 "app.py", "app-config.json", "prompt.py",
                 "sqlite_store.py", "deps.py", "statusline.py",
-                "requirements.txt", "index.html",
+                "requirements.txt", "index.html", "kblite.ico",
                 "routes", "stores", "static", "commands",
                 "models", "services", "templates",
             ]
@@ -874,7 +874,8 @@ class KBLiteInstaller(tk.Tk):
             winreg.SetValueEx(key, "Publisher", 0, winreg.REG_SZ, "KBLite Project")
             winreg.SetValueEx(key, "InstallLocation", 0, winreg.REG_SZ, str(install_path))
             winreg.SetValueEx(key, "UninstallString", 0, winreg.REG_SZ, uninstall_str)
-            winreg.SetValueEx(key, "DisplayIcon", 0, winreg.REG_SZ, uninstall_str)
+            icon_path = str(install_path / "kblite.ico")
+            winreg.SetValueEx(key, "DisplayIcon", 0, winreg.REG_SZ, icon_path)
             winreg.SetValueEx(key, "NoModify", 0, winreg.REG_DWORD, 1)
             winreg.SetValueEx(key, "NoRepair", 0, winreg.REG_DWORD, 1)
             winreg.CloseKey(key)
