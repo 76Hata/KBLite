@@ -537,35 +537,43 @@ class KBLiteInstaller(tk.Tk):
 
     def _locate_claude(self) -> str | None:
         """claude 実行ファイルのパスを返す。見つからなければ None。"""
-        # PowerShell の Get-Command は新しいシェルを起動するので
-        # インストール直後の PATH 更新を反映できる
+        # PowerShell でシステムPATHを最新に更新してから Get-Command を実行
+        # インストール直後の PATH 変更も反映される
         try:
             r = subprocess.run(
                 ["powershell", "-NoProfile", "-NonInteractive", "-Command",
+                 "$env:PATH = [System.Environment]::GetEnvironmentVariable('PATH','Machine') + ';' + "
+                 "[System.Environment]::GetEnvironmentVariable('PATH','User'); "
                  "(Get-Command claude -ErrorAction SilentlyContinue).Source"],
                 capture_output=True, text=True, timeout=12,
                 creationflags=subprocess.CREATE_NO_WINDOW,
             )
             if r.returncode == 0:
                 path = r.stdout.strip()
-                if path and Path(path).exists():
-                    return path
+                if path:
+                    # .ps1 は cmd.exe で直接実行できないため .cmd を優先
+                    if path.endswith('.ps1'):
+                        cmd_path = path[:-4] + '.cmd'
+                        if Path(cmd_path).exists():
+                            return cmd_path
+                    if Path(path).exists():
+                        return path
         except Exception:
             pass
 
-        # 既知のインストールパスをファイルシステムで直接確認
+        # 既知のインストールパスをファイルシステムで直接確認（.cmd/.exe を優先）
         local_app_data = os.environ.get("LOCALAPPDATA", "")
         app_data = os.environ.get("APPDATA", "")
         candidates: list[Path] = []
+        if app_data:
+            candidates += [
+                Path(app_data) / "npm" / "claude.cmd",
+            ]
         if local_app_data:
             candidates += [
                 Path(local_app_data) / "AnthropicClaude" / "claude.exe",
                 Path(local_app_data) / "Programs" / "AnthropicClaude" / "claude.exe",
                 Path(local_app_data) / "Programs" / "claude" / "claude.exe",
-            ]
-        if app_data:
-            candidates += [
-                Path(app_data) / "npm" / "claude.cmd",
             ]
         for p in candidates:
             if p.exists():
@@ -584,26 +592,52 @@ class KBLiteInstaller(tk.Tk):
         installed = False
         version_str = ""
 
-        # _locate_claude() で PowerShell Get-Command + 既知パスを検索
-        claude_cmd = self._locate_claude()
-        if claude_cmd:
-            try:
-                r = subprocess.run(
-                    [claude_cmd, "--version"],
-                    capture_output=True, text=True, timeout=10,
-                    creationflags=subprocess.CREATE_NO_WINDOW,
-                    shell=True,
-                )
-                if r.returncode == 0:
-                    installed = True
-                    version_str = r.stdout.strip() or r.stderr.strip()
-                    self._claude_exe = claude_cmd
-            except Exception:
-                pass
+        # 方法1: PowerShell でシステムPATHを最新に更新して直接確認（最も確実）
+        try:
+            r = subprocess.run(
+                ["powershell", "-NoProfile", "-NonInteractive", "-Command",
+                 "$env:PATH = [System.Environment]::GetEnvironmentVariable('PATH','Machine') + ';' + "
+                 "[System.Environment]::GetEnvironmentVariable('PATH','User'); "
+                 "& claude --version 2>&1"],
+                capture_output=True, text=True, timeout=15,
+                creationflags=subprocess.CREATE_NO_WINDOW,
+            )
+            output = (r.stdout + r.stderr).strip()
+            if r.returncode == 0 and output:
+                installed = True
+                version_str = output
+        except Exception:
+            pass
 
-        # フォールバック: 既存プロセスの PATH 経由でシェル実行
+        # 方法2: _locate_claude() で取得したパスを使って確認
         if not installed:
-            for cmd in (["claude", "--version"], ["claude.cmd", "--version"]):
+            claude_cmd = self._locate_claude()
+            if claude_cmd:
+                try:
+                    if claude_cmd.endswith('.ps1'):
+                        r = subprocess.run(
+                            ["powershell", "-NoProfile", "-NonInteractive", "-Command",
+                             f"& '{claude_cmd}' --version 2>&1"],
+                            capture_output=True, text=True, timeout=10,
+                            creationflags=subprocess.CREATE_NO_WINDOW,
+                        )
+                    else:
+                        r = subprocess.run(
+                            [claude_cmd, "--version"],
+                            capture_output=True, text=True, timeout=10,
+                            creationflags=subprocess.CREATE_NO_WINDOW,
+                            shell=True,
+                        )
+                    if r.returncode == 0:
+                        installed = True
+                        version_str = (r.stdout + r.stderr).strip()
+                        self._claude_exe = claude_cmd
+                except Exception:
+                    pass
+
+        # 方法3: shell=True フォールバック（従来の方法）
+        if not installed:
+            for cmd in ("claude --version", "claude.cmd --version"):
                 try:
                     r = subprocess.run(
                         cmd,
@@ -643,12 +677,20 @@ class KBLiteInstaller(tk.Tk):
         authenticated = False
         try:
             claude_exe = self._claude_exe or "claude"
-            r = subprocess.run(
-                [claude_exe, "auth", "status"],
-                capture_output=True, text=True, timeout=12,
-                creationflags=subprocess.CREATE_NO_WINDOW,
-                shell=True,
-            )
+            if claude_exe.endswith('.ps1'):
+                r = subprocess.run(
+                    ["powershell", "-NoProfile", "-NonInteractive", "-Command",
+                     f"& '{claude_exe}' auth status 2>&1"],
+                    capture_output=True, text=True, timeout=12,
+                    creationflags=subprocess.CREATE_NO_WINDOW,
+                )
+            else:
+                r = subprocess.run(
+                    [claude_exe, "auth", "status"],
+                    capture_output=True, text=True, timeout=12,
+                    creationflags=subprocess.CREATE_NO_WINDOW,
+                    shell=True,
+                )
             output = (r.stdout + r.stderr).lower()
             if r.returncode == 0 and ("logged in" in output or "authenticated" in output
                                        or "subscription" in output):
@@ -698,11 +740,18 @@ class KBLiteInstaller(tk.Tk):
     def _do_start_auth(self):
         try:
             claude_exe = self._claude_exe or "claude"
-            subprocess.Popen(
-                [claude_exe, "auth", "login"],
-                creationflags=subprocess.CREATE_NO_WINDOW,
-                shell=True,
-            )
+            if claude_exe.endswith('.ps1'):
+                subprocess.Popen(
+                    ["powershell", "-NoProfile", "-NonInteractive", "-Command",
+                     f"& '{claude_exe}' auth login"],
+                    creationflags=subprocess.CREATE_NO_WINDOW,
+                )
+            else:
+                subprocess.Popen(
+                    [claude_exe, "auth", "login"],
+                    creationflags=subprocess.CREATE_NO_WINDOW,
+                    shell=True,
+                )
         except Exception as e:
             self.after(0, lambda: messagebox.showerror(
                 "エラー", f"認証の開始に失敗しました:\n{e}"))
