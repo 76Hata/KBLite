@@ -77,14 +77,10 @@ graph TB
 
 KBLiteの画面は **3つのエリア** で構成されています。
 
-**実際の画面:**
+**実際の画面（クリックで動作画面）:**
 
-![KBLiteメイン画面](doc/images/kblite-main-screen.png)
+[![動作画面](doc/images/kblite-main-screen.png)](https://youtu.be/LdM5UYxeBDs)
 
-<iframe width="560" height="315"
-  src="https://www.youtube.com/embed/LdM5UYxeBDs"
-  frameborder="0" allowfullscreen>
-</iframe>
 
 ### ① ヘッダー（画面上部）
 
