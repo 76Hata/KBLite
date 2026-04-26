@@ -1,5 +1,7 @@
 ※ 利用にはClaude Pro以上の加入が必要です。
+
 ※ こちらはWindows専用です。
+
 ※ 利用は自己責任でお願いします。本アプリを利用して生じたいかなる損害も当方は一切関知致しません。
 
 # KBLite — Claude Codeを、ブラウザで。
@@ -75,10 +77,9 @@ graph TB
 
 KBLiteの画面は **3つのエリア** で構成されています。
 
-**実際の画面:**
+**実際の画面（クリックで動作画面）:**
 
-![KBLiteメイン画面](doc/images/kblite-main-screen.png)
-
+[![動作画面](doc/images/kblite-main-screen.png)](https://youtu.be/LdM5UYxeBDs)
 
 
 ### ① ヘッダー（画面上部）
