@@ -86,6 +86,7 @@ class KBLiteInstaller(tk.Tk):
         self.launch_now = tk.BooleanVar(value=True)
         self.claude_status = {"installed": False, "authenticated": False}
         self._install_done = False
+        self._claude_exe: str | None = None
 
         self._build_ui()
         self._show_page(0)
@@ -451,6 +452,7 @@ class KBLiteInstaller(tk.Tk):
             )
 
             if result.returncode == 0:
+                self._refresh_env_path()
                 update_status("インストール完了。確認中...", "#27ae60")
                 self.after(800, self._check_claude_installed)
             else:
@@ -466,6 +468,77 @@ class KBLiteInstaller(tk.Tk):
             restore_button()
 
     # ----------------------------------------------------------
+    # Claude Code パス解決ユーティリティ
+    # ----------------------------------------------------------
+    def _refresh_env_path(self):
+        """インストール後にレジストリから PATH を読み直して現在のプロセスに反映する"""
+        try:
+            import winreg
+            paths = []
+            try:
+                key = winreg.OpenKey(
+                    winreg.HKEY_LOCAL_MACHINE,
+                    r"SYSTEM\CurrentControlSet\Control\Session Manager\Environment",
+                    0, winreg.KEY_READ,
+                )
+                sys_path = winreg.QueryValueEx(key, "Path")[0]
+                winreg.CloseKey(key)
+                paths.append(os.path.expandvars(sys_path))
+            except Exception:
+                pass
+            try:
+                key = winreg.OpenKey(
+                    winreg.HKEY_CURRENT_USER, r"Environment", 0, winreg.KEY_READ
+                )
+                usr_path = winreg.QueryValueEx(key, "Path")[0]
+                winreg.CloseKey(key)
+                paths.append(os.path.expandvars(usr_path))
+            except Exception:
+                pass
+            if paths:
+                os.environ["PATH"] = ";".join(paths)
+        except Exception:
+            pass
+
+    def _locate_claude(self) -> str | None:
+        """claude 実行ファイルのパスを返す。見つからなければ None。"""
+        # PowerShell の Get-Command は新しいシェルを起動するので
+        # インストール直後の PATH 更新を反映できる
+        try:
+            r = subprocess.run(
+                ["powershell", "-NoProfile", "-NonInteractive", "-Command",
+                 "(Get-Command claude -ErrorAction SilentlyContinue).Source"],
+                capture_output=True, text=True, timeout=12,
+                creationflags=subprocess.CREATE_NO_WINDOW,
+            )
+            if r.returncode == 0:
+                path = r.stdout.strip()
+                if path and Path(path).exists():
+                    return path
+        except Exception:
+            pass
+
+        # 既知のインストールパスをファイルシステムで直接確認
+        local_app_data = os.environ.get("LOCALAPPDATA", "")
+        app_data = os.environ.get("APPDATA", "")
+        candidates: list[Path] = []
+        if local_app_data:
+            candidates += [
+                Path(local_app_data) / "AnthropicClaude" / "claude.exe",
+                Path(local_app_data) / "Programs" / "AnthropicClaude" / "claude.exe",
+                Path(local_app_data) / "Programs" / "claude" / "claude.exe",
+            ]
+        if app_data:
+            candidates += [
+                Path(app_data) / "npm" / "claude.cmd",
+            ]
+        for p in candidates:
+            if p.exists():
+                return str(p)
+
+        return None
+
+    # ----------------------------------------------------------
     # Claude Code チェック
     # ----------------------------------------------------------
     def _check_claude_installed(self):
@@ -475,23 +548,40 @@ class KBLiteInstaller(tk.Tk):
     def _do_check_installed(self):
         installed = False
         version_str = ""
-        # Windows では claude.cmd / claude.ps1 が PATH 経由で見つかるよう
-        # shell=True で実行する。直接呼び出しだと npm グローバル bin が
-        # 見つからないケースがある。
-        for cmd in (["claude", "--version"], ["claude.cmd", "--version"]):
+
+        # _locate_claude() で PowerShell Get-Command + 既知パスを検索
+        claude_cmd = self._locate_claude()
+        if claude_cmd:
             try:
                 r = subprocess.run(
-                    cmd,
+                    [claude_cmd, "--version"],
                     capture_output=True, text=True, timeout=10,
                     creationflags=subprocess.CREATE_NO_WINDOW,
-                    shell=True
+                    shell=True,
                 )
                 if r.returncode == 0:
                     installed = True
                     version_str = r.stdout.strip() or r.stderr.strip()
-                    break
-            except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
-                continue
+                    self._claude_exe = claude_cmd
+            except Exception:
+                pass
+
+        # フォールバック: 既存プロセスの PATH 経由でシェル実行
+        if not installed:
+            for cmd in (["claude", "--version"], ["claude.cmd", "--version"]):
+                try:
+                    r = subprocess.run(
+                        cmd,
+                        capture_output=True, text=True, timeout=10,
+                        creationflags=subprocess.CREATE_NO_WINDOW,
+                        shell=True,
+                    )
+                    if r.returncode == 0:
+                        installed = True
+                        version_str = r.stdout.strip() or r.stderr.strip()
+                        break
+                except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
+                    continue
 
         self.claude_status["installed"] = installed
 
@@ -517,12 +607,12 @@ class KBLiteInstaller(tk.Tk):
     def _do_check_auth(self):
         authenticated = False
         try:
-            # `claude auth status` で認証状態を確認（shell=True でPATH解決）
+            claude_exe = self._claude_exe or "claude"
             r = subprocess.run(
-                ["claude", "auth", "status"],
+                [claude_exe, "auth", "status"],
                 capture_output=True, text=True, timeout=12,
                 creationflags=subprocess.CREATE_NO_WINDOW,
-                shell=True
+                shell=True,
             )
             output = (r.stdout + r.stderr).lower()
             if r.returncode == 0 and ("logged in" in output or "authenticated" in output
@@ -572,10 +662,11 @@ class KBLiteInstaller(tk.Tk):
 
     def _do_start_auth(self):
         try:
+            claude_exe = self._claude_exe or "claude"
             subprocess.Popen(
-                ["claude", "auth", "login"],
+                [claude_exe, "auth", "login"],
                 creationflags=subprocess.CREATE_NO_WINDOW,
-                shell=True
+                shell=True,
             )
         except Exception as e:
             self.after(0, lambda: messagebox.showerror(
