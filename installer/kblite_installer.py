@@ -920,7 +920,11 @@ class KBLiteUninstaller(tk.Tk):
         self.protocol("WM_DELETE_WINDOW", self._on_close)
 
         self.current_page = 0
-        self.install_path = tk.StringVar(value=self._detect_install_path())
+        target = next(
+            (a.split("=", 1)[1] for a in sys.argv if a.startswith("--target=")),
+            None,
+        )
+        self.install_path = tk.StringVar(value=target or self._detect_install_path())
         self.keep_data = tk.BooleanVar(value=True)
         self._uninstall_done = False
 
@@ -1228,6 +1232,10 @@ class KBLiteUninstaller(tk.Tk):
             self._log("[5/5] インストールフォルダーを削除しています...")
             self._remove_install_folder(install_path)
 
+            # ---- Self-Relocation: TEMP側のコピーを後片付け ----
+            if "--relocated" in sys.argv:
+                self._schedule_temp_cleanup()
+
             # ---- 完了 ----
             self._set_progress(100, "アンインストール完了")
             self._log("")
@@ -1335,7 +1343,7 @@ class KBLiteUninstaller(tk.Tk):
 
     def _remove_install_folder(self, install_path: Path):
         """インストールフォルダーを削除する（data/ は keep_data に応じて保持）"""
-        # EXEとして実行中かつそのEXEがインストールフォルダー内にある場合は遅延削除
+        # Self-Relocation 済みなら inside_install は False になる（安全ガード）
         if getattr(sys, "frozen", False):
             exe_path = Path(sys.executable).resolve()
             try:
@@ -1347,33 +1355,27 @@ class KBLiteUninstaller(tk.Tk):
             inside_install = False
 
         if inside_install:
-            if self.keep_data.get():
-                self._log("  ※ EXEから実行しているためデータ保持は無効です（全削除します）")
-            self._log(f"  プロセス終了後にフォルダーを削除します: {install_path}")
+            self._log("  ※ Self-Relocation が効いていません（バッチ削除にフォールバック）")
             self._schedule_folder_deletion(install_path)
             return
 
         data_dir = install_path / "data"
 
         if self.keep_data.get() and data_dir.exists():
-            # data/ を一時退避 → フォルダー削除 → data/ を復元
-            import tempfile
             tmp_dir = Path(tempfile.mkdtemp(prefix="kblite_data_"))
             try:
                 self._log(f"  会話履歴データを一時保存: {tmp_dir}")
                 shutil.copytree(str(data_dir), str(tmp_dir / "data"))
 
-                try:
-                    shutil.rmtree(str(install_path))
-                    self._log(f"  フォルダー削除完了: {install_path}")
-                except Exception as e:
-                    self._log(f"  フォルダー削除失敗: {e}")
-                    raise
+                shutil.rmtree(str(install_path))
+                self._log(f"  フォルダー削除完了: {install_path}")
 
-                # データを元の場所に復元
                 install_path.mkdir(parents=True, exist_ok=True)
                 shutil.copytree(str(tmp_dir / "data"), str(data_dir))
                 self._log(f"  会話履歴データを復元: {data_dir}")
+            except Exception as e:
+                self._log(f"  フォルダー削除失敗: {e}")
+                raise
             finally:
                 shutil.rmtree(str(tmp_dir), ignore_errors=True)
         else:
@@ -1432,12 +1434,63 @@ class KBLiteUninstaller(tk.Tk):
         except Exception as e:
             self._log(f"  削除スケジュール失敗（手動削除が必要）: {e}")
 
+    def _schedule_temp_cleanup(self):
+        """Self-Relocation で使った TEMP コピーを後片付けする"""
+        if not getattr(sys, "frozen", False):
+            return
+        my_pid = os.getpid()
+        temp_dir = Path(sys.executable).resolve().parent
+        bat_content = (
+            "@echo off\n"
+            f"set PID={my_pid}\n"
+            f'set "TARGET={temp_dir}"\n'
+            ":wait\n"
+            'tasklist /FI "PID eq %PID%" 2>nul | find "%PID%" >nul\n'
+            "if not errorlevel 1 (\n"
+            "    timeout /t 2 /nobreak >nul\n"
+            "    goto wait\n"
+            ")\n"
+            "timeout /t 1 /nobreak >nul\n"
+            'rd /s /q "%TARGET%" 2>nul\n'
+            'del "%~f0"\n'
+        )
+        try:
+            with tempfile.NamedTemporaryFile(
+                suffix=".bat", delete=False, mode="w",
+                encoding="cp932", dir=tempfile.gettempdir(),
+            ) as f:
+                f.write(bat_content)
+            subprocess.Popen(
+                ["cmd", "/c", f.name],
+                creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NO_WINDOW,
+            )
+            self._log("  TEMP クリーンアップをスケジュールしました")
+        except Exception as e:
+            self._log(f"  TEMP クリーンアップスケジュール失敗: {e}")
+
 
 # ============================================================
 # エントリーポイント
 # ============================================================
 if __name__ == "__main__":
     if "--uninstall" in sys.argv:
+        # Self-Relocation: インストールフォルダ内のEXEから実行された場合、
+        # %TEMP% にコピーして再起動する（ファイルロック回避の業界標準手法）
+        if "--relocated" not in sys.argv and getattr(sys, "frozen", False):
+            exe_path = Path(sys.executable).resolve()
+            install_dir = str(exe_path.parent)
+            temp_dir = Path(tempfile.gettempdir()) / "kblite_uninstall"
+            temp_dir.mkdir(exist_ok=True)
+            temp_exe = temp_dir / exe_path.name
+            try:
+                shutil.copy2(str(exe_path), str(temp_exe))
+                subprocess.Popen([
+                    str(temp_exe), "--uninstall", "--relocated",
+                    f"--target={install_dir}",
+                ])
+                sys.exit(0)
+            except Exception:
+                pass  # コピー失敗時はそのまま通常起動
         app = KBLiteUninstaller()
     else:
         app = KBLiteInstaller()
