@@ -427,7 +427,7 @@ class KBLiteInstaller(tk.Tk):
             native_ok = False
 
             # Step 1: winget でネイティブインストール（最優先）
-            update_status("[1/2] Claude Code をインストール中（winget）...")
+            update_status("[1/3] Claude Code をインストール中（winget）...")
             winget_check = subprocess.run(
                 ["winget", "--version"],
                 capture_output=True, text=True, timeout=10,
@@ -451,11 +451,26 @@ class KBLiteInstaller(tk.Tk):
                 if self._locate_claude():
                     native_ok = True
 
+            # Step 2: PowerShell ネイティブインストーラー
             if not native_ok:
-                # Step 2: npm フォールバック
-                update_status("[2/2] npm 経由でインストールを試みています...")
+                update_status("[2/3] Claude Code をインストール中（PowerShell）...")
+                ps_result = subprocess.run(
+                    ["powershell", "-NoProfile", "-NonInteractive",
+                     "-ExecutionPolicy", "Bypass", "-Command",
+                     "irm https://claude.ai/install.ps1 | iex"],
+                    capture_output=True, text=True, timeout=300,
+                    creationflags=subprocess.CREATE_NO_WINDOW
+                )
+                if ps_result.returncode == 0:
+                    self._refresh_env_path()
+                    time.sleep(3)
+                    if self._locate_claude():
+                        native_ok = True
 
-                # npm の存在確認
+            # Step 3: npm フォールバック
+            if not native_ok:
+                update_status("[3/3] npm 経由でインストールを試みています...")
+
                 npm_check = subprocess.run(
                     "npm --version",
                     capture_output=True, text=True, timeout=10,
@@ -464,8 +479,7 @@ class KBLiteInstaller(tk.Tk):
                 )
 
                 if npm_check.returncode != 0:
-                    # Node.js がない → winget でインストール
-                    update_status("[2/2] Node.js をインストール中...")
+                    update_status("[3/3] Node.js をインストール中...")
                     if winget_check.returncode == 0:
                         node_result = subprocess.run([
                             "winget", "install", "--id", "OpenJS.NodeJS.LTS",
@@ -476,10 +490,9 @@ class KBLiteInstaller(tk.Tk):
                            creationflags=subprocess.CREATE_NO_WINDOW)
                         if node_result.returncode == 0:
                             self._refresh_env_path()
-                            # Node.js インストール後の PATH 反映を待つ
                             time.sleep(5)
 
-                update_status("[2/2] npm install -g @anthropic-ai/claude-code 実行中...")
+                update_status("[3/3] npm install -g @anthropic-ai/claude-code 実行中...")
                 npm_result = subprocess.run(
                     "npm install -g @anthropic-ai/claude-code",
                     capture_output=True, text=True, timeout=300,
@@ -489,15 +502,15 @@ class KBLiteInstaller(tk.Tk):
 
                 if npm_result.returncode == 0:
                     self._refresh_env_path()
-                    update_status("インストール完了。確認中...", "#27ae60")
-                    self.after(2000, self._check_claude_installed)
-                else:
-                    err = (npm_result.stderr or npm_result.stdout)[:300]
-                    update_status(f"インストール失敗: {err}", "#e74c3c")
-                    restore_button()
-            else:
+                    native_ok = True
+
+            if native_ok:
                 update_status("インストール完了。確認中...", "#27ae60")
-                self.after(1000, self._check_claude_installed)
+                self.after(2000, self._check_claude_installed)
+            else:
+                err = (npm_result.stderr or npm_result.stdout or "")[:300]
+                update_status(f"インストール失敗: {err}", "#e74c3c")
+                restore_button()
 
         except subprocess.TimeoutExpired:
             update_status("インストールがタイムアウトしました。再試行してください。", "#e74c3c")
