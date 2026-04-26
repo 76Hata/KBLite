@@ -413,6 +413,8 @@ class KBLiteInstaller(tk.Tk):
         threading.Thread(target=self._do_install_claude, daemon=True).start()
 
     def _do_install_claude(self):
+        import time
+
         def update_status(text, color="#e67e22"):
             self.after(0, lambda t=text, c=color: self._lbl_install_status.configure(
                 text=t, fg=c))
@@ -422,43 +424,76 @@ class KBLiteInstaller(tk.Tk):
                 state="normal", text="Claude Code をインストールする"))
 
         try:
-            # winget の存在確認
-            r = subprocess.run(
-                ["winget", "--version"],
-                capture_output=True, text=True, timeout=10,
-                creationflags=subprocess.CREATE_NO_WINDOW
+            native_ok = False
+
+            # Step 1: ネイティブインストール（PowerShell irm）
+            update_status("[1/2] Claude Code をインストール中（ネイティブ）...")
+            ps_cmd = (
+                "Set-ExecutionPolicy Bypass -Scope Process -Force; "
+                "irm https://claude.ai/install.ps1 | iex"
             )
-            has_winget = (r.returncode == 0)
-
-            if has_winget:
-                # Step 1: Git for Windows（Claude Code の Bash 実行に必要）
-                update_status("[1/2] Git for Windows をインストール中...")
-                subprocess.run([
-                    "winget", "install", "--id", "Git.Git",
-                    "--silent",
-                    "--accept-package-agreements",
-                    "--accept-source-agreements",
-                ], capture_output=True, timeout=300,
-                   creationflags=subprocess.CREATE_NO_WINDOW)
-
-            # Step 2: Claude Code（PowerShell ネイティブインストーラー）
-            step_label = "[2/2]" if has_winget else "[1/1]"
-            update_status(f"{step_label} Claude Code をインストール中（PowerShell）...")
             result = subprocess.run(
-                ["powershell", "-NoProfile", "-NonInteractive", "-Command",
-                 "irm https://claude.ai/install.ps1 | iex"],
+                ["powershell", "-NoProfile", "-NonInteractive", "-Command", ps_cmd],
                 capture_output=True, text=True, timeout=300,
                 creationflags=subprocess.CREATE_NO_WINDOW
             )
 
             if result.returncode == 0:
                 self._refresh_env_path()
-                update_status("インストール完了。確認中...", "#27ae60")
-                self.after(800, self._check_claude_installed)
+                # インストーラーが非同期で完了する場合があるため少し待つ
+                time.sleep(3)
+                if self._locate_claude():
+                    native_ok = True
+
+            if not native_ok:
+                # Step 2: npm フォールバック
+                update_status("[2/2] npm 経由でインストールを試みています...")
+
+                # npm の存在確認
+                npm_check = subprocess.run(
+                    "npm --version",
+                    capture_output=True, text=True, timeout=10,
+                    creationflags=subprocess.CREATE_NO_WINDOW,
+                    shell=True
+                )
+
+                if npm_check.returncode != 0:
+                    # Node.js がない → winget でインストール
+                    update_status("[2/2] Node.js をインストール中...")
+                    winget_check = subprocess.run(
+                        ["winget", "--version"],
+                        capture_output=True, text=True, timeout=10,
+                        creationflags=subprocess.CREATE_NO_WINDOW
+                    )
+                    if winget_check.returncode == 0:
+                        subprocess.run([
+                            "winget", "install", "--id", "OpenJS.NodeJS.LTS",
+                            "--silent",
+                            "--accept-package-agreements",
+                            "--accept-source-agreements",
+                        ], capture_output=True, timeout=300,
+                           creationflags=subprocess.CREATE_NO_WINDOW)
+                        self._refresh_env_path()
+
+                update_status("[2/2] npm install -g @anthropic-ai/claude-code 実行中...")
+                npm_result = subprocess.run(
+                    "npm install -g @anthropic-ai/claude-code",
+                    capture_output=True, text=True, timeout=300,
+                    creationflags=subprocess.CREATE_NO_WINDOW,
+                    shell=True
+                )
+
+                if npm_result.returncode == 0:
+                    self._refresh_env_path()
+                    update_status("インストール完了。確認中...", "#27ae60")
+                    self.after(2000, self._check_claude_installed)
+                else:
+                    err = (npm_result.stderr or npm_result.stdout)[:300]
+                    update_status(f"インストール失敗: {err}", "#e74c3c")
+                    restore_button()
             else:
-                err = (result.stderr or result.stdout)[:300]
-                update_status(f"インストール失敗: {err}", "#e74c3c")
-                restore_button()
+                update_status("インストール完了。確認中...", "#27ae60")
+                self.after(1000, self._check_claude_installed)
 
         except subprocess.TimeoutExpired:
             update_status("インストールがタイムアウトしました。再試行してください。", "#e74c3c")
