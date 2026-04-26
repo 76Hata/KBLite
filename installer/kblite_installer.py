@@ -696,6 +696,8 @@ class KBLiteInstaller(tk.Tk):
             winreg.SetValueEx(key, "InstallLocation",   0, winreg.REG_SZ, str(install_path))
             winreg.SetValueEx(key, "UninstallString",   0, winreg.REG_SZ, uninstall_cmd)
             winreg.SetValueEx(key, "QuietUninstallString", 0, winreg.REG_SZ, uninstall_cmd)
+            icon_path = str(install_path / "kblite.ico")
+            winreg.SetValueEx(key, "DisplayIcon",       0, winreg.REG_SZ, icon_path)
             winreg.SetValueEx(key, "NoModify",          0, winreg.REG_DWORD, 1)
             winreg.SetValueEx(key, "NoRepair",          0, winreg.REG_DWORD, 1)
             winreg.CloseKey(key)
