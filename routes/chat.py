@@ -821,7 +821,9 @@ async def _run_claude_task(
                     # not logged in チェック（JSON パース前 — JSONイベント行は除外して誤検知防止）
                     _line_lower = line.lower()
                     _is_json_line = line.startswith("{") or line.startswith("[")
-                    if not _is_json_line and ("not logged in" in _line_lower or "please run /login" in _line_lower):
+                    if not _is_json_line and (
+                        "not logged in" in _line_lower or "please run /login" in _line_lower
+                    ):
                         state.status = "error"
                         state.error = "認証エラー"
                         _persist_task_result(task_id, "error", "", state.error)
