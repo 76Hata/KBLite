@@ -4,19 +4,22 @@
 
 ※ 利用は自己責任でお願いします。本アプリを利用して生じたいかなる損害も当方は一切関知致しません。
 
-# KBLite — Claude Codeを、ブラウザで。
+# KBLite — 会話を失わないClaude Code。
 
 > All conversations stay on your machine. No external transmission.
 > KBlite内でのすべての会話はあなたのPC内に保存されます。外部への送信は一切ありません。
+
+[English README is here / 英語版READMEはこちら](README.en.md)
 
 ---
 
 ## これは何？
 
-KBLiteは **Claude Codeの出力をブラウザで表示する軽量UIツール** です。
+KBLiteは **Claude Codeの全会話をローカルに自動記録・検索・分岐できる軽量ブラウザUI** です。
 
-ターミナル（黒い画面）を使わずに、ブラウザ上でClaude Codeと対話できます。
-しかも **会話を自動で記録・記憶する機能** を内蔵しているため、ChatGPTのように「毎回ゼロから説明し直す」必要がありません。
+公式のターミナル・Web版はセッションが終われば文脈が消えますが、KBLiteは全会話をあなたのPC内のSQLiteに残します。
+過去の会話をIDで呼び出して続きから再開したり、文脈を引き継いだまま別の話題に分岐（fork）したり、全会話を全文検索したりできます。
+ターミナル（黒い画面）も不要。「毎回ゼロから説明し直す」必要はもうありません。
 
 ## 誰のためのツール？
 
